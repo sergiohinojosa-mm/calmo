@@ -1,0 +1,112 @@
+import { esc, icon, toast, askConfirm } from '../ui.js';
+import { AMBIENTS } from '../catalog.js';
+
+export default {
+  tab: 'perfil',
+  render(ctx) {
+    const { store } = ctx;
+    const p = ctx.profile;
+    const pr = store.prefs();
+    const adult = p.kind === 'adulto';
+    return `<div class="top"><a class="icon-btn" href="#/perfil" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Ajustes</h1></div>
+
+      <p class="label">Durante la sesión</p>
+      <div class="card" style="padding:6px 16px">
+        <div class="between list-row"><span><span style="display:block">Tono en cada fase</span><span class="muted">Un sonido distinto al inhalar, retener y exhalar</span></span>
+          <button class="switch" role="switch" aria-checked="${!!pr.tones}" aria-label="Tono en cada fase" data-toggle="tones"><span></span></button></div>
+        <label class="row list-row" style="font-size:15px"><span style="width:110px;color:var(--text2)">Música</span><input type="range" min="0" max="100" value="${pr.music}" data-pref="music" aria-label="Volumen de música"></label>
+        <label class="row list-row" style="font-size:15px"><span style="width:110px;color:var(--text2)">Tonos</span><input type="range" min="0" max="100" value="${pr.tonesVol}" data-pref="tonesVol" aria-label="Volumen de tonos"></label>
+      </div>
+
+      <p class="label">Ambiente por defecto</p>
+      <div class="grid2">${AMBIENTS.map((a) => `<button class="tile" data-amb="${a.id}" aria-pressed="${pr.ambient === a.id}" style="text-align:left;color:var(--text);border:1px solid ${pr.ambient === a.id ? 'var(--sage)' : 'var(--line)'};background:${pr.ambient === a.id ? 'rgba(156,197,161,0.14)' : 'var(--low)'}">
+        ${icon(a.icon, 20)}<span style="display:block;margin-top:8px;font-weight:600;font-size:14px">${esc(a.label)}</span></button>`).join('')}</div>
+
+      ${adult ? `<p class="label">PIN de ${esc(p.name)}</p>
+      <div class="card" id="pinCard">
+        <p class="sub" style="margin:0">${store.hasPin(p.id) ? 'Tu perfil está protegido con PIN.' : 'Sin PIN: cualquiera puede volver a tu perfil.'} El PIN se pide al regresar de un perfil de niña.</p>
+        <div class="row" style="margin-top:12px">
+          <button class="btn small" id="pinSet">${icon('lock', 16)} ${store.hasPin(p.id) ? 'Cambiar PIN' : 'Crear PIN'}</button>
+          ${store.hasPin(p.id) ? '<button class="btn small" id="pinClear">Quitar PIN</button>' : ''}
+        </div>
+        <div id="pinPad"></div>
+      </div>` : ''}
+
+      ${adult ? `<p class="label">Cuenta</p>
+      <div class="card" style="padding:6px 16px">
+        <a class="list-row" href="#/usuarios">${icon('lock', 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1"><span style="display:block">Cuenta y usuarios</span><span class="muted">Contraseña, quién puede entrar y cerrar sesión</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
+      </div>` : ''}
+
+      ${adult && p.admin ? `<p class="label">Familia</p>
+      <div class="card" style="padding:6px 16px">
+        <a class="list-row" href="#/perfiles">${icon('users', 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1"><span style="display:block">Perfiles de la familia</span><span class="muted">Agregar, renombrar o quitar</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
+      </div>
+
+      <p class="label">Datos</p>
+      <div class="card" style="padding:6px 16px">
+        <button class="list-row" id="export" style="width:100%;background:none;border:none;border-bottom:1px solid var(--line);text-align:left">${icon('download', 20, 'style="color:var(--text2)"')}<span style="flex:1">Exportar mis datos</span></button>
+        <button class="list-row" id="reset" style="width:100%;background:none;border:none;text-align:left;color:var(--brasa)">${icon('trash', 20)}<span style="flex:1">Borrar todo y empezar de nuevo</span></button>
+      </div>
+      <p class="muted" style="margin-top:10px">Los datos viven en este teléfono. Pronto se sincronizarán con la hoja de la familia en Google Drive.</p>` : ''}`;
+  },
+  mount(root, ctx) {
+    const { store, rerender } = ctx;
+    const p = ctx.profile;
+    root.querySelectorAll('[data-toggle]').forEach((el) => el.addEventListener('click', () => {
+      const v = !store.prefs()[el.dataset.toggle];
+      store.setPref(el.dataset.toggle, v);
+      el.setAttribute('aria-checked', String(v));
+    }));
+    root.querySelectorAll('[data-pref]').forEach((el) => el.addEventListener('change', () => store.setPref(el.dataset.pref, Number(el.value))));
+    root.querySelectorAll('[data-amb]').forEach((el) => el.addEventListener('click', () => { store.setPref('ambient', el.dataset.amb); rerender(); }));
+
+    const pad = root.querySelector('#pinPad');
+    let digits = '';
+    const drawPad = () => {
+      pad.innerHTML = `<p class="sub" style="text-align:center;margin-top:16px">Escribe un PIN de 4 números</p>
+        <div class="row" style="justify-content:center;gap:14px;margin:10px 0 14px" aria-live="polite" aria-label="${digits.length} de 4 números">
+          ${[0, 1, 2, 3].map((i) => `<span style="width:16px;height:16px;border-radius:50%;${i < digits.length ? 'background:var(--sage)' : 'border:2px solid var(--line2)'}"></span>`).join('')}</div>
+        <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button data-k="${n}">${n}</button>`).join('')}<span aria-hidden="true"></span><button data-k="0">0</button><button data-k="del" aria-label="Borrar">⌫</button></div>`;
+      pad.querySelectorAll('[data-k]').forEach((b) => b.addEventListener('click', () => {
+        if (b.dataset.k === 'del') digits = digits.slice(0, -1);
+        else if (digits.length < 4) digits += b.dataset.k;
+        if (digits.length === 4) {
+          store.setPin(p.id, digits);
+          toast('PIN guardado');
+          rerender();
+          return;
+        }
+        drawPad();
+      }));
+    };
+    root.querySelector('#pinSet')?.addEventListener('click', () => { digits = ''; drawPad(); });
+    root.querySelector('#pinClear')?.addEventListener('click', () => {
+      askConfirm('¿Quitar el PIN de tu perfil?', { ok: 'Quitar PIN' }).then((ok) => { if (ok) { store.clearPin(p.id); rerender(); } });
+    });
+
+    root.querySelector('#export')?.addEventListener('click', async () => {
+      const dl = window.claude?.use ? await window.claude.use('downloads') : null;
+      if (dl) {
+        try { await dl.save({ filename: 'calmo-datos.json', data: store.exportJSON() }); toast('Datos exportados'); }
+        catch (e) { if (e?.code !== 'declined') toast('No se pudo exportar ahora'); }
+        return;
+      }
+      const url = URL.createObjectURL(new Blob([store.exportJSON()], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'calmo-datos.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    root.querySelector('#reset')?.addEventListener('click', () => {
+      askConfirm('Se borrarán todas las sesiones, mediciones y rutinas. ¿Continuar?', { ok: 'Borrar todo' }).then((ok) => {
+        if (!ok) return;
+        store.resetAll();
+        toast('Listo, empezamos de nuevo');
+        location.hash = '#/inicio';
+      });
+    });
+  },
+};
