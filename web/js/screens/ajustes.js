@@ -40,7 +40,7 @@ export default {
 
       ${adult && p.admin ? `<p class="label">Familia</p>
       <div class="card" style="padding:6px 16px">
-        <a class="list-row" href="#/perfiles">${icon('users', 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1"><span style="display:block">Perfiles de la familia</span><span class="muted">Agregar, renombrar o quitar</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
+        <a class="list-row" href="#/perfiles?de=ajustes">${icon('users', 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1"><span style="display:block">Perfiles de la familia</span><span class="muted">Agregar, renombrar o quitar</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
       </div>
 
       <p class="label">Datos</p>

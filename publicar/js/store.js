@@ -471,7 +471,7 @@ export function removeProfile(id) {
   const adults = state.profiles.filter((x) => x.kind === 'adulto');
   if (!p || (p.kind === 'adulto' && adults.length <= 1)) return false;
   state.profiles = state.profiles.filter((x) => x.id !== id);
-  ['routines', 'sessions', 'bolt', 'steps', 'ledger'].forEach((k) => { state[k] = state[k].filter((x) => x.profile !== id); });
+  ['routines', 'sessions', 'bolt', 'steps', 'ledger', 'redemptions'].forEach((k) => { state[k] = (state[k] || []).filter((x) => x.profile !== id); });
   delete state.goals[id];
   delete state.badges[id];
   if (state.current === id) state.current = (state.profiles.find((x) => x.kind === 'adulto') || state.profiles[0]).id;

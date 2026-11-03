@@ -17,12 +17,12 @@ function adminRow(on, kind) {
 }
 
 export default {
-  tab: 'perfil',
+  tab: 'familia',
   render(ctx) {
     const { store } = ctx;
     const me = ctx.profile;
     if (me.kind !== 'adulto' || !me.admin) {
-      return `<div class="top"><a class="icon-btn" href="#/perfil" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Perfiles</h1></div>
+      return `<div class="top"><a class="icon-btn" href="#/familia" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Perfiles</h1></div>
         <p class="sub">Solo papá o mamá pueden cambiar los perfiles.</p>`;
     }
     const list = store.profiles().map((p) => `<form class="card stack" data-id="${esc(p.id)}" novalidate>
@@ -39,11 +39,12 @@ export default {
         <button class="btn small" type="submit">Guardar cambios</button>
       </form>`).join('');
 
-    return `<div class="top"><a class="icon-btn" href="#/ajustes" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Perfiles</h1></div>
+    const back = ctx.query.get('de') === 'ajustes' ? '#/ajustes' : '#/familia';
+    return `<div class="top"><a class="icon-btn" href="${back}" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Familia</h1></div>
       <p class="sub" style="margin-top:0">Quién respira en este teléfono. Las niñas no necesitan cuenta propia.</p>
       <div class="stack" style="margin-top:16px">${list}</div>
 
-      <p class="label">Agregar a alguien</p>
+      <p class="label" id="nuevo">Agregar a alguien</p>
       <form class="card stack" id="add" novalidate>
         <div class="grid2">
           <label class="stack" style="gap:6px"><span class="muted">Nombre</span><input class="field" name="name" maxlength="24" placeholder="Nombre" required></label>
@@ -83,6 +84,10 @@ export default {
 
     // Sugerir el tipo al escribir la edad en el alta.
     const add = root.querySelector('#add');
+    if (ctx.query.get('nuevo') && add) {
+      root.querySelector('#nuevo').scrollIntoView({ block: 'start' });
+      add.elements.namedItem('name').focus({ preventScroll: true });
+    }
     add?.elements.namedItem('age').addEventListener('input', (e) => {
       const k = store.kindForAge(e.target.value);
       if (k) pick(add.querySelector('[data-seg]'), k);
@@ -139,7 +144,7 @@ export default {
       const kind = kindOf(add, store.kindForAge(age) || 'junior');
       const p = store.addProfile({ name, kind, age, admin: adminOf(add, kind) ?? false });
       toast(`Listo: ${p.name} ya puede respirar en este teléfono`);
-      rerender();
+      if (ctx.query.get('nuevo')) ctx.go('familia'); else rerender();
     });
   },
 };
