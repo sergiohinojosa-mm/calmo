@@ -108,6 +108,8 @@ export default {
       </div>
       ${grid}
       <p class="muted" style="margin-top:18px;text-align:center">1 hoja por minuto · +5 si cumples tu rutina · +3 por ${kid ? 'reto del aire' : 'BOLT'} o pasos · +5 por serie · +10 por insignia</p>
-      <div class="tile row" style="margin-top:14px">${icon('gift', 20, 'style="color:var(--arena);flex:none"')}<span class="sub" style="margin:0">Pronto: premios de la familia para cambiar tus hojas.</span></div>`;
+      <a class="card row" href="${kid ? '#/premios' : '#/premiosadmin'}" style="margin-top:14px;color:inherit;text-decoration:none">${icon('gift', 24, 'style="color:var(--arena);flex:none"')}
+        <span style="flex:1"><span style="display:block;font-weight:600">${kid ? 'Mis premios' : 'Premios de la familia'}</span>
+        <span class="muted">${kid ? `${store.rewardBalance(p.id)} hojas para cambiar por premios` : 'Aprobar lo que piden las niñas y cambiar la lista'}</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>`;
   },
 };

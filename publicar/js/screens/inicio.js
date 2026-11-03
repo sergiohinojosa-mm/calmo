@@ -72,9 +72,12 @@ function adult(ctx) {
   const week = store.last7(p.id);
   const tip = TIPS[new Date().getDate() % TIPS.length];
   const href = `#/configurar/${ex.id}?min=${min}${pending ? `&rutina=${pending.routine.id}` : ''}`;
+  const asks = store.pendingRedemptions().length;
   return `${hero(p)}
   <div class="after-hero stack">
     ${installCard()}
+    ${asks ? `<a class="card row" href="#/premiosadmin" style="color:inherit;text-decoration:none;border:1px solid rgba(226,204,148,0.35)">${icon('gift', 22, 'style="color:var(--arena);flex:none"')}
+      <span style="flex:1;font-weight:600">${asks === 1 ? '1 premio por aprobar' : `${asks} premios por aprobar`}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>` : ''}
     <div class="card">
       <div class="between">
         ${pending ? `<span class="chip arena">${icon('repeat', 14)} ${esc(pending.title)} · ${esc(pending.time)}</span>` : '<span class="chip sage">Sugerida para hoy</span>'}
@@ -128,6 +131,8 @@ function junior(ctx) {
     ${next ? `<a class="card row" href="#/logros" style="color:inherit;text-decoration:none">
       <span style="width:48px;height:48px;border-radius:50%;background:rgba(226,204,148,0.14);color:var(--arena);display:flex;align-items:center;justify-content:center;flex:none">${icon('star', 24)}</span>
       <span style="flex:1"><span style="display:block;font-weight:600">Siguiente insignia: ${esc(next.name)}</span><span class="muted">${esc(next.kidDesc || next.desc)} · vas en ${next.current} de ${next.target}</span><span style="display:block;margin-top:8px">${bar((next.current / next.target) * 100, 'var(--arena)')}</span></span></a>` : ''}
+    <a class="card row" href="#/premios" style="color:inherit;text-decoration:none">${icon('gift', 24, 'style="color:var(--arena);flex:none"')}
+      <span style="flex:1"><span style="display:block;font-weight:600">Mis premios</span><span class="muted">${store.rewardBalance(p.id)} hojas para cambiar</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
     <a class="btn block" href="#/catalogo">Otros ejercicios</a>
   </div>`;
 }
@@ -165,6 +170,10 @@ function peque(ctx) {
         <span style="width:72px;height:72px;flex:none;border-radius:50%;background:#16231C;color:var(--arena);display:flex;align-items:center;justify-content:center">${icon('timer', 34)}</span>
         <span style="flex:1"><span class="serif" style="display:block;font-size:24px">Reto del aire</span><span class="sub" style="display:block">Con mamá o papá</span></span>
         ${icon('play', 26, 'style="color:var(--sage)"')}</a>
+      <a href="#/premios" class="card row" style="min-height:110px;color:inherit;text-decoration:none;gap:16px">
+        <span style="width:72px;height:72px;flex:none;border-radius:50%;background:#16231C;color:var(--arena);display:flex;align-items:center;justify-content:center">${icon('gift', 34)}</span>
+        <span style="flex:1"><span class="serif" style="display:block;font-size:24px">Mis premios</span><span class="sub" style="display:block">${store.rewardBalance(p.id)} hojas</span></span>
+        ${icon('chev', 26, 'style="color:var(--sage)"')}</a>
     </div>
     <a href="#/cambiar" class="btn block" style="margin-top:24px">${icon('lock', 18)} Volver a papá o mamá</a>
   </div>`;
