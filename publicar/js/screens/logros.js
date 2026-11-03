@@ -13,14 +13,24 @@ const BADGE_LOOK = {
   caminante: ['steps', '#B9DEC3'],
   aire20: ['timer', '#E9DFC4'],
   mes: ['flame', '#E9B27D'],
+  despejada: ['despejada', '#B9DEC3'],
+  equipo: ['users', '#E2CC94'],
+};
+
+// Dibujos propios para las insignias que no tienen un ícono que las cuente bien.
+const ART = {
+  // Nariz de perfil con el aire que pasa libre.
+  despejada: '<path d="M9 3c.6 4.2-3.6 8-3.6 11.6A3.4 3.4 0 0 0 8.8 18H11"/><path d="M14 8h4.5M14 12h7M14 16h5"/>',
 };
 
 // Medallón redondo de una insignia: a color si está ganada, atenuado si no.
 export function medallion(b, size = 64) {
   const [ic, color] = BADGE_LOOK[b.id] || ['star', '#E2CC94'];
   const on = b.earned;
+  const size2 = Math.round(size * 0.45);
+  const art = ART[ic] ? `<svg width="${size2}" height="${size2}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ART[ic]}</svg>` : icon(ic, size2);
   return `<span aria-hidden="true" style="width:${size}px;height:${size}px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex:none;
-    background:${on ? '#2A4033' : '#16231C'};border:3px solid ${on ? color : 'rgba(238,243,236,0.10)'};color:${on ? color : '#5E6E63'}">${icon(ic, Math.round(size * 0.45))}</span>`;
+    background:${on ? '#2A4033' : '#16231C'};border:3px solid ${on ? color : 'rgba(238,243,236,0.10)'};color:${on ? color : '#5E6E63'}">${art}</span>`;
 }
 
 // Planta que crece con cada nivel.
@@ -93,11 +103,11 @@ export default {
       <p class="label">Tu jardín de la semana</p>
       <div class="row" style="gap:6px">${garden}</div>
       <div class="seg" role="group" aria-label="Insignias" style="margin-top:22px">
-        <a href="#/logros?v=ganadas" aria-pressed="${v === 'ganadas'}">Ganadas · ${earned.length}</a>
-        <a href="#/logros?v=porganar" aria-pressed="${v === 'porganar'}">Por ganar · ${locked.length}</a>
+        <a href="#/logros?v=ganadas" ${v === 'ganadas' ? 'aria-current="page"' : ''}>Ganadas · ${earned.length}</a>
+        <a href="#/logros?v=porganar" ${v === 'porganar' ? 'aria-current="page"' : ''}>Por ganar · ${locked.length}</a>
       </div>
       ${grid}
-      <p class="muted" style="margin-top:18px;text-align:center">1 hoja por minuto · +5 si cumples tu rutina · +10 por insignia</p>
+      <p class="muted" style="margin-top:18px;text-align:center">1 hoja por minuto · +5 si cumples tu rutina · +3 por ${kid ? 'reto del aire' : 'BOLT'} o pasos · +5 por serie · +10 por insignia</p>
       <div class="tile row" style="margin-top:14px">${icon('gift', 20, 'style="color:var(--arena);flex:none"')}<span class="sub" style="margin:0">Pronto: premios de la familia para cambiar tus hojas.</span></div>`;
   },
 };

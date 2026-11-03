@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Sesión en curso</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+@keyframes calmo-drift{to{transform:rotate(360deg)}}
+.calmo-drift{animation:calmo-drift 60s linear infinite}
+.calmo-drift-rev{animation:calmo-drift 90s linear infinite reverse}
+@media (prefers-reduced-motion: reduce){.calmo-drift,.calmo-drift-rev{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0C1410; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; justify-content: space-between;">
+    <a href="Resumen.dc.html" aria-label="Terminar y guardar la sesión" style="width: 44px; height: 44px; border-radius: 50%; background: rgba(238,243,236,0.06); display: flex; align-items: center; justify-content: center; color: #A9B8AC;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+    </a>
+    <div style="text-align: center;">
+      <p style="margin: 0; font-size: 14px; font-weight: 500;">Respiración coherente</p>
+      <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">Bosque al amanecer</p>
+    </div>
+    <button onClick="{{toggleSound}}" aria-label="Ajustar sonido" aria-expanded="{{soundExpanded}}" style="width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(238,243,236,0.06); display: flex; align-items: center; justify-content: center; color: #A9B8AC;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="17" cy="16" r="3"></circle></svg>
+    </button>
+  </div>
+
+  <sc-if value="{{soundOpen}}" hint-placeholder-val="{{false}}">
+    <div role="group" aria-label="Volumen" style="position: absolute; top: 108px; left: 20px; right: 20px; z-index: 3; background: #1C2B23; border: 1px solid rgba(238,243,236,0.08); border-radius: 20px; padding: 6px 16px;">
+      <label style="display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; color: #A9B8AC;">Música <input type="range" min="0" max="100" value="60" style="accent-color: #9CC5A1; width: 100%; height: 44px; margin: 0;"></label>
+      <label style="display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; color: #A9B8AC;">Naturaleza <input type="range" min="0" max="100" value="45" style="accent-color: #9CC5A1; width: 100%; height: 44px; margin: 0;"></label>
+      <label style="display: grid; grid-template-columns: 92px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; color: #A9B8AC;">Tonos <input type="range" min="0" max="100" value="80" style="accent-color: #9CC5A1; width: 100%; height: 44px; margin: 0;"></label>
+    </div>
+  </sc-if>
+
+  <div style="position: absolute; top: 150px; left: 0; right: 0; height: 360px; display: flex; align-items: center; justify-content: center;">
+    <div class="calmo-drift-rev" style="position: absolute; width: 340px; height: 340px; border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%; background: rgba(156,197,161,0.04);"></div>
+    <div class="calmo-drift" style="position: absolute; width: 290px; height: 290px; border-radius: 52% 48% 45% 55% / 48% 55% 45% 52%; background: rgba(156,197,161,0.07); border: 1px solid rgba(185,222,195,0.10);"></div>
+    <div style="{{circleStyle}}"></div>
+    <div style="position: relative; text-align: center;">
+      <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 30px;">{{phaseLabel}}</p>
+      <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 44px; color: {{phaseColor}}; font-variant-numeric: tabular-nums;">{{count}}</p>
+      <p style="margin: 2px 0 0; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #A9B8AC;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7"></path></svg>
+        por la nariz
+      </p>
+    </div>
+  </div>
+
+  <p style="position: absolute; top: 540px; left: 40px; right: 40px; margin: 0; text-align: center; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-style: italic; font-size: 17px; line-height: 1.5; color: #C9D6CB;">{{hint}}</p>
+
+  <div style="position: absolute; top: 626px; left: 40px; right: 40px;">
+    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #8A9B8F; font-variant-numeric: tabular-nums;">
+      <span>{{remaining}} restantes</span>
+      <span>Respiración {{cycle}}</span>
+    </div>
+    <div style="margin-top: 8px; height: 3px; border-radius: 3px; background: rgba(238,243,236,0.08);">
+      <div style="{{progressStyle}}"></div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 56px; display: flex; align-items: center; justify-content: center; gap: 28px;">
+    <a href="Resumen.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.12); display: flex; align-items: center; color: #A9B8AC; font-size: 14px; text-decoration: none;">Terminar</a>
+    <button onClick="{{togglePause}}" aria-label="{{pauseLabel}}" style="width: 72px; height: 72px; border-radius: 50%; border: none; background: #9CC5A1; color: #0F1A14; display: flex; align-items: center; justify-content: center;">
+      <sc-if value="{{paused}}" hint-placeholder-val="{{false}}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+      </sc-if>
+      <sc-if value="{{running}}" hint-placeholder-val="{{true}}">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 5v14M15 5v14"></path></svg>
+      </sc-if>
+    </button>
+    <button onClick="{{toggleDim}}" aria-pressed="{{dimPressed}}" style="height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.12); background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; position: relative; z-index: 3;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"></path></svg>{{dimLabel}}</button>
+  </div>
+  <sc-if value="{{dim}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.55); pointer-events: none; z-index: 2;"></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this.setState({ t: 0, paused: false, started: false });
+    this.kick = setTimeout(() => this.setState({ started: true }), 60);
+    this.start();
+  }
+  componentWillUnmount() {
+    clearInterval(this.iv);
+    clearTimeout(this.kick);
+  }
+  start() {
+    clearInterval(this.iv);
+    this.iv = setInterval(() => this.setState({ t: ((this.state && this.state.t) || 0) + 1 }), 500);
+  }
+  renderVals() {
+    const st = this.state || {};
+    const t = st.t || 0;
+    const paused = !!st.paused;
+    const half = 11;
+    const inhale = Math.floor(t / half) % 2 === 0;
+    const inPhase = t % half;
+    const count = Math.min(5, Math.floor(inPhase / 2) + 1);
+    const total = 600;
+    const left = Math.max(0, 468 - Math.floor(t / 2));
+    const mm = String(Math.floor(left / 60)).padStart(2, '0');
+    const ss = String(left % 60).padStart(2, '0');
+    const big = st.started && inhale;
+    const hints = ['Deja que se mueva el abdomen, no el pecho.', 'Inhala suave, sin llenar del todo.', 'Exhala sin prisa, como una brisa.', 'Hombros sueltos, mandíbula relajada.'];
+    const hint = hints[Math.floor(t / 44) % hints.length];
+    const done = Math.round(((total - left) / total) * 100);
+    return {
+      phaseLabel: inhale ? 'Inhala' : 'Exhala',
+      phaseColor: inhale ? '#B9DEC3' : '#6FA58A',
+      count,
+      hint,
+      remaining: mm + ':' + ss,
+      cycle: 12 + Math.floor(t / 22),
+      paused,
+      running: !paused,
+      pauseLabel: paused ? 'Reanudar' : 'Pausar',
+      circleStyle: 'position: absolute; width: 230px; height: 230px; border-radius: 50%; background: ' + (inhale ? 'rgba(185,222,195,0.20)' : 'rgba(111,165,138,0.18)') + '; border: 1.5px solid ' + (inhale ? 'rgba(185,222,195,0.55)' : 'rgba(111,165,138,0.55)') + '; transform: scale(' + (big ? 1 : 0.72) + '); transition: transform 5.5s cubic-bezier(.45,0,.55,1), background 1.2s ease, border-color 1.2s ease;',
+      progressStyle: 'height: 3px; border-radius: 3px; background: #9CC5A1; width: ' + done + '%;',
+      soundOpen: !!st.sound,
+      soundExpanded: st.sound ? 'true' : 'false',
+      toggleSound: () => this.setState({ sound: !st.sound }),
+      dim: !!st.dim,
+      dimPressed: st.dim ? 'true' : 'false',
+      dimLabel: st.dim ? 'Subir luz' : 'Bajar luz',
+      toggleDim: () => this.setState({ dim: !st.dim }),
+      togglePause: () => {
+        if (paused) { this.setState({ paused: false }); this.start(); }
+        else { clearInterval(this.iv); this.setState({ paused: true }); }
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { esc, icon, bar, confetti } from '../ui.js';
+import { esc, icon, bar, confetti, dayKey } from '../ui.js';
 import { byId, nameFor } from '../catalog.js';
 
 function last() {
@@ -24,15 +24,19 @@ export default {
     const lv = store.level(p.id);
     const earned = (r.newBadges || []).map((id) => store.BADGES.find((b) => b.id === id)).filter(Boolean);
     const leaves = r.minutePoints + r.plannedPoints + earned.length * 10;
-    const mins = Math.max(1, Math.round(r.durationSec / 60));
+    // Mismo redondeo que las hojas: 1 hoja por minuto completo (mínimo 1).
+    const mins = Math.max(1, Math.floor(r.durationSec / 60));
     const g = store.goals(p.id);
     const week = store.last7(p.id);
 
     if (kind === 'peque') {
+      // La estrella es una por día: si hoy ya había respirado, no se suma otra.
+      const today = dayKey();
+      const firstToday = !store.sessions(p.id).some((s) => s.day === today && s.id !== r.sessionId);
       return `<div style="text-align:center;padding-top:40px">
         <svg width="160" height="160" viewBox="0 0 24 24" class="pop" aria-hidden="true" style="margin:0 auto"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z" fill="#E2CC94"/></svg>
         <h1 class="h1" style="font-size:36px;margin-top:16px">¡Lo hiciste muy bien, ${esc(p.name)}!</h1>
-        <p class="sub" style="font-size:18px">+1 estrella esta semana</p>
+        <p class="sub" style="font-size:18px">${firstToday ? '+1 estrella esta semana' : '¡Tu estrella de hoy brilla más!'}</p>
         <a class="btn primary block" href="#/inicio" style="margin-top:32px;min-height:64px;font-size:20px">¡Listo!</a>
       </div>`;
     }
@@ -48,7 +52,7 @@ export default {
       <span class="chip arena">${icon('star', 14)} ¡Nueva insignia!</span>
       <p class="h2" style="margin-top:10px">${esc(b.name)}</p><p class="sub">${esc(kind === 'adulto' ? b.desc : (b.kidDesc || b.desc))}</p></div>`).join('')}
     <div class="card" style="margin-top:18px">
-      <span class="row" style="gap:8px;font-size:20px;font-weight:600;color:var(--hoja)">${icon('leaf', 22)} +${leaves} ${leaves === 1 ? "hoja" : "hojas"}</span><p class="muted" style="margin:4px 0 0">${r.minutePoints} por minutos${r.plannedPoints ? ` · +${r.plannedPoints} rutina` : ''}${earned.length ? ` · +${earned.length * 10} insignia` : ''}</p>
+      <span class="row" style="gap:8px;font-size:20px;font-weight:600;color:var(--hoja)">${icon('leaf', 22)} +${leaves} ${leaves === 1 ? "hoja" : "hojas"}</span><p class="muted" style="margin:4px 0 0">+${r.minutePoints} por tiempo${r.plannedPoints ? ` · +${r.plannedPoints} rutina` : ''}${earned.length ? ` · +${earned.length * 10} insignia` : ''}</p>
       <div style="margin-top:14px">${bar(lv.pct)}</div>
       <p class="muted" style="margin:8px 0 0">Nivel ${esc(lv.name)} · ${lv.points} ${lv.points === 1 ? "hoja" : "hojas"}${lv.next ? ` · te faltan ${lv.toNext} para ${esc(lv.next.name)}` : ''}</p>
     </div>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Sesión de Mariel</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+@keyframes calmo-drift{to{transform:rotate(360deg)}}
+.calmo-drift{animation:calmo-drift 70s linear infinite}
+@media (prefers-reduced-motion: reduce){.calmo-drift{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0C1410; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: absolute; top: 60px; left: 20px; right: 20px; display: flex; align-items: flex-start; justify-content: space-between;">
+    <div>
+      <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-size: 24px;">Respira suavecito</p>
+      <p style="margin: 2px 0 0; font-size: 14px; color: #A9B8AC;">5 minutos · como un ratón</p>
+    </div>
+    <button onClick="{{toggleDim}}" aria-pressed="{{dimPressed}}" style="height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); background: transparent; color: #C9D6CB; font-family: inherit; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path></svg>
+      {{dimLabel}}
+    </button>
+  </div>
+
+  <div style="position: absolute; top: 170px; left: 0; right: 0; height: 360px; display: flex; align-items: center; justify-content: center;">
+    <div class="calmo-drift" style="position: absolute; width: 310px; height: 310px; border-radius: 52% 48% 45% 55% / 48% 55% 45% 52%; background: rgba(156,197,161,0.06); border: 1px solid rgba(185,222,195,0.10);"></div>
+    <div style="{{circleStyle}}"></div>
+    <div style="position: relative; text-align: center; padding: 0 40px;">
+      <sc-if value="{{isCount}}" hint-placeholder-val="{{true}}">
+        <p style="margin: 0; font-size: 16px; color: #A9B8AC;">Prepárate</p>
+        <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 144; font-size: 96px; line-height: 1.05;">{{countN}}</p>
+      </sc-if>
+      <sc-if value="{{isBreath}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-size: 30px; line-height: 1.2;">{{phaseLabel}}</p>
+        <p style="margin: 6px 0 0; display: inline-flex; align-items: center; gap: 6px; font-size: 15px; color: {{phaseColor}};">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7"></path></svg>
+          {{phaseHint}}
+        </p>
+      </sc-if>
+    </div>
+  </div>
+
+  <p style="position: absolute; top: 560px; left: 0; right: 0; margin: 0; text-align: center; font-size: 15px; color: #A9B8AC; font-variant-numeric: tabular-nums;">Quedan {{remaining}}</p>
+  <div style="position: absolute; top: 590px; left: 60px; right: 60px; height: 6px; border-radius: 6px; background: rgba(238,243,236,0.08);">
+    <div style="{{progressStyle}}"></div>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 44px; display: flex; align-items: flex-end; justify-content: center; gap: 36px;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <button onClick="{{togglePause}}" aria-label="{{pauseLabel}}" style="width: 76px; height: 76px; border-radius: 50%; border: none; background: #9CC5A1; color: #0F1A14; display: flex; align-items: center; justify-content: center;">
+        <sc-if value="{{paused}}" hint-placeholder-val="{{false}}">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+        </sc-if>
+        <sc-if value="{{running}}" hint-placeholder-val="{{true}}">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M9 5v14M15 5v14"></path></svg>
+        </sc-if>
+      </button>
+      <span style="font-size: 13px; color: #C9D6CB;">{{pauseLabel}}</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <a href="ResumenJunior.dc.html" style="width: 76px; height: 76px; box-sizing: border-box; border-radius: 50%; border: 1px solid rgba(238,243,236,0.18); display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>
+      </a>
+      <span style="font-size: 13px; color: #C9D6CB;">Terminar</span>
+    </div>
+  </div>
+
+  <sc-if value="{{dim}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(0,0,0,0.45); pointer-events: none;"></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this.setState({ k: 0, paused: false });
+    this.start();
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  start() {
+    clearInterval(this.iv);
+    this.iv = setInterval(() => this.setState({ k: ((this.state && this.state.k) || 0) + 1 }), 500);
+  }
+  renderVals() {
+    const st = this.state || {};
+    const k = st.k || 0;
+    const paused = !!st.paused;
+    const dim = !!st.dim;
+    const COUNT = 6;
+    const counting = k < COUNT;
+    const t = Math.max(0, k - COUNT);
+    const inhale = (t % 14) < 6;
+    const total = 300;
+    const left = Math.max(0, total - Math.floor(t / 2));
+    const mm = Math.floor(left / 60);
+    const ss = String(left % 60).padStart(2, '0');
+    const big = !counting && inhale;
+    const pct = Math.round(((total - left) / total) * 100);
+    return {
+      isCount: counting,
+      isBreath: !counting,
+      countN: 3 - Math.floor(k / 2),
+      phaseLabel: inhale ? 'Inhala por la nariz' : 'Exhala por la nariz',
+      phaseHint: inhale ? 'suavecito' : 'despacito, sin prisa',
+      phaseColor: inhale ? '#B9DEC3' : '#9CC5A1',
+      remaining: mm + ':' + ss,
+      paused,
+      running: !paused,
+      pauseLabel: paused ? 'Seguir' : 'Pausa',
+      dim,
+      dimPressed: dim ? 'true' : 'false',
+      dimLabel: dim ? 'Subir luz' : 'Bajar luz',
+      toggleDim: () => this.setState({ dim: !dim }),
+      circleStyle: 'position: absolute; width: 240px; height: 240px; border-radius: 50%; background: ' + (inhale ? 'rgba(185,222,195,0.20)' : 'rgba(156,197,161,0.16)') + '; border: 1.5px solid rgba(185,222,195,0.5); transform: scale(' + (big ? 1 : 0.74) + '); transition: transform ' + (inhale ? '3s' : '4s') + ' cubic-bezier(.45,0,.55,1), background 1.2s ease;',
+      progressStyle: 'height: 6px; border-radius: 6px; background: #9CC5A1; width: ' + pct + '%;',
+      togglePause: () => {
+        if (paused) { this.setState({ paused: false }); this.start(); }
+        else { clearInterval(this.iv); this.setState({ paused: true }); }
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

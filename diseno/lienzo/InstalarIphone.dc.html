@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Instalar en otro iPhone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif; box-sizing: border-box; padding: 64px 24px 0;">
+  <a href="Perfil.dc.html" aria-label="Volver" style="position: absolute; top: 56px; left: 20px; width: 44px; height: 44px; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+  </a>
+
+  <div style="display: flex; justify-content: center;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+      <div style="width: 84px; height: 84px; border-radius: 22px; background: #101A15; border: 1px solid rgba(238,243,236,0.14); display: flex; align-items: center; justify-content: center;">
+        <svg width="60" height="60" viewBox="0 0 56 56" aria-hidden="true">
+          <circle cx="28" cy="28" r="27" fill="#1C2B23"></circle>
+          <circle cx="28" cy="28" r="18" fill="none" stroke="#9CC5A1" stroke-opacity="0.35" stroke-width="1.5"></circle>
+          <path d="M19 35c0-9 6-15 18-15 0 11-7 16-16 16" fill="none" stroke="#9CC5A1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path d="M19 35l9-8" fill="none" stroke="#9CC5A1" stroke-width="2" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <span style="font-size: 13px; color: #C9D6CB;">Calmo</span>
+    </div>
+  </div>
+
+  <h1 style="margin: 22px 0 0; text-align: center; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 30px;">Instalar en otro iPhone</h1>
+  <p style="margin: 8px 0 0; text-align: center; font-size: 14px; line-height: 1.5; color: #A9B8AC;">Comparte la invitación y sigue estos pasos en el otro teléfono. Las niñas no lo necesitan: usan su perfil en tu iPhone.</p>
+
+  <div style="margin-top: 14px; display: flex; align-items: center; gap: 10px;">
+    <span style="flex: none; font-size: 13px; color: #A9B8AC;">Invitar a</span>
+    <div role="group" aria-label="Invitar a" style="flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #16231C;">
+      <button onClick="{{pickAdulto}}" aria-pressed="{{adultoPressed}}" style="{{adultoStyle}}">Adulto</button>
+      <button onClick="{{pickMaestra}}" aria-pressed="{{maestraPressed}}" style="{{maestraStyle}}">Maestra</button>
+    </div>
+  </div>
+
+  <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+    <div style="display: flex; align-items: center; gap: 14px; background: #1C2B23; border-radius: 20px; padding: 14px 16px;">
+      <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #2A4033; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #B9DEC3;">1</span>
+      <div style="flex: 1; min-width: 0;">
+        <p style="margin: 0; font-size: 15px; font-weight: 600;">Descarga TestFlight</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #A9B8AC;">Es gratis, desde el App Store</p>
+      </div>
+      <span style="flex: none; width: 48px; height: 48px; border-radius: 13px; background: #1E3A44; display: flex; align-items: center; justify-content: center;">
+        <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 12 C 10 8, 10 4, 12 2.5 C 14 4, 14 8, 12 12Z" fill="#A9D3DC"></path>
+          <path d="M12 12 C 16 10.5, 19.5 12, 20.5 14.5 C 18.5 16, 14.5 15, 12 12Z" fill="#8DB8C0"></path>
+          <path d="M12 12 C 11 16, 8 18.5, 5.5 18 C 5 15.5, 8 13, 12 12Z" fill="#A9D3DC"></path>
+          <circle cx="12" cy="12" r="1.8" fill="#1E3A44" stroke="#A9D3DC" stroke-width="1"></circle>
+        </svg>
+      </span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px; background: #1C2B23; border-radius: 20px; padding: 14px 16px;">
+      <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #2A4033; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #B9DEC3;">2</span>
+      <div style="flex: 1; min-width: 0;">
+        <p style="margin: 0; font-size: 15px; font-weight: 600;">Abre la invitación</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #A9B8AC;">Toca “Aceptar” y guarda el código <span style="color: #EEF3EC; font-weight: 600; letter-spacing: 0.06em;">{{codigo}}</span></p>
+      </div>
+      <span style="flex: none; width: 48px; height: 48px; border-radius: 13px; background: #16231C; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E2CC94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M3 8l9 6 9-6"></path></svg>
+      </span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 14px; background: #1C2B23; border-radius: 20px; padding: 14px 16px;">
+      <span style="flex: none; width: 28px; height: 28px; border-radius: 50%; background: #2A4033; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #B9DEC3;">3</span>
+      <div style="flex: 1; min-width: 0;">
+        <p style="margin: 0; font-size: 15px; font-weight: 600;">Instala y abre Calmo</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #A9B8AC;">{{paso3}}</p>
+      </div>
+      <span style="flex: none; width: 48px; height: 48px; border-radius: 13px; background: #16231C; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CC5A1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"></path></svg>
+      </span>
+    </div>
+  </div>
+
+  <div style="margin-top: 14px; display: flex; align-items: center; gap: 10px; background: #16231C; border-radius: 18px; padding: 12px 14px;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CC5A1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"></path></svg>
+    <p style="margin: 0; font-size: 13px; color: #C9D6CB;">Las actualizaciones llegan solas por TestFlight.</p>
+  </div>
+
+  <div style="position: absolute; left: 24px; right: 24px; bottom: 34px; display: flex; flex-direction: column; gap: 10px;">
+    <button onClick="{{share}}" style="height: 54px; border-radius: 999px; border: 1px solid rgba(156,197,161,0.5); background: transparent; color: #B9DEC3; font-family: inherit; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>
+      {{shareLabel}}
+    </button>
+    <a href="Perfil.dc.html" style="display: flex; align-items: center; justify-content: center; height: 58px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 17px; font-weight: 600; text-decoration: none;">Listo</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const sent = !!st.sent;
+    const maestra = st.rol === 'maestra';
+    const on = 'height: 40px; min-height: 44px; border-radius: 999px; border: none; background: #2A4033; color: #EEF3EC; font-family: inherit; font-size: 14px; font-weight: 600;';
+    const off = 'height: 40px; min-height: 44px; border-radius: 999px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px;';
+    return {
+      codigo: maestra ? 'PAM-HNJ4' : 'HNJ4K7',
+      paso3: maestra ? 'Entra con “Tengo un código” › “Soy Pamela, la maestra”' : 'Entra con “Tengo un código”',
+      adultoPressed: maestra ? 'false' : 'true',
+      maestraPressed: maestra ? 'true' : 'false',
+      adultoStyle: maestra ? off : on,
+      maestraStyle: maestra ? on : off,
+      pickAdulto: () => this.setState({ rol: 'adulto', sent: false }),
+      pickMaestra: () => this.setState({ rol: 'maestra', sent: false }),
+      shareLabel: sent ? 'Invitación lista para enviar' : (maestra ? 'Compartir invitación de maestra' : 'Compartir invitación'),
+      share: () => this.setState({ sent: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

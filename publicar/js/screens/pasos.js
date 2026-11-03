@@ -1,12 +1,14 @@
 // Prueba de pasos sin respirar: cronómetro a pantalla completa y conteo con botones grandes.
 
-import { esc, icon, clock, bar, confetti } from '../ui.js';
+import { esc, icon, clock, bar, confetti, plural } from '../ui.js';
 
 const STEPS = [
   ['nose', 'Exhala normal por la nariz.'],
   ['lock', 'Tápate la nariz.'],
   ['steps', 'Camina contando tus pasos. Detente con falta de aire moderada.'],
 ];
+
+const POINTS = 3;
 
 export default {
   full: true,
@@ -20,7 +22,7 @@ export default {
     const g = store.goals(p.id);
     const best = store.bestSteps(p.id);
     const box = root.querySelector('#pasos');
-    const st = { phase: 'intro', t0: 0, secs: 0, steps: best || 20, result: null };
+    const st = { phase: 'intro', t0: 0, secs: 0, steps: best || 20, result: null, pts: 0 };
     let timer = 0;
     const title = kid ? 'Mi récord de pasos' : 'Pasos sin respirar';
     const close = (pe = true) => `<a href="#/perfil" class="icon-btn${pe ? ' pe' : ''}" aria-label="Cerrar" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('x', 18)}</a>`;
@@ -74,6 +76,7 @@ export default {
           <span style="width:120px;height:120px;border-radius:50%;background:${r.record ? 'rgba(233,178,125,0.16)' : 'rgba(156,197,161,0.14)'};color:${r.record ? 'var(--brasa)' : 'var(--hoja)'};display:flex;align-items:center;justify-content:center" class="pop">${icon(r.record ? 'star' : 'check', 56)}</span>
           <h1 class="h1" style="margin-top:12px">${r.record ? '¡Nuevo récord!' : '¡Muy bien!'}</h1>
           <p class="sub" style="font-size:18px">${st.steps} pasos${r.record && r.best ? ` · antes ${r.best}` : ''}</p>
+          ${st.pts ? `<span class="chip sage">${icon('leaf', 14)} +${plural(st.pts, 'hoja', 'hojas')}</span>` : ''}
           ${r.newBadges.length ? `<span class="chip arena">${icon('star', 14)} Nueva insignia: ${esc(r.newBadges[0].name)}</span>` : ''}
           <a class="btn primary block" href="#/perfil" style="margin-top:28px">Listo</a>
         </div>`;
@@ -97,9 +100,10 @@ export default {
 
     function save() {
       st.result = store.addSteps({ steps: st.steps, seconds: st.secs, type: 'max' });
+      st.pts = typeof store.awardPoints === 'function' ? store.awardPoints(p.id, POINTS, 'pasos') : 0;
       st.phase = 'done';
       draw();
-      if (st.result.record) confetti();
+      if (st.result.record || kid) confetti();
     }
 
     draw();

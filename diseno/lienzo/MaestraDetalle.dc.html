@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Detalle de alumno</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif; box-sizing: border-box; padding: 56px 20px 0;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <a href="MaestraAlumnos.dc.html" aria-label="Volver a alumnos" style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <span style="{{s.avatarStyle}}">{{s.initial}}</span>
+    <div style="flex: 1;">
+      <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px; line-height: 1.1;">{{s.name}}</h1>
+      <div style="display: flex; gap: 6px; margin-top: 6px;">
+        <span style="padding: 3px 9px; border-radius: 999px; font-size: 12px; background: rgba(238,243,236,0.06); color: #A9B8AC;">{{s.perfil}}</span>
+        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 12px; background: rgba(233,178,125,0.14); color: #E9B27D;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z"></path></svg>
+          {{s.racha}} días seguidos
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin: 16px -20px 0; height: 576px; overflow-y: auto; padding: 0 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+    <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 28px; padding: 18px 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+        <div>
+          <p style="margin: 0; font-size: 13px; color: #A9B8AC;">{{s.boltTitle}}</p>
+          <p style="margin: 2px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 34px;">{{s.bolt}} <span style="font-family: 'Figtree', sans-serif; font-size: 14px; color: #A9B8AC;">s</span></p>
+          <p style="margin: 0; font-size: 12px; color: #B9DEC3;">{{s.boltDelta}}</p>
+        </div>
+        <button onClick="{{toggleMeta}}" aria-expanded="{{metaOpen}}" aria-label="{{metaAria}}" style="min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(226,204,148,0.35); background: rgba(226,204,148,0.10); color: #E2CC94; font-family: inherit; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-4-4L4 16z"></path></svg>
+          Meta {{meta}} s
+        </button>
+      </div>
+      <sc-if value="{{showMeta}}" hint-placeholder-val="{{false}}">
+        <div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #16231C; border-radius: 18px; padding: 10px 12px;">
+          <span style="font-size: 13px; color: #A9B8AC;">Sugerir meta</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button onClick="{{metaMenos}}" aria-label="Bajar 5 segundos" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 20px;">−</button>
+            <span style="min-width: 56px; text-align: center; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px; font-variant-numeric: tabular-nums;">{{meta}} s</span>
+            <button onClick="{{metaMas}}" aria-label="Subir 5 segundos" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 20px;">+</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{metaSugerida}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 8px 0 0; font-size: 12px; color: #E2CC94;">Sugerida por Pamela · {{s.name}} la verá en su perfil</p>
+      </sc-if>
+      <sc-if value="{{s.hasChart}}" hint-placeholder-val="{{true}}">
+        <svg width="310" height="64" viewBox="0 0 310 64" role="img" aria-label="{{s.chartAria}}" style="display: block; margin-top: 12px; width: 100%;">
+          <path d="M0 60 H310" stroke="rgba(238,243,236,0.08)"></path>
+          <polyline points="{{s.points}}" fill="none" stroke="#9CC5A1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          <circle cx="{{s.lastX}}" cy="{{s.lastY}}" r="4.5" fill="#9CC5A1"></circle>
+        </svg>
+        <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: #8A9B8F;">
+          <span>{{s.firstLabel}}</span><span>Hoy · {{s.bolt}} s</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{s.isPeque}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 12px 0 0; font-size: 13px; color: #A9B8AC;">Julia lo mide con un adulto: se tapa la nariz y avisa cuando quiere respirar.</p>
+      </sc-if>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+      <sc-if value="{{s.hasPasos}}" hint-placeholder-val="{{true}}">
+        <div style="background: #16231C; border-radius: 20px; padding: 14px;">
+          <p style="margin: 0; font-size: 12px; color: #8A9B8F;">Pasos sin respirar</p>
+          <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px;">{{s.pasos}} <span style="font-family: 'Figtree', sans-serif; font-size: 13px; color: #A9B8AC;">/ {{s.pasosMeta}}</span></p>
+          <div style="margin-top: 8px; height: 4px; border-radius: 4px; background: rgba(238,243,236,0.08);"><div style="{{s.pasosBar}}"></div></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{s.isPeque}}" hint-placeholder-val="{{false}}">
+        <div style="background: #16231C; border-radius: 20px; padding: 14px;">
+          <p style="margin: 0; font-size: 12px; color: #8A9B8F;">Estrellas, 7 días</p>
+          <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px;">5 <span style="font-family: 'Figtree', sans-serif; font-size: 13px; color: #A9B8AC;">de 7</span></p>
+          <p style="margin: 8px 0 0; font-size: 12px; color: #E2CC94;">Huele la flor, su favorita</p>
+        </div>
+      </sc-if>
+      <div style="background: #16231C; border-radius: 20px; padding: 14px;">
+        <p style="margin: 0; font-size: 12px; color: #8A9B8F;">Últimos 7 días</p>
+        <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px;">{{s.minutos}} <span style="font-family: 'Figtree', sans-serif; font-size: 13px; color: #A9B8AC;">min</span></p>
+        <p style="margin: 8px 0 0; font-size: 12px; color: #A9B8AC;">{{s.tipo}}</p>
+      </div>
+    </div>
+
+    <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 20px; padding: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <p style="margin: 0; font-size: 14px; font-weight: 600;">Qué hizo esta semana</p>
+        <p style="margin: 0; font-size: 12px; color: #A9B8AC;">{{s.cumplimiento}}</p>
+      </div>
+      <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center;">
+        <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+            <span style="font-size: 11px; color: #8A9B8F;">{{d.l}}</span>
+            <sc-for list="{{d.dots}}" as="dt" hint-placeholder-count="2"><span style="{{dt}}"></span></sc-for>
+          </div>
+        </sc-for>
+      </div>
+      <p style="margin: 12px 0 0; display: flex; gap: 12px; font-size: 11px; color: #8A9B8F;">
+        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #9CC5A1;"></span>Hecha</span>
+        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 7px; height: 7px; border-radius: 50%; border: 1px solid #8A9B8F;"></span>No realizada</span>
+        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #E9B27D;"></span>Extra</span>
+      </p>
+    </div>
+
+    <div style="background: rgba(226,204,148,0.08); border: 1px solid rgba(226,204,148,0.20); border-radius: 20px; padding: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: #E2CC94;">
+          Práctica asignada
+          <sc-if value="{{pausada}}" hint-placeholder-val="{{false}}">
+            <span style="padding: 2px 8px; border-radius: 999px; background: rgba(238,243,236,0.08); color: #A9B8AC; font-size: 11px;">En pausa</span>
+          </sc-if>
+        </span>
+        <a href="AsignarPractica.dc.html" style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; font-size: 14px; font-weight: 600; color: #9CC5A1; text-decoration: none;">Editar</a>
+      </div>
+      <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 21px;">{{s.practica}}</p>
+      <p style="margin: 4px 0 0; font-size: 13px; color: #A9B8AC;">{{s.practicaDetalle}}</p>
+    </div>
+
+    <p style="margin: 6px 0 0; font-size: 13px; color: #A9B8AC;">Últimas notas</p>
+    <sc-for list="{{s.notas}}" as="n" hint-placeholder-count="2">
+      <div style="background: #16231C; border-radius: 18px; padding: 14px;">
+        <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-style: italic; font-size: 15px; line-height: 1.5; color: #E2E9E0;">{{n.texto}}</p>
+        <p style="margin: 6px 0 0; font-size: 12px; color: #8A9B8F;">{{n.fecha}}</p>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 34px; display: flex; gap: 10px;">
+    <a href="NotaAlumno.dc.html" style="flex: 1; height: 56px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); background: #16231C; color: #EEF3EC; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; font-weight: 600; text-decoration: none;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"></path></svg>
+      Dejar nota
+    </a>
+    <a href="AsignarPractica.dc.html" style="flex: 1.3; height: 56px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; text-decoration: none;">Asignar práctica</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"alumno":{"editor":"enum","options":["marcela","sergio","luciana","mariel","julia"],"default":"marcela"},"pausada":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const key = this.props.alumno ?? 'marcela';
+    const done = 'width: 10px; height: 10px; border-radius: 50%; background: #9CC5A1;';
+    const miss = 'width: 8px; height: 8px; border-radius: 50%; border: 1px solid #8A9B8F;';
+    const pend = 'width: 8px; height: 8px; border-radius: 50%; border: 1px solid #9CC5A1;';
+    const extra = 'width: 10px; height: 10px; border-radius: 50%; background: #E9B27D;';
+    const S = {
+      marcela: {
+        name: 'Marcela', perfil: 'Adulto', racha: 5, bg: 'rgba(226,204,148,0.20)', fg: '#E2CC94',
+        serie: [14, 15, 15, 16, 17, 17, 18, 19], meta: 40, pasos: 48, pasosMeta: 80, minutos: 96, tipo: 'Sobre todo coherente',
+        cumplimiento: '9 de 14 planeadas · 2 extra',
+        semana: [[done, miss], [miss, miss], [done, done], [done, miss, extra], [done, done, extra], [done, done], [done, pend]],
+        practica: 'Respiración coherente', practicaDetalle: '10 min · 05:30 y 21:00 · todos los días',
+        notas: [
+          { texto: '“Vas muy bien: mantén la boca cerrada al caminar.”', fecha: '1 de noviembre' },
+          { texto: '“Esta semana prueba 4-7-8 antes de dormir.”', fecha: '25 de octubre' },
+        ],
+      },
+      sergio: {
+        name: 'Sergio', perfil: 'Adulto', racha: 12, bg: 'rgba(156,197,161,0.22)', fg: '#B9DEC3',
+        serie: [18, 19, 19, 21, 22, 22, 23, 24], meta: 40, pasos: 62, pasosMeta: 80, minutos: 126, tipo: 'Coherente y respira ligero',
+        cumplimiento: '13 de 14 planeadas · 1 extra',
+        semana: [[done, done], [done, done], [done, done], [done, done, extra], [done, done], [done, done], [done, pend]],
+        practica: 'Respiración coherente', practicaDetalle: '10 min · 05:30 y 21:00 · todos los días',
+        notas: [{ texto: '“Excelente constancia. Prueba 15 minutos al despertar.”', fecha: '2 de noviembre' }],
+      },
+      luciana: {
+        name: 'Luciana', perfil: 'Junior · 11 años', racha: 3, bg: 'rgba(233,178,125,0.20)', fg: '#E9B27D',
+        serie: [15, 15, 16, 16, 16, 17, 16, 17], meta: 20, pasos: 40, pasosMeta: 50, minutos: 45, tipo: 'Respira suavecito',
+        cumplimiento: '4 de 7 planeadas',
+        semana: [[done], [miss], [miss], [miss], [done], [done], [done]],
+        practica: 'Respira ligero · versión Junior', practicaDetalle: '5 min · 20:30 · todos los días',
+        notas: [{ texto: '“¡Muy bien, Luciana! Intenta no saltarte la noche.”', fecha: '31 de octubre' }],
+      },
+      mariel: {
+        name: 'Mariel', perfil: 'Junior · 9 años', racha: 7, bg: 'rgba(111,165,138,0.28)', fg: '#B9DEC3',
+        serie: [12, 12, 13, 13, 14, 14, 15, 15], meta: 20, pasos: 34, pasosMeta: 50, minutos: 38, tipo: 'Respira suavecito',
+        cumplimiento: '7 de 7 planeadas · 1 extra',
+        semana: [[done], [done], [done], [done, extra], [done], [done], [done]],
+        practica: 'Respira ligero · versión Junior', practicaDetalle: '5 min · 20:30 · todos los días',
+        notas: [{ texto: '“¡Siete días seguidos, Mariel! Así se hace.”', fecha: '3 de noviembre' }],
+      },
+      julia: {
+        name: 'Julia', perfil: 'Peque · 5 años', racha: 4, bg: 'rgba(238,243,236,0.10)', fg: '#EEF3EC',
+        serie: null, boltValue: 12, meta: 15, minutos: 12, tipo: 'Flor, vela y ratón',
+        cumplimiento: '5 de 7 días con estrella',
+        semana: [[miss], [done], [miss], [done], [done], [done], [done]],
+        practica: 'Huele la flor', practicaDetalle: '1 min · 20:00 · todos los días · con un adulto',
+        notas: [{ texto: '“Julia: ¡qué bonito hueles la flor! Mañana probamos la vela tranquila.”', fecha: '2 de noviembre' }],
+      },
+    };
+    const d = S[key] || S.marcela;
+    const isPeque = key === 'julia';
+    const serie = d.serie || [];
+    const bolt = isPeque ? d.boltValue : serie[serie.length - 1];
+    const lo = Math.min(...(serie.length ? serie : [0])) - 1;
+    const hi = Math.max(...(serie.length ? serie : [1])) + 1;
+    const pts = serie.map((v, i) => [6 + i * 41, Math.round(56 - ((v - lo) / (hi - lo)) * 46)]);
+    const last = pts[pts.length - 1] || [0, 0];
+    const meta = st.meta ?? d.meta;
+    const labels = ['Mié', 'Jue', 'Vie', 'Sáb', 'Dom', 'Lun', 'Hoy'];
+    return {
+      s: {
+        name: d.name, perfil: d.perfil, racha: d.racha, initial: d.name.charAt(0),
+        avatarStyle: 'width: 52px; height: 52px; flex: none; border-radius: 50%; background: ' + d.bg + '; color: ' + d.fg + '; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600;',
+        boltTitle: isPeque ? 'Reto del aire · con un adulto' : 'BOLT',
+        bolt,
+        boltDelta: isPeque ? 'Primera medición: 28 de octubre' : '+' + (bolt - serie[0]) + ' s en 8 semanas',
+        hasChart: !isPeque,
+        isPeque,
+        hasPasos: !isPeque,
+        points: pts.map((p) => p.join(',')).join(' '),
+        lastX: last[0], lastY: last[1],
+        firstLabel: isPeque ? '' : 'Hace 8 semanas · ' + serie[0] + ' s',
+        chartAria: 'BOLT de ' + d.name + ': de ' + serie[0] + ' a ' + bolt + ' segundos en 8 semanas',
+        pasos: d.pasos, pasosMeta: d.pasosMeta,
+        pasosBar: 'width: ' + Math.min(100, Math.round(((d.pasos || 0) / (d.pasosMeta || 1)) * 100)) + '%; height: 4px; border-radius: 4px; background: #9CC5A1;',
+        minutos: d.minutos, tipo: d.tipo, cumplimiento: d.cumplimiento,
+        practica: d.practica, practicaDetalle: d.practicaDetalle, notas: d.notas,
+      },
+      week: labels.map((l, i) => ({ l, dots: d.semana[i] })),
+      meta,
+      metaOpen: st.open ? 'true' : 'false',
+      showMeta: !!st.open,
+      metaSugerida: meta !== d.meta,
+      metaAria: 'Meta ' + meta + ' segundos. Toca para sugerir otra',
+      toggleMeta: () => this.setState({ open: !st.open }),
+      metaMenos: () => this.setState({ meta: Math.max(5, meta - 5) }),
+      metaMas: () => this.setState({ meta: Math.min(60, meta + 5) }),
+      pausada: !!this.props.pausada,
+    };
+  }
+}
+</script>
+</body>
+</html>

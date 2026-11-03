@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Configurar sesión</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+input[type=range]{accent-color:#9CC5A1;width:100%;height:44px;margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; justify-content: space-between;">
+    <a href="Main.dc.html" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <button onClick="{{toggleHow}}" aria-expanded="{{howOpen}}" style="height: 44px; padding: 0 16px; box-sizing: border-box; display: inline-flex; align-items: center; border-radius: 999px; border: 1px solid rgba(238,243,236,0.12); background: transparent; color: #A9B8AC; font-family: inherit; font-size: 13px;">Cómo se hace</button>
+  </div>
+
+  <div style="position: absolute; top: 108px; bottom: 104px; left: 0; right: 0; overflow-y: auto; padding: 0 20px 16px; box-sizing: border-box;">
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 48; font-weight: 400; font-size: 28px; line-height: 1.15;">{{ex.title}}</h1>
+    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+      <span style="padding: 4px 10px; border-radius: 999px; background: rgba(111,165,138,0.18); color: #B9DEC3; font-size: 12px;">{{ex.goal}}</span>
+      <span style="padding: 4px 10px; border-radius: 999px; background: rgba(238,243,236,0.06); color: #A9B8AC; font-size: 12px;">{{ex.pattern}}</span>
+      <span style="padding: 4px 10px; border-radius: 999px; background: rgba(238,243,236,0.06); color: #A9B8AC; font-size: 12px;">Nariz</span>
+      <sc-if value="{{ex.hasWarn}}" hint-placeholder-val="{{false}}">
+        <span style="padding: 4px 10px; border-radius: 999px; background: rgba(226,204,148,0.14); color: #E2CC94; font-size: 12px;">{{ex.warn}}</span>
+      </sc-if>
+    </div>
+    <p style="margin: 12px 0 0; font-size: 14px; line-height: 1.55; color: #A9B8AC;">{{ex.desc}}</p>
+
+    <sc-if value="{{showHow}}" hint-placeholder-val="{{false}}">
+      <div style="margin-top: 14px; background: #16231C; border-radius: 20px; padding: 14px 16px;">
+        <p style="margin: 0 0 8px; font-size: 14px; font-weight: 600;">Cómo se hace</p>
+        <ol style="margin: 0; padding-left: 20px; color: #A9B8AC; font-size: 14px; line-height: 1.6;">
+          <sc-for list="{{ex.steps}}" as="s" hint-placeholder-count="4">
+            <li>{{s}}</li>
+          </sc-for>
+        </ol>
+        <sc-if value="{{ex.isCoherente}}" hint-placeholder-val="{{true}}">
+          <a href="ComoSeHace.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 500; text-decoration: none;">Ver la guía completa</a>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <p style="margin: 22px 0 10px; font-size: 13px; color: #A9B8AC;">Duración</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <sc-for list="{{durs}}" as="d" hint-placeholder-count="6">
+        <button onClick="{{d.pick}}" aria-pressed="{{d.pressed}}" style="{{d.style}}">{{d.label}}</button>
+      </sc-for>
+    </div>
+    <sc-if value="{{showOtra}}" hint-placeholder-val="{{false}}">
+      <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; background: #16231C; border-radius: 18px; padding: 6px 10px 6px 16px;">
+        <span style="font-size: 14px; color: #A9B8AC;">Minutos (1 a 60)</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button onClick="{{otraDec}}" aria-label="Un minuto menos" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 20px;">−</button>
+          <span style="min-width: 40px; text-align: center; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 24px; font-variant-numeric: tabular-nums;">{{otraMin}}</span>
+          <button onClick="{{otraInc}}" aria-label="Un minuto más" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 20px;">+</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <p style="margin: 22px 0 10px; font-size: 13px; color: #A9B8AC;">Ambiente</p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+      <button onClick="{{pickBosque}}" aria-pressed="{{selBosque}}" style="{{ambBosque}}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-6M12 3l6 8H6z"></path><path d="M12 8l7 9H5z"></path></svg>
+        <span style="display: block; margin-top: 8px; font-size: 14px; font-weight: 600;">Bosque al amanecer</span>
+        <span style="display: block; font-size: 12px; color: #A9B8AC;">Música + aves</span>
+      </button>
+      <button onClick="{{pickLluvia}}" aria-pressed="{{selLluvia}}" style="{{ambLluvia}}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 16a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 7a4 4 0 0 1 1 8"></path><path d="M8 19l-1 2M12 19l-1 2M16 19l-1 2"></path></svg>
+        <span style="display: block; margin-top: 8px; font-size: 14px; font-weight: 600;">Lluvia suave</span>
+        <span style="display: block; font-size: 12px; color: #A9B8AC;">Naturaleza</span>
+      </button>
+      <button onClick="{{pickRio}}" aria-pressed="{{selRio}}" style="{{ambRio}}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9c3 0 3-2 6-2s3 2 6 2 3-2 6-2M3 15c3 0 3-2 6-2s3 2 6 2 3-2 6-2"></path></svg>
+        <span style="display: block; margin-top: 8px; font-size: 14px; font-weight: 600;">Río tranquilo</span>
+        <span style="display: block; font-size: 12px; color: #A9B8AC;">Naturaleza</span>
+      </button>
+      <button onClick="{{pickSilencio}}" aria-pressed="{{selSilencio}}" style="{{ambSilencio}}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10z"></path><path d="M17 10l4 4M21 10l-4 4"></path></svg>
+        <span style="display: block; margin-top: 8px; font-size: 14px; font-weight: 600;">Silencio</span>
+        <span style="display: block; font-size: 12px; color: #A9B8AC;">Solo tonos</span>
+      </button>
+    </div>
+
+    <div style="margin-top: 18px; background: #16231C; border-radius: 20px; padding: 8px 16px; display: flex; flex-direction: column; gap: 2px;">
+      <label style="display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; color: #A9B8AC;">Música <input type="range" min="0" max="100" value="60"></label>
+      <label style="display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; color: #A9B8AC;">Naturaleza <input type="range" min="0" max="100" value="45"></label>
+      <label style="display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; color: #A9B8AC;">Tonos de fase <input type="range" min="0" max="100" value="80"></label>
+      <div style="display: flex; justify-content: space-between; align-items: center; min-height: 48px; font-size: 13px; color: #A9B8AC;">
+        Vibración en cada fase
+        <button role="switch" aria-checked="{{vibChecked}}" aria-label="Vibración en cada fase" onClick="{{toggleVib}}" style="flex: none; width: 60px; height: 44px; border: none; background: transparent; padding: 0; display: flex; align-items: center; justify-content: center;"><span style="{{vibTrack}}"><span style="{{vibKnob}}"></span></span></button>
+      </div>
+    </div>
+  </div>
+
+  <a href="Sesion.dc.html" style="position: absolute; left: 20px; right: 20px; bottom: 34px; display: flex; align-items: center; justify-content: center; gap: 10px; height: 58px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 17px; font-weight: 600; text-decoration: none;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+    Empezar · {{durLabel}}
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"ejercicio":{"editor":"enum","options":["coherente","478","cuadrada","exhalacion","ligero","suspiro"],"default":"coherente"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const E = {
+      coherente: { title: 'Respiración coherente', goal: 'Equilibrio', pattern: '5.5 · 5.5', def: 10, desc: 'Unas 6 respiraciones por minuto, suaves y por la nariz. Equilibra tu ritmo cardiaco y baja el estrés.', steps: ['Siéntate erguido y relaja los hombros.', 'Cierra la boca: todo es por la nariz.', 'Inhala suave 5.5 segundos.', 'Exhala sin prisa 5.5 segundos.'] },
+      '478': { title: '4-7-8', goal: 'Dormir', pattern: '4 · 7 · 8', def: 5, warn: 'BOLT ≥ 10', desc: 'Para conciliar el sueño. Al inicio puede marear un poco: hazlo acostado.', steps: ['Inhala por la nariz 4 segundos.', 'Retén suave 7 segundos.', 'Exhala por la nariz, muy despacio, 8 segundos.'] },
+      cuadrada: { title: 'Respiración cuadrada', goal: 'Enfoque', pattern: '4 · 4 · 4 · 4', def: 5, warn: 'BOLT ≥ 10', desc: 'Cuatro tiempos iguales para enfocarte antes de una junta o un examen.', steps: ['Inhala por la nariz 4 segundos.', 'Retén 4.', 'Exhala por la nariz 4.', 'Espera 4 con los pulmones tranquilos.'] },
+      exhalacion: { title: 'Exhalación larga', goal: 'Calma', pattern: '5 · 8', def: 5, desc: 'La exhalación más larga que la inhalación le dice a tu cuerpo que todo está bien.', steps: ['Inhala suave por la nariz 5 segundos.', 'Exhala por la nariz, despacio, 8 segundos.', 'Si te cuesta, usa 4 · 6.'] },
+      ligero: { title: 'Respira ligero en reposo', goal: 'BOLT · Calma', pattern: 'Bloques de 4 + 1 min', def: 10, desc: 'Respira un 20 a 30 % menos aire, suave y lento, hasta sentir una falta de aire leve. Cada 4 minutos descansas 1.', steps: ['Siéntate erguido, una mano en el pecho y otra en el abdomen.', 'Respira un poco menos de lo que tu cuerpo pide.', 'Suaviza la respiración hasta que casi no se note.', 'Si la falta de aire es fuerte, toca «Necesito aire».'] },
+      suspiro: { title: 'Suspiro cíclico', goal: 'Calma', pattern: '2 + 1 · 6', def: 3, max: 5, desc: 'Doble inhalación y una exhalación larga, todo por la nariz. Baja el estrés en pocos minutos.', steps: ['Inhala por la nariz.', 'Toma un poquito más de aire.', 'Exhala largo por la nariz.'] },
+    };
+    const key = this.props.ejercicio ?? 'coherente';
+    const e = E[key] || E.coherente;
+    const ex = { title: e.title, goal: e.goal, pattern: e.pattern, desc: e.desc, steps: e.steps, warn: e.warn || '', hasWarn: !!e.warn, isCoherente: key === 'coherente' };
+    const otra = !!st.otra;
+    const otraMin = st.otraMin ?? 7;
+    const dur = otra ? otraMin : (st.dur ?? e.def);
+    const amb = st.amb ?? 'bosque';
+    const vib = st.vib ?? true;
+    const on = 'height: 44px; min-width: 64px; padding: 0 14px; border-radius: 999px; border: 1px solid #9CC5A1; background: #9CC5A1; color: #0F1A14; font-family: inherit; font-size: 15px; font-weight: 600;';
+    const off = 'height: 44px; min-width: 64px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.10); background: #16231C; color: #EEF3EC; font-family: inherit; font-size: 15px;';
+    const card = (sel) => sel
+      ? 'text-align: left; padding: 14px; border-radius: 20px; border: 1px solid #9CC5A1; background: rgba(156,197,161,0.14); color: #EEF3EC; font-family: inherit;'
+      : 'text-align: left; padding: 14px; border-radius: 20px; border: 1px solid rgba(238,243,236,0.06); background: #16231C; color: #EEF3EC; font-family: inherit;';
+    const opts = [3, 5, 10, 15, 25].filter((m) => !e.max || m <= e.max);
+    const durs = opts.map((m) => ({
+      label: m + ' min',
+      pressed: !otra && m === dur ? 'true' : 'false',
+      style: !otra && m === dur ? on : off,
+      pick: () => this.setState({ dur: m, otra: false }),
+    })).concat([{
+      label: 'Otra',
+      pressed: otra ? 'true' : 'false',
+      style: otra ? on : off,
+      pick: () => this.setState({ otra: true }),
+    }]);
+    const maxMin = e.max || 60;
+    const pick = (a) => () => this.setState({ amb: a });
+    return {
+      ex,
+      showHow: !!st.how,
+      howOpen: st.how ? 'true' : 'false',
+      toggleHow: () => this.setState({ how: !st.how }),
+      durs,
+      showOtra: otra,
+      otraMin,
+      otraDec: () => this.setState({ otraMin: Math.max(1, otraMin - 1) }),
+      otraInc: () => this.setState({ otraMin: Math.min(maxMin, otraMin + 1) }),
+      durLabel: dur + ' min',
+      pickBosque: pick('bosque'), pickLluvia: pick('lluvia'), pickRio: pick('rio'), pickSilencio: pick('silencio'),
+      selBosque: amb === 'bosque' ? 'true' : 'false', selLluvia: amb === 'lluvia' ? 'true' : 'false',
+      selRio: amb === 'rio' ? 'true' : 'false', selSilencio: amb === 'silencio' ? 'true' : 'false',
+      ambBosque: card(amb === 'bosque'), ambLluvia: card(amb === 'lluvia'),
+      ambRio: card(amb === 'rio'), ambSilencio: card(amb === 'silencio'),
+      vibChecked: vib ? 'true' : 'false',
+      toggleVib: () => this.setState({ vib: !vib }),
+      vibTrack: 'width: 52px; height: 32px; box-sizing: border-box; border-radius: 999px; padding: 3px; display: flex; justify-content: ' + (vib ? 'flex-end' : 'flex-start') + '; background: ' + (vib ? '#9CC5A1' : 'rgba(238,243,236,0.14)') + ';',
+      vibKnob: 'width: 26px; height: 26px; border-radius: 50%; background: ' + (vib ? '#0F1A14' : '#A9B8AC') + ';',
+    };
+  }
+}
+</script>
+</body>
+</html>

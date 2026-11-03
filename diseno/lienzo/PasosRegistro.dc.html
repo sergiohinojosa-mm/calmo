@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Pasos sin respirar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+@keyframes calmo-halo{0%,100%{transform:scale(0.94);opacity:0.55}50%{transform:scale(1.04);opacity:1}}
+.calmo-halo{animation:calmo-halo 4s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.calmo-halo{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0C1410; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+
+  <sc-if value="{{isTimer}}" hint-placeholder-val="{{true}}">
+    <button onClick="{{tap}}" aria-label="{{tapLabel}}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; background: transparent; color: inherit; font-family: inherit; padding: 0; cursor: pointer;">
+      <span style="position: absolute; top: 230px; left: 50%; width: 260px; height: 260px; margin-left: -130px; display: flex; align-items: center; justify-content: center;">
+        <span class="calmo-halo" style="position: absolute; inset: 0; border-radius: 50%; background: rgba(185,222,195,0.06); border: 1px solid rgba(185,222,195,0.12);"></span>
+        <span style="position: absolute; inset: 38px; border-radius: 50%; background: rgba(185,222,195,0.10);"></span>
+        <span style="position: relative; display: flex; flex-direction: column; align-items: center;">
+          <span style="font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 144; font-size: 84px; line-height: 1; font-variant-numeric: tabular-nums;">{{clock}}</span>
+          <span style="margin-top: 4px; font-size: 14px; color: #A9B8AC;">{{clockSub}}</span>
+        </span>
+      </span>
+      <span style="position: absolute; top: 540px; left: 36px; right: 36px; text-align: center;">
+        <span style="display: block; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px; line-height: 1.35;">{{headline}}</span>
+        <span style="display: block; margin-top: 8px; font-size: 14px; line-height: 1.5; color: #A9B8AC;">{{sub}}</span>
+      </span>
+    </button>
+  </sc-if>
+
+  <a href="Perfil.dc.html" aria-label="Volver a Mi perfil" style="position: absolute; top: 56px; left: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(238,243,236,0.06); display: flex; align-items: center; justify-content: center; color: #A9B8AC;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+  </a>
+  <div style="position: absolute; top: 60px; left: 76px; right: 20px; pointer-events: none;">
+    <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-size: 24px; line-height: 1.1;">Pasos sin respirar</p>
+    <p style="margin: 2px 0 0; font-size: 13px; color: #A9B8AC;">Prueba de máximo · tu récord 62</p>
+  </div>
+
+  <sc-if value="{{isReady}}" hint-placeholder-val="{{true}}">
+    <ol style="position: absolute; top: 124px; left: 20px; right: 20px; margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; pointer-events: none;">
+      <li style="background: #16231C; border-radius: 18px; padding: 12px 8px; text-align: center; font-size: 13px; color: #C9D6CB;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B9DEC3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block; margin: 0 auto 6px;"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7"></path></svg>
+        1. Exhala normal
+      </li>
+      <li style="background: #16231C; border-radius: 18px; padding: 12px 8px; text-align: center; font-size: 13px; color: #C9D6CB;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B9DEC3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block; margin: 0 auto 6px;"><path d="M12 4c-1.5 3-3 6-3 9a3 3 0 0 0 6 0c0-3-1.5-6-3-9z"></path><path d="M8 15h8"></path></svg>
+        2. Tápate la nariz
+      </li>
+      <li style="background: #16231C; border-radius: 18px; padding: 12px 8px; text-align: center; font-size: 13px; color: #C9D6CB;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B9DEC3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block; margin: 0 auto 6px;"><circle cx="13" cy="4.5" r="1.8"></circle><path d="M10 21l2-6 3 3v3M8 12l3-4 3 2 3 1M12 15l-1-5"></path></svg>
+        3. Camina y cuenta
+      </li>
+    </ol>
+  </sc-if>
+
+  <sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; top: 130px; left: 20px; right: 20px;">
+      <div style="display: flex; justify-content: center;">
+        <span style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: rgba(238,243,236,0.06); font-size: 14px; color: #A9B8AC; font-variant-numeric: tabular-nums;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M10 2h4"></path></svg>
+          Sin respirar: {{clock}}
+        </span>
+      </div>
+      <label for="calmo-pasos" style="display: block; margin-top: 22px; text-align: center; font-size: 15px; color: #A9B8AC;">¿Cuántos pasos diste?</label>
+      <input id="calmo-pasos" type="text" inputmode="numeric" pattern="[0-9]*" value="{{steps}}" onChange="{{onType}}" aria-label="Pasos" style="display: block; width: 180px; margin: 6px auto 0; border: none; border-bottom: 1px solid rgba(238,243,236,0.14); background: transparent; color: #EEF3EC; text-align: center; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 144; font-size: 88px; line-height: 1.1; font-variant-numeric: tabular-nums; padding: 0;">
+      <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px;">
+        <button onClick="{{dec5}}" aria-label="Cinco pasos menos" style="height: 60px; border-radius: 20px; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 18px; font-weight: 600;">−5</button>
+        <button onClick="{{dec1}}" aria-label="Un paso menos" style="height: 60px; border-radius: 20px; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 18px; font-weight: 600;">−1</button>
+        <button onClick="{{inc1}}" aria-label="Un paso más" style="height: 60px; border-radius: 20px; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 18px; font-weight: 600;">+1</button>
+        <button onClick="{{inc5}}" aria-label="Cinco pasos más" style="height: 60px; border-radius: 20px; border: 1px solid rgba(238,243,236,0.14); background: #1C2B23; color: #EEF3EC; font-family: inherit; font-size: 18px; font-weight: 600;">+5</button>
+      </div>
+      <div style="margin-top: 14px; display: flex; justify-content: center; min-height: 30px;">
+        <sc-if value="{{isRecord}}" hint-placeholder-val="{{false}}">
+          <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(233,178,125,0.16); color: #E9B27D; font-size: 13px; font-weight: 600;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z"></path></svg>
+            Nuevo récord · antes 62
+          </span>
+        </sc-if>
+      </div>
+      <div style="margin-top: 14px; background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 22px; padding: 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px;">
+          <span style="color: #A9B8AC;">Meta 80 pasos</span>
+          <span>{{leftLabel}}</span>
+        </div>
+        <div style="margin-top: 10px; height: 8px; border-radius: 8px; background: rgba(238,243,236,0.07);"><div style="{{bar}}"></div></div>
+      </div>
+    </div>
+    <div style="position: absolute; left: 20px; right: 20px; bottom: 40px; display: flex; flex-direction: column; gap: 10px;">
+      <a href="Perfil.dc.html" style="display: flex; align-items: center; justify-content: center; height: 56px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 17px; font-weight: 600; text-decoration: none;">Guardar</a>
+      <button onClick="{{reset}}" style="height: 48px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); background: transparent; color: #A9B8AC; font-family: inherit; font-size: 15px;">Repetir prueba</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentWillUnmount() { clearInterval(this.iv); }
+  renderVals() {
+    const st = this.state || {};
+    const phase = st.phase ?? 'ready';
+    const ms = st.ms ?? 0;
+    const steps = st.steps ?? 62;
+    const goal = 80;
+    const secs = Math.floor(ms / 1000);
+    const clock = Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+    const start = () => {
+      const t0 = Date.now();
+      clearInterval(this.iv);
+      this.iv = setInterval(() => this.setState({ ms: Date.now() - t0 }), 250);
+      this.setState({ phase: 'running', ms: 0 });
+    };
+    const stop = () => { clearInterval(this.iv); this.setState({ phase: 'done' }); };
+    const set = (n) => this.setState({ steps: Math.max(0, Math.min(300, n)) });
+    const copy = phase === 'running'
+      ? ['Camina contando tus pasos', 'Para cuando la falta de aire sea moderada y toca la pantalla. Luego respira tranquilo por la nariz.']
+      : ['Toca en cualquier parte para empezar', 'Exhala normal, tápate la nariz y empieza a caminar.'];
+    const pct = Math.min(100, Math.round((steps / goal) * 100));
+    return {
+      isReady: phase === 'ready',
+      isTimer: phase !== 'done',
+      isDone: phase === 'done',
+      clock,
+      clockSub: phase === 'running' ? 'sin respirar' : 'listo',
+      headline: copy[0],
+      sub: copy[1],
+      tapLabel: phase === 'running' ? 'Detener la prueba' : 'Empezar la prueba',
+      tap: phase === 'ready' ? start : stop,
+      steps,
+      isRecord: steps > 62,
+      leftLabel: steps >= goal ? 'Meta lograda' : 'Te faltan ' + (goal - steps),
+      bar: 'height: 8px; border-radius: 8px; background: #B9DEC3; width: ' + pct + '%;',
+      onType: (e) => { const v = parseInt(String(e && e.target ? e.target.value : '').replace(/\D/g, ''), 10); set(isNaN(v) ? 0 : v); },
+      dec5: () => set(steps - 5),
+      dec1: () => set(steps - 1),
+      inc1: () => set(steps + 1),
+      inc5: () => set(steps + 5),
+      reset: () => { clearInterval(this.iv); this.setState({ phase: 'ready', ms: 0, steps: 62 }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

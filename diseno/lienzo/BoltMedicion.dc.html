@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Medición de BOLT</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+@keyframes calmo-halo{0%,100%{transform:scale(0.94);opacity:0.55}50%{transform:scale(1.04);opacity:1}}
+.calmo-halo{animation:calmo-halo 4s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.calmo-halo{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #0C1410; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <button onClick="{{tap}}" aria-label="{{tapLabel}}" style="position: absolute; inset: 0; width: 100%; height: 100%; border: none; background: transparent; color: inherit; font-family: inherit; padding: 0; cursor: pointer;">
+    <span style="position: absolute; top: 210px; left: 50%; width: 280px; height: 280px; margin-left: -140px; display: flex; align-items: center; justify-content: center;">
+      <span class="calmo-halo" style="position: absolute; inset: 0; border-radius: 50%; background: rgba(156,197,161,0.06); border: 1px solid rgba(185,222,195,0.12);"></span>
+      <span style="position: absolute; inset: 40px; border-radius: 50%; background: rgba(156,197,161,0.10);"></span>
+      <span style="position: relative; display: flex; flex-direction: column; align-items: center;">
+        <span style="font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 144; font-size: 96px; line-height: 1; font-variant-numeric: tabular-nums;">{{secs}}</span>
+        <span style="margin-top: 4px; font-size: 14px; color: #A9B8AC;">segundos</span>
+      </span>
+    </span>
+    <span style="position: absolute; top: 540px; left: 36px; right: 36px; text-align: center;">
+      <span style="display: block; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px; line-height: 1.35;">{{headline}}</span>
+      <span style="display: block; margin-top: 8px; font-size: 14px; line-height: 1.5; color: #A9B8AC;">{{sub}}</span>
+    </span>
+  </button>
+
+  <a href="{{cancelHref}}" aria-label="Cancelar medición" style="position: absolute; top: 56px; left: 20px; width: 44px; height: 44px; border-radius: 50%; background: rgba(238,243,236,0.06); display: flex; align-items: center; justify-content: center; color: #A9B8AC;">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+  </a>
+  <p style="position: absolute; top: 68px; left: 0; right: 0; margin: 0; text-align: center; font-size: 14px; font-weight: 500; pointer-events: none;">BOLT score</p>
+
+  <sc-if value="{{isReady}}" hint-placeholder-val="{{true}}">
+    <ol style="position: absolute; top: 128px; left: 36px; right: 36px; margin: 0; padding: 0; list-style: none; display: flex; justify-content: space-between; pointer-events: none;">
+      <li style="font-size: 12px; color: #8A9B8F; text-align: center; width: 70px;">1. Siéntate</li>
+      <li style="font-size: 12px; color: #8A9B8F; text-align: center; width: 70px;">2. Respira normal</li>
+      <li style="font-size: 12px; color: #8A9B8F; text-align: center; width: 70px;">3. Exhala y tapa la nariz</li>
+      <li style="font-size: 12px; color: #8A9B8F; text-align: center; width: 70px;">4. Toca la pantalla</li>
+    </ol>
+  </sc-if>
+
+  <sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; left: 20px; right: 20px; bottom: 44px; display: flex; flex-direction: column; gap: 10px;">
+      <a href="{{resultHref}}" style="display: flex; align-items: center; justify-content: center; height: 56px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 17px; font-weight: 600; text-decoration: none;">Ver resultado</a>
+      <button onClick="{{reset}}" style="height: 48px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); background: transparent; color: #A9B8AC; font-family: inherit; font-size: 15px;">Repetir medición</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"inicial":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  componentWillUnmount() { clearInterval(this.iv); }
+  renderVals() {
+    const st = this.state || {};
+    const phase = st.phase ?? 'ready';
+    const ms = st.ms ?? 0;
+    const start = () => {
+      const t0 = Date.now();
+      clearInterval(this.iv);
+      this.iv = setInterval(() => this.setState({ ms: Date.now() - t0 }), 200);
+      this.setState({ phase: 'running', ms: 0 });
+    };
+    const stop = () => { clearInterval(this.iv); this.setState({ phase: 'done' }); };
+    const copy = {
+      ready: ['Toca en cualquier parte para empezar', 'Hazlo después de exhalar normal, con la nariz tapada.'],
+      running: ['Toca al primer deseo de respirar', 'No esperes al máximo: el primer impulso es tu BOLT. Luego respira calmado por la nariz.'],
+      done: ['Primera respiración pequeña', 'Recupera la calma por la nariz en 2 o 3 respiraciones.'],
+    }[phase];
+    const inicial = !!this.props.inicial;
+    return {
+      cancelHref: inicial ? 'BoltInicial.dc.html' : 'Perfil.dc.html',
+      resultHref: inicial ? 'BoltResultadoInicial.dc.html' : 'BoltResultado.dc.html',
+      secs: Math.floor(ms / 1000),
+      headline: copy[0],
+      sub: copy[1],
+      isReady: phase === 'ready',
+      isDone: phase === 'done',
+      tapLabel: phase === 'running' ? 'Detener medición' : 'Empezar medición',
+      tap: phase === 'ready' ? start : phase === 'running' ? stop : () => {},
+      reset: () => { clearInterval(this.iv); this.setState({ phase: 'ready', ms: 0 }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

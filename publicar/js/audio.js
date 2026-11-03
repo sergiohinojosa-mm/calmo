@@ -7,6 +7,8 @@ let ambBus = null;
 let ambNodes = [];
 let ambTimers = [];
 let keepAlive = null;
+let musicLevel = 0;
+let speechPrimed = false;
 
 function silentWav() {
   // WAV de 1 s en silencio: mantiene la sesión de audio de iOS en modo "reproducción"
@@ -24,6 +26,17 @@ function silentWav() {
 }
 
 export function unlock() {
+  // Safari 17+: pedir modo "reproducción" para que suene aunque el iPhone esté en silencio.
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* no disponible */ }
+  // iOS solo deja hablar a la voz si la primera frase se dice dentro de un toque.
+  if (!speechPrimed && 'speechSynthesis' in window) {
+    try {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+      speechPrimed = true;
+    } catch (e) { /* sin voz */ }
+  }
   if (!ctx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
@@ -51,8 +64,29 @@ export function unlock() {
 
 export function setVolumes({ tones = 80, music = 60 }) {
   if (!ctx) return;
+  musicLevel = music / 100 * 0.6;
   toneBus.gain.setTargetAtTime(tones / 100 * 0.5, ctx.currentTime, 0.05);
-  ambBus.gain.setTargetAtTime(music / 100 * 0.6, ctx.currentTime, 0.4);
+  ambBus.gain.setTargetAtTime(musicLevel, ctx.currentTime, 0.4);
+}
+
+// ¿El sonido ya está activo? En iOS solo lo está después de un toque.
+export const running = () => !!ctx && ctx.state === 'running';
+
+// Pausar la sesión también calla el ambiente, sin perder dónde iba.
+export function pauseAmbient() {
+  if (ctx) ambBus.gain.setTargetAtTime(0, ctx.currentTime, 0.3);
+}
+export function resumeAmbient() {
+  if (ctx) ambBus.gain.setTargetAtTime(musicLevel, ctx.currentTime, 0.4);
+}
+
+// Nombre de la sesión en la pantalla bloqueada y el centro de control.
+export function setNowPlaying(title) {
+  try {
+    if ('mediaSession' in navigator && typeof MediaMetadata === 'function') {
+      navigator.mediaSession.metadata = new MediaMetadata({ title, artist: 'Calmo' });
+    }
+  } catch (e) { /* no disponible */ }
 }
 
 // Campanita suave para cada cambio de fase.
@@ -201,7 +235,12 @@ export function stopAll() {
 // Pantalla encendida durante la sesión.
 let lock = null;
 export async function keepScreenOn() {
-  try { lock = await navigator.wakeLock?.request('screen'); } catch (e) { lock = null; }
+  if (lock) return;
+  try {
+    lock = (await navigator.wakeLock?.request('screen')) || null;
+    // El sistema suelta el bloqueo al ocultar la página: así se vuelve a pedir al regresar.
+    lock?.addEventListener('release', () => { lock = null; });
+  } catch (e) { lock = null; }
 }
 export function releaseScreen() {
   try { lock?.release(); } catch (e) { /* ya liberado */ }

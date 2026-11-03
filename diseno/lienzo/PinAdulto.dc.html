@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Volver a un adulto</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif; box-sizing: border-box; padding: 56px 24px 0;">
+  <a href="{{volver}}" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+  </a>
+
+  <div style="margin-top: 10px; display: flex; flex-direction: column; align-items: center;">
+    <span style="{{avatarStyle}}">{{initial}}</span>
+    <h1 style="margin: 12px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 30px; text-align: center;">Hola, {{name}}</h1>
+    <p style="margin: 6px 0 0; font-size: 14px; color: #A9B8AC; text-align: center;">Escribe tu PIN para volver a tu perfil</p>
+  </div>
+
+  <div aria-label="{{pinAria}}" role="img" style="margin-top: 22px; display: flex; justify-content: center; gap: 18px;">
+    <sc-for list="{{dots}}" as="dt" hint-placeholder-count="4">
+      <span style="{{dt}}"></span>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 24px;">
+    <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+      <sc-if value="{{k.isKey}}" hint-placeholder-val="{{true}}">
+        <button onClick="{{k.press}}" aria-label="{{k.aria}}" style="{{k.style}}">{{k.label}}</button>
+      </sc-if>
+      <sc-if value="{{k.isBlank}}" hint-placeholder-val="{{false}}">
+        <span aria-hidden="true" style="height: 56px;"></span>
+      </sc-if>
+    </sc-for>
+  </div>
+
+  <p style="margin: 12px 0 0; text-align: center; font-size: 13px; color: #8A9B8F;">{{hint}}</p>
+
+  <a href="{{entrarHref}}" aria-disabled="{{entrarDisabled}}" style="{{entrarStyle}}">Entrar como {{name}}</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"quien":{"editor":"enum","options":["sergio","marcela"],"default":"sergio"},"volver":{"editor":"text","default":"PequeInicio.dc.html"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const pin = st.pin ?? '';
+    const quien = this.props.quien ?? 'sergio';
+    const A = {
+      sergio: { name: 'Sergio', tint: 'rgba(226,204,148,0.18)', fg: '#E2CC94' },
+      marcela: { name: 'Marcela', tint: '#2A4033', fg: '#B9DEC3' },
+    };
+    const a = A[quien] || A.sergio;
+    const dots = [0, 1, 2, 3].map((i) => i < pin.length
+      ? 'width: 18px; height: 18px; border-radius: 50%; background: #9CC5A1;'
+      : 'width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.35);');
+    const keyStyle = 'width: 100%; height: 56px; border-radius: 16px; border: none; background: #16231C; color: #EEF3EC; font-family: Fraunces, Georgia, serif; font-size: 24px;';
+    const ghost = 'width: 100%; height: 56px; border-radius: 16px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 15px;';
+    const add = (d) => () => { if (pin.length < 4) this.setState({ pin: pin + d }); };
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => ({ isKey: true, isBlank: false, label: d, aria: 'Número ' + d, style: keyStyle, press: add(d) }));
+    keys.push({ isKey: false, isBlank: true, label: '', aria: '', style: '', press: () => {} });
+    keys.push({ isKey: true, isBlank: false, label: '0', aria: 'Número 0', style: keyStyle, press: add('0') });
+    keys.push({ isKey: true, isBlank: false, label: 'Borrar', aria: 'Borrar número', style: ghost, press: () => this.setState({ pin: pin.slice(0, -1) }) });
+    const ready = pin.length === 4;
+    const base = 'position: absolute; left: 24px; right: 24px; bottom: 34px; display: flex; align-items: center; justify-content: center; height: 58px; border-radius: 999px; font-size: 17px; font-weight: 600; text-decoration: none;';
+    return {
+      name: a.name,
+      initial: a.name.charAt(0),
+      avatarStyle: 'width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Fraunces, Georgia, serif; font-size: 34px; background: ' + a.tint + '; color: ' + a.fg + ';',
+      volver: this.props.volver ?? 'PequeInicio.dc.html',
+      dots, keys,
+      pinAria: 'PIN: ' + pin.length + ' de 4 números',
+      hint: ready ? 'Listo, toca Entrar' : 'Escribe los 4 números de tu PIN',
+      entrarHref: ready ? 'Main.dc.html' : '#',
+      entrarDisabled: ready ? 'false' : 'true',
+      entrarStyle: base + (ready ? ' background: #9CC5A1; color: #0F1A14;' : ' background: rgba(156,197,161,0.18); color: #A9B8AC; pointer-events: none;'),
+    };
+  }
+}
+</script>
+</body>
+</html>

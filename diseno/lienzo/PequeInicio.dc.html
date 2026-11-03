@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Inicio de Julia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif; box-sizing: border-box; padding: 56px 20px 0;">
+  <div style="display: flex; align-items: center; gap: 14px;">
+    <svg width="92" height="92" viewBox="0 0 112 112" aria-hidden="true">
+      <circle cx="56" cy="60" r="50" fill="#1C2B23"></circle>
+      <path d="M56 18 C 82 26, 92 50, 86 74 C 80 94, 62 100, 50 98 C 32 94, 22 76, 26 56 C 30 36, 42 22, 56 18Z" fill="#9CC5A1"></path>
+      <path d="M56 18 C 56 10, 62 6, 68 6" fill="none" stroke="#6FA58A" stroke-width="3" stroke-linecap="round"></path>
+      <path d="M58 30 C 54 50, 54 70, 58 92" fill="none" stroke="#B9DEC3" stroke-width="2" stroke-linecap="round" opacity="0.6"></path>
+      <circle cx="44" cy="58" r="4.5" fill="#0F1A14"></circle>
+      <circle cx="70" cy="58" r="4.5" fill="#0F1A14"></circle>
+      <circle cx="45.5" cy="56.5" r="1.4" fill="#EEF3EC"></circle>
+      <circle cx="71.5" cy="56.5" r="1.4" fill="#EEF3EC"></circle>
+      <circle cx="36" cy="70" r="6" fill="#E9B27D" opacity="0.8"></circle>
+      <circle cx="78" cy="70" r="6" fill="#E9B27D" opacity="0.8"></circle>
+      <path d="M48 72 C 52 78, 62 78, 66 72" fill="none" stroke="#0F1A14" stroke-width="3" stroke-linecap="round"></path>
+    </svg>
+    <div>
+      <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 96; font-weight: 400; font-size: 36px; line-height: 1.05;">Hola, Julia</h1>
+      <p style="margin: 6px 0 0; font-size: 16px; color: #C9D6CB;">¿Respiramos juntas?</p>
+    </div>
+  </div>
+
+  <div style="margin-top: 14px; background: #16231C; border-radius: 24px; padding: 12px 14px;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+      <p style="margin: 0; font-size: 15px; font-weight: 600;">Tus estrellas de los últimos 7 días</p>
+      <p style="margin: 0; font-size: 13px; color: #E2CC94; white-space: nowrap;">3 días seguidos</p>
+    </div>
+    <div style="margin-top: 8px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px;" role="img" aria-label="4 estrellas en los últimos 7 días. Hoy todavía falta la tuya.">
+      <sc-for list="{{stars}}" as="s" hint-placeholder-count="7">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+          <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="{{s.fill}}" stroke="{{s.stroke}}" stroke-width="1.4" stroke-linejoin="round"></path></svg>
+          <span style="{{s.labelStyle}}">{{s.day}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+    <a href="PequeSesion.dc.html" style="display: flex; align-items: center; gap: 14px; min-height: 86px; box-sizing: border-box; padding: 10px 16px; border-radius: 26px; background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); color: #EEF3EC; text-decoration: none;">
+      <svg width="62" height="62" viewBox="0 0 70 70" aria-hidden="true">
+        <circle cx="35" cy="35" r="34" fill="#16231C"></circle>
+        <path d="M35 40 V60" stroke="#6FA58A" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M35 52 C 28 50, 24 46, 24 42 C 30 42, 34 46, 35 52Z" fill="#6FA58A"></path>
+        <circle cx="35" cy="22" r="8" fill="#F0A8B4"></circle>
+        <circle cx="47" cy="31" r="8" fill="#F0A8B4"></circle>
+        <circle cx="42" cy="44" r="8" fill="#F0A8B4"></circle>
+        <circle cx="28" cy="44" r="8" fill="#F0A8B4"></circle>
+        <circle cx="23" cy="31" r="8" fill="#F0A8B4"></circle>
+        <circle cx="35" cy="34" r="7" fill="#E2CC94"></circle>
+      </svg>
+      <span style="flex: 1;">
+        <span style="display: block; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px;">Huele la flor</span>
+        <span style="display: block; margin-top: 2px; font-size: 14px; color: #A9B8AC;">1 minuto</span>
+      </span>
+    </a>
+    <a href="PequeVela.dc.html" style="display: flex; align-items: center; gap: 14px; min-height: 86px; box-sizing: border-box; padding: 10px 16px; border-radius: 26px; background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); color: #EEF3EC; text-decoration: none;">
+      <svg width="62" height="62" viewBox="0 0 70 70" aria-hidden="true">
+        <circle cx="35" cy="35" r="34" fill="#16231C"></circle>
+        <rect x="27" y="34" width="16" height="24" rx="3" fill="#E9DFC4"></rect>
+        <path d="M35 34 V30" stroke="#5E6E63" stroke-width="2" stroke-linecap="round"></path>
+        <path d="M35 12 C 41 20, 42 25, 35 30 C 28 25, 29 20, 35 12Z" fill="#E9B27D"></path>
+        <path d="M35 19 C 38 23, 38 26, 35 28 C 32 26, 32 23, 35 19Z" fill="#E2CC94"></path>
+      </svg>
+      <span style="flex: 1;">
+        <span style="display: block; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px;">La vela tranquila</span>
+        <span style="display: block; margin-top: 2px; font-size: 14px; color: #A9B8AC;">2 minutos</span>
+      </span>
+    </a>
+    <a href="PequeRaton.dc.html" style="display: flex; align-items: center; gap: 14px; min-height: 86px; box-sizing: border-box; padding: 10px 16px; border-radius: 26px; background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); color: #EEF3EC; text-decoration: none;">
+      <svg width="62" height="62" viewBox="0 0 70 70" aria-hidden="true">
+        <circle cx="35" cy="35" r="34" fill="#16231C"></circle>
+        <circle cx="22" cy="28" r="9" fill="#A9B8AC"></circle>
+        <circle cx="48" cy="28" r="9" fill="#A9B8AC"></circle>
+        <circle cx="22" cy="28" r="5" fill="#F0A8B4"></circle>
+        <circle cx="48" cy="28" r="5" fill="#F0A8B4"></circle>
+        <ellipse cx="35" cy="42" rx="17" ry="15" fill="#C9D6CB"></ellipse>
+        <circle cx="29" cy="40" r="2.2" fill="#0F1A14"></circle>
+        <circle cx="41" cy="40" r="2.2" fill="#0F1A14"></circle>
+        <circle cx="35" cy="47" r="2.6" fill="#F0A8B4"></circle>
+        <path d="M24 48 H16 M24 51 H17 M46 48 H54 M46 51 H53" stroke="#8A9B8F" stroke-width="1.2" stroke-linecap="round"></path>
+      </svg>
+      <span style="flex: 1;">
+        <span style="display: block; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px;">Respira como ratón</span>
+        <span style="display: block; margin-top: 2px; font-size: 14px; color: #A9B8AC;">3 minutos</span>
+      </span>
+    </a>
+    <a href="PequeReto.dc.html" style="display: flex; align-items: center; gap: 14px; min-height: 86px; box-sizing: border-box; padding: 10px 16px; border-radius: 26px; background: #1C2B23; border: 1px solid rgba(226,204,148,0.28); color: #EEF3EC; text-decoration: none;">
+      <svg width="62" height="62" viewBox="0 0 70 70" aria-hidden="true">
+        <circle cx="35" cy="35" r="34" fill="#16231C"></circle>
+        <circle cx="35" cy="38" r="17" fill="none" stroke="#E2CC94" stroke-width="3"></circle>
+        <path d="M35 38 V29 M35 38 L41 42" stroke="#E2CC94" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M30 16 H40" stroke="#E2CC94" stroke-width="3" stroke-linecap="round"></path>
+      </svg>
+      <span style="flex: 1;">
+        <span style="display: block; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 22px;">Reto del aire</span>
+        <span style="display: block; margin-top: 2px; font-size: 14px; color: #A9B8AC;">Con mamá o papá</span>
+      </span>
+    </a>
+  </div>
+
+  <a href="PinAdulto.dc.html" style="position: absolute; left: 50%; transform: translateX(-50%); bottom: 36px; display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.16); color: #A9B8AC; font-size: 15px; text-decoration: none; white-space: nowrap;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+    Volver a papá o mamá
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const days = ['M', 'J', 'V', 'S', 'D', 'L', 'Hoy'];
+    const got = [0, 1, 0, 1, 1, 1, 'hoy'];
+    const stars = days.map((day, i) => {
+      const v = got[i];
+      const today = v === 'hoy';
+      return {
+        day,
+        fill: v === 1 ? '#E2CC94' : 'none',
+        stroke: v === 1 ? '#E2CC94' : today ? '#9CC5A1' : '#5E6E63',
+        labelStyle: 'font-size: 12px; ' + (today ? 'color: #9CC5A1; font-weight: 600;' : 'color: #8A9B8F;'),
+      };
+    });
+    return { stars };
+  }
+}
+</script>
+</body>
+</html>

@@ -31,6 +31,51 @@ const GOAL_DEFS = [
   { key: 'weekly', label: 'Minutos por semana', kid: 'Minutos por semana', prefix: 'Últimos 7 días', unit: ' min', step: 10, min: 10, max: 420 },
 ];
 
+// Botones − meta + de un perfil (el propio o, para el administrador, el de alguien más).
+function stepper(d, who, target, label) {
+  return `<div class="row" style="gap:6px;flex:none">
+    <button class="icon-btn" style="background:var(--low);border:1px solid var(--line2)" data-goal="${d.key}" data-who="${esc(who)}" data-delta="-${d.step}" aria-label="Bajar meta de ${esc(label)}">${icon('minus', 18)}</button>
+    <span class="num" style="min-width:64px;text-align:center;font-size:22px">${target}${d.unit}</span>
+    <button class="icon-btn" style="background:var(--low);border:1px solid var(--line2)" data-goal="${d.key}" data-who="${esc(who)}" data-delta="${d.step}" aria-label="Subir meta de ${esc(label)}">${icon('plus', 18)}</button>
+  </div>`;
+}
+
+// Fila de una rutina. Los niños la ven sin interruptor ni botón de borrar.
+function routineRow(r, owner, manage) {
+  const kid = owner.kind !== 'adulto';
+  const ex = r.exerciseId ? byId(r.exerciseId) : null;
+  const what = r.kind === 'bolt' ? (kid ? 'Reto del aire' : 'Medir BOLT') : `${ex ? nameFor(ex, owner.kind) : 'Sesión'} · ${r.minutes} min`;
+  const info = `<span style="width:40px;height:40px;flex:none;border-radius:14px;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(r.kind === 'bolt' ? 'timer' : 'repeat', 18)}</span>
+    <span style="flex:1;min-width:0"><span style="display:block;font-size:14px;font-weight:600">${esc(r.name)} · ${esc(r.time)}</span>
+      <span class="muted">${esc(freqLabel(r))} · ${esc(what)}${r.active === false ? ' · En pausa' : ''}</span></span>`;
+  if (!manage) return `<div class="tile row" style="padding:12px 14px">${info}</div>`;
+  return `<div class="tile row" style="padding:12px 14px">
+    <a href="#/planear?editar=${encodeURIComponent(r.id)}&de=perfil" class="row" style="flex:1;min-width:0;color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(r.name)} ${esc(r.time)}">${info}</a>
+    <button class="switch" role="switch" aria-checked="${r.active !== false}" aria-label="Rutina ${esc(r.name)} ${esc(r.time)}" data-rt-toggle="${esc(r.id)}" data-who="${esc(owner.id)}"><span></span></button>
+    <button class="icon-btn" style="width:40px;height:40px;background:transparent;color:var(--muted)" data-rt-del="${esc(r.id)}" data-who="${esc(owner.id)}" aria-label="Borrar rutina ${esc(r.name)}">${icon('trash', 18)}</button>
+  </div>`;
+}
+
+// Para el administrador: metas y rutinas de cada persona de la familia.
+function familyCard(store, x) {
+  const g = store.goals(x.id);
+  const kid = x.kind !== 'adulto';
+  const goals = GOAL_DEFS.map((d) => {
+    const label = kid ? d.kid : d.label;
+    return `<div class="between" style="margin-top:10px;gap:10px"><span style="font-size:14px;min-width:0">${esc(label)}</span>${stepper(d, x.id, g[d.key], `${label} de ${x.name}`)}</div>`;
+  }).join('');
+  const list = store.routines(x.id);
+  return `<div class="card">
+    <div class="row" style="gap:12px">${avatar(x, 44)}
+      <div style="flex:1;min-width:0"><p class="h3" style="margin:0">${esc(x.name)}</p><p class="muted" style="margin:2px 0 0">${esc(kindLabel(x))}</p></div>
+      <a href="#/calendario?p=${encodeURIComponent(x.id)}" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Calendario</a></div>
+    ${goals}
+    <div class="between" style="margin-top:14px"><span class="muted">Rutinas</span>
+      <a href="#/planear?p=${encodeURIComponent(x.id)}&de=perfil" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a></div>
+    <div class="stack" style="gap:8px">${list.length ? list.map((r) => routineRow(r, x, true)).join('') : '<p class="muted" style="margin:0">Sin rutinas todavía.</p>'}</div>
+  </div>`;
+}
+
 function row(href, ic, label) {
   return `<a class="list-row" href="${href}">${icon(ic, 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1;font-size:15px">${esc(label)}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>`;
 }
@@ -65,6 +110,7 @@ export default {
     const current = { bolt: lb ? lb.seconds : 0, steps: best, weekly: Math.round(store.last7(p.id)) };
     const routines = store.routines(p.id);
     const lv = store.level(p.id);
+    const family = p.kind === 'adulto' && p.admin ? store.profiles().filter((x) => x.id !== p.id) : [];
 
     const goals = GOAL_DEFS.map((d) => {
       const target = g[d.key];
@@ -76,28 +122,13 @@ export default {
             <p class="muted" style="margin:2px 0 0">${d.prefix}: ${now ? `${now}${d.unit}` : 'sin medir'} · ${left > 0 ? `te faltan ${left}${d.unit}` : '¡meta lograda!'}</p></div>
           ${kid
             ? `<span class="num" style="font-size:24px">${target}${d.unit}</span>`
-            : `<div class="row" style="gap:6px;flex:none">
-                <button class="icon-btn" style="background:var(--low);border:1px solid var(--line2)" data-goal="${d.key}" data-delta="-${d.step}" aria-label="Bajar meta de ${esc(d.label)}">${icon('minus', 18)}</button>
-                <span class="num" style="min-width:64px;text-align:center;font-size:22px">${target}${d.unit}</span>
-                <button class="icon-btn" style="background:var(--low);border:1px solid var(--line2)" data-goal="${d.key}" data-delta="${d.step}" aria-label="Subir meta de ${esc(d.label)}">${icon('plus', 18)}</button>
-              </div>`}
+            : stepper(d, p.id, target, d.label)}
         </div>
         <div style="margin-top:12px">${bar(target ? (now / target) * 100 : 0, d.key === 'bolt' ? 'var(--sage)' : d.key === 'steps' ? 'var(--hoja)' : 'var(--arena)')}</div>
       </div>`;
     }).join('');
 
-    const routineRows = routines.length ? routines.map((r) => {
-      const ex = r.exerciseId ? byId(r.exerciseId) : null;
-      const what = r.kind === 'bolt' ? (kid ? 'Reto del aire' : 'Medir BOLT') : `${ex ? nameFor(ex, p.kind) : 'Sesión'} · ${r.minutes} min`;
-      const info = `<span style="width:40px;height:40px;flex:none;border-radius:14px;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(r.kind === 'bolt' ? 'timer' : 'repeat', 18)}</span>
-        <span style="flex:1;min-width:0"><span style="display:block;font-size:14px;font-weight:600">${esc(r.name)} · ${esc(r.time)}</span>
-          <span class="muted">${esc(freqLabel(r))} · ${esc(what)}</span></span>`;
-      return `<div class="tile row" style="padding:12px 14px">
-        ${kid ? info : `<a href="#/planear?editar=${encodeURIComponent(r.id)}&de=perfil" class="row" style="flex:1;min-width:0;color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(r.name)} ${esc(r.time)}">${info}</a>`}
-        <button class="switch" role="switch" aria-checked="${!!r.active}" aria-label="Rutina ${esc(r.name)} ${esc(r.time)}" data-rt-toggle="${esc(r.id)}"><span></span></button>
-        ${kid ? '' : `<button class="icon-btn" style="width:40px;height:40px;background:transparent;color:var(--muted)" data-rt-del="${esc(r.id)}" aria-label="Borrar rutina ${esc(r.name)}">${icon('trash', 18)}</button>`}
-      </div>`;
-    }).join('') : `<p class="sub">Todavía no tienes rutinas.</p>`;
+    const routineRows = routines.length ? routines.map((r) => routineRow(r, p, !kid)).join('') : `<p class="sub">Todavía no tienes rutinas.</p>`;
 
     return `<div class="row" style="gap:16px;margin-bottom:6px">
         ${avatar(p, 72)}
@@ -142,6 +173,8 @@ export default {
       <div class="between" style="margin-top:22px"><p class="h3" style="margin:0">Mis rutinas</p>
         ${kid ? '' : '<a href="#/planear" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a>'}</div>
       <div class="stack" style="margin-top:6px">${routineRows}</div>
+      ${family.length ? `<div class="between" style="margin-top:22px"><p class="h3" style="margin:0">Familia</p><span class="muted">Metas y rutinas de cada quien</span></div>
+      <div class="stack" style="margin-top:10px">${family.map((x) => familyCard(store, x)).join('')}</div>` : ''}
 
       <p class="h3" style="margin:22px 0 4px">Más</p>
       <div>
@@ -155,25 +188,34 @@ export default {
     const { store, rerender } = ctx;
     const p = ctx.profile;
     const onClick = (e) => {
+      // Cada botón dice de quién es (data-who); los niños no cambian metas ni rutinas.
+      const whoOf = (el) => {
+        const who = el.dataset.who || p.id;
+        return p.kind === 'adulto' && store.canManage(p.id, who) ? who : null;
+      };
       const goal = e.target.closest('[data-goal]');
       if (goal) {
+        const who = whoOf(goal);
+        if (!who) return;
         const d = GOAL_DEFS.find((x) => x.key === goal.dataset.goal);
-        const v = store.goals(p.id)[d.key] + Number(goal.dataset.delta);
-        store.setGoal(p.id, d.key, Math.min(d.max, Math.max(d.min, v)));
+        const v = store.goals(who)[d.key] + Number(goal.dataset.delta);
+        store.setGoal(who, d.key, Math.min(d.max, Math.max(d.min, v)));
         rerender();
         return;
       }
       const tog = e.target.closest('[data-rt-toggle]');
       if (tog) {
-        const r = store.routines(p.id).find((x) => x.id === tog.dataset.rtToggle);
-        if (r) store.updateRoutine(r.id, { active: !r.active });
+        const who = whoOf(tog);
+        const r = who && store.routines(who).find((x) => x.id === tog.dataset.rtToggle);
+        if (r) store.updateRoutine(r.id, { active: r.active === false });
         rerender();
         return;
       }
       const del = e.target.closest('[data-rt-del]');
       if (del) {
-        const r = store.routines(p.id).find((x) => x.id === del.dataset.rtDel);
-        if (r) askConfirm(`¿Borrar la rutina «${r.name} · ${r.time}»?`, { ok: 'Borrar' }).then((ok) => {
+        const who = whoOf(del);
+        const r = who && store.routines(who).find((x) => x.id === del.dataset.rtDel);
+        if (r) askConfirm(`¿Borrar la rutina «${r.name} · ${r.time}»? Los días pasados conservan lo que se hizo.`, { ok: 'Borrar' }).then((ok) => {
           if (ok) { store.removeRoutine(r.id); rerender(); }
         });
       }

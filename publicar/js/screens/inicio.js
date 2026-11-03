@@ -12,10 +12,36 @@ const TIPS = [
   'En la cama, la 4-7-8 ayuda a conciliar el sueño.',
 ];
 
+const toMin = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m; };
+
+// La rutina pendiente que toca ahora: la próxima por venir o, si ya pasaron todas, la más reciente.
 function nextPractice(store, p) {
   const items = store.agenda(p.id, new Date()).filter((i) => i.type === 'plan' && i.routine.kind === 'sesion');
-  const pending = items.find((i) => i.status === 'pendiente');
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const open = items.filter((i) => i.status === 'pendiente');
+  const upcoming = open.filter((i) => toMin(i.time) >= now - 30).sort((a, b) => toMin(a.time) - toMin(b.time));
+  const past = open.filter((i) => toMin(i.time) < now - 30).sort((a, b) => toMin(b.time) - toMin(a.time));
+  const pending = upcoming[0] || past[0];
   return { pending, done: items.filter((i) => i.status === 'hecha').length, total: items.length };
+}
+
+// En iPhone, invitar a agregar Calmo a la pantalla de inicio (no se pierden datos y abre en pantalla completa).
+const INSTALL_KEY = 'calmo.instalar.oculto';
+function installCard() {
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone = navigator.standalone === true || window.matchMedia?.('(display-mode: standalone)').matches;
+  let hidden = false;
+  try { hidden = localStorage.getItem(INSTALL_KEY) === '1'; } catch (e) { /* sin almacenamiento */ }
+  if (!ios || standalone || hidden || window.claude?.use) return '';
+  return `<div class="card" id="install" style="border-color:rgba(226,204,148,0.35)">
+    <div class="between"><p class="h3" style="margin:0">Agrega Calmo a tu inicio</p>
+      <button class="icon-btn" data-install-close aria-label="Ocultar este aviso" style="background:transparent">${icon('x', 18)}</button></div>
+    <p class="sub" style="margin-top:6px">Así abre en pantalla completa y tus datos no se borran.</p>
+    <ol style="margin:10px 0 0;padding-left:20px;color:var(--text2);line-height:1.7;font-size:15px">
+      <li>Toca <strong>Compartir</strong> (el cuadro con la flecha hacia arriba).</li>
+      <li>Elige <strong>Agregar a inicio</strong> y toca <strong>Agregar</strong>.</li>
+    </ol>
+  </div>`;
 }
 
 function hero(p, kidLine = '') {
@@ -48,6 +74,7 @@ function adult(ctx) {
   const href = `#/configurar/${ex.id}?min=${min}${pending ? `&rutina=${pending.routine.id}` : ''}`;
   return `${hero(p)}
   <div class="after-hero stack">
+    ${installCard()}
     <div class="card">
       <div class="between">
         ${pending ? `<span class="chip arena">${icon('repeat', 14)} ${esc(pending.title)} · ${esc(pending.time)}</span>` : '<span class="chip sage">Sugerida para hoy</span>'}
@@ -59,7 +86,7 @@ function adult(ctx) {
     </div>
     <div class="grid3">
       <div class="tile">${icon('flame', 18, 'style="color:var(--brasa)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${store.streak(p.id)} <span style="font-family:var(--sans);font-size:13px;color:var(--text2)">${store.streak(p.id) === 1 ? "día" : "días"}</span></p><p class="muted" style="margin:2px 0 0">Días seguidos</p></div>
-      <a class="tile" href="#/medir" style="color:inherit;text-decoration:none">${icon('timer', 18, 'style="color:var(--sage)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${lb ? lb.seconds : '—'} <span style="font-family:var(--sans);font-size:13px;color:var(--text2)">s</span></p><div style="margin-top:6px">${bar(lb ? (lb.seconds / g.bolt) * 100 : 0)}</div><p class="muted" style="margin:6px 0 0">BOLT · meta ${g.bolt}</p></a>
+      <a class="tile" href="#/bolt" style="color:inherit;text-decoration:none">${icon('timer', 18, 'style="color:var(--sage)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${lb ? lb.seconds : '—'} <span style="font-family:var(--sans);font-size:13px;color:var(--text2)">s</span></p><div style="margin-top:6px">${bar(lb ? (lb.seconds / g.bolt) * 100 : 0)}</div><p class="muted" style="margin:6px 0 0">BOLT · meta ${g.bolt}</p></a>
       <a class="tile" href="#/progreso" style="color:inherit;text-decoration:none">${icon('leaf', 18, 'style="color:var(--hoja)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${Math.round(week)} <span style="font-family:var(--sans);font-size:13px;color:var(--text2)">min</span></p><p class="muted" style="margin:2px 0 0">7 días · meta ${g.weekly}</p></a>
     </div>
     <div class="between" style="margin-top:4px"><p style="margin:0;font-size:13px;color:var(--text2)">Para este momento</p><a href="#/catalogo" style="font-size:13px;font-weight:500;text-decoration:none;padding:10px 0">Ver todos</a></div>
@@ -86,6 +113,7 @@ function junior(ctx) {
   const levelLine = `<a href="#/logros" class="chip" style="margin-top:10px;text-decoration:none;background:rgba(16,26,21,0.62);color:#EEF3EC;min-height:32px">${icon('leaf', 14)} Nivel ${lv.name} · ${lv.next ? `te faltan ${lv.toNext} hojas` : 'nivel máximo'}</a>`;
   return `${hero(p, levelLine)}
   <div class="after-hero stack">
+    ${installCard()}
     <div class="card">
       ${pending ? `<span class="chip arena">${icon('repeat', 14)} ${esc(pending.title)} · ${esc(pending.time)}</span>` : '<span class="chip sage">Para hoy</span>'}
       <h2 class="h2" style="margin-top:14px">${esc(nameFor(ex, 'junior'))}</h2>
@@ -149,6 +177,12 @@ export default {
     if (kind === 'peque') return peque(ctx);
     if (kind === 'junior') return junior(ctx);
     return adult(ctx);
+  },
+  mount(root) {
+    root.querySelector('[data-install-close]')?.addEventListener('click', () => {
+      try { localStorage.setItem(INSTALL_KEY, '1'); } catch (e) { /* sin almacenamiento */ }
+      root.querySelector('#install')?.remove();
+    });
   },
 };
 

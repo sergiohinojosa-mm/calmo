@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Logros de Sergio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; gap: 14px;">
+    <a href="Perfil.dc.html" aria-label="Volver a Mi perfil" style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px;">Tus logros, Sergio</h1>
+  </div>
+
+  <div style="position: absolute; top: 116px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 0 20px 40px; box-sizing: border-box;">
+    <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 28px; padding: 18px 20px; display: flex; gap: 16px; align-items: center;">
+      <svg width="88" height="96" viewBox="0 0 88 96" aria-hidden="true" style="flex: none;">
+        <circle cx="44" cy="44" r="40" fill="#9CC5A1" opacity="0.08"></circle>
+        <path d="M44 74V36" stroke="#6FA58A" stroke-width="3" stroke-linecap="round"></path>
+        <path d="M44 50c0-12 9-18 22-18 0 12-9 18-22 18z" fill="#9CC5A1"></path>
+        <path d="M44 58c0-10-7-15-18-15 0 10 7 15 18 15z" fill="#6FA58A"></path>
+        <path d="M44 38c0-8 5-12 12-12 0 8-5 12-12 12z" fill="#B9DEC3"></path>
+        <path d="M28 74h32l-4 18H32z" fill="#E9B27D"></path>
+        <path d="M26 72h36v6H26z" fill="#D9A06E"></path>
+      </svg>
+      <div style="flex: 1; min-width: 0;">
+        <p style="margin: 0; font-size: 13px; color: #A9B8AC;">Tu nivel</p>
+        <p style="margin: 2px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 28px;">Planta</p>
+        <p style="margin: 2px 0 0; font-size: 14px; color: #B9DEC3; display: flex; align-items: center; gap: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15z" fill="#B9DEC3"></path></svg>
+          340 hojas
+        </p>
+        <div style="margin-top: 10px; height: 8px; border-radius: 8px; background: rgba(238,243,236,0.08);"><div style="width: 68%; height: 8px; border-radius: 8px; background: #9CC5A1;"></div></div>
+        <p style="margin: 6px 0 0; font-size: 12px; color: #A9B8AC;">160 hojas más para Árbol</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; text-align: center;">
+      <sc-for list="{{levels}}" as="lv" hint-placeholder-count="5">
+        <div style="{{lv.style}}">
+          <span style="display: block; font-size: 12px; font-weight: 600;">{{lv.name}}</span>
+          <span style="display: block; font-size: 11px; color: #8A9B8F;">{{lv.min}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div role="group" aria-label="Insignias" style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #16231C;">
+      <button onClick="{{showEarned}}" aria-pressed="{{earnedPressed}}" style="{{earnedStyle}}">Ganadas · 9</button>
+      <button onClick="{{showLocked}}" aria-pressed="{{lockedPressed}}" style="{{lockedStyle}}">Por ganar · 3</button>
+    </div>
+
+    <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+      <sc-for list="{{badges}}" as="b" hint-placeholder-count="6">
+        <div style="text-align: center; background: #16231C; border-radius: 20px; padding: 14px 8px 12px;">
+          <span style="{{b.medal}}">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="{{b.color}}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{b.d}}"></path></svg>
+          </span>
+          <p style="margin: 8px 0 0; font-size: 13px; font-weight: 600; line-height: 1.25;">{{b.name}}</p>
+          <p style="margin: 2px 0 0; font-size: 11px; color: #A9B8AC;">{{b.caption}}</p>
+          <sc-if value="{{b.locked}}" hint-placeholder-val="{{false}}">
+            <div style="margin: 6px 6px 0; height: 4px; border-radius: 4px; background: rgba(238,243,236,0.08);"><div style="{{b.bar}}"></div></div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <p style="margin: 18px 0 0; font-size: 12px; line-height: 1.5; color: #8A9B8F; text-align: center;">1 hoja por minuto · +5 si cumples una sesión planeada · +10 por insignia</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const tab = st.tab ?? 'earned';
+    const I = {
+      wind: 'M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h7',
+      sprout: 'M12 21v-9M12 12c0-4 3-6.5 7-6.5 0 4-3 6.5-7 6.5zM12 14.5c0-3-2.2-5-6-5 0 3 2.2 5 6 5z',
+      leaf: 'M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19 13 11',
+      sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
+      moon: 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z',
+      star: 'M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z',
+      steps: 'M8 3.5c1.4 0 2 1.6 2 3.6S9.2 11 8 11 6 9.1 6 7.1 6.6 3.5 8 3.5zM16 9.5c1.4 0 2 1.6 2 3.6S17.2 17 16 17s-2-1.9-2-3.9.6-3.6 2-3.6zM7 13.5h2M15 19.5h2',
+      watch: 'M12 5a8 8 0 1 0 0 16 8 8 0 1 0 0-16zM12 9v4l2.5 2M10 2h4',
+      medal: 'M12 14a5 5 0 1 0 0-10 5 5 0 1 0 0 10zM9 13.5 7 21l5-2.5 5 2.5-2-7.5',
+      users: 'M9 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 1 0 0-7zM2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.3.6 3.5 2.8 3.5 6',
+      compass: 'M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18zM15.5 8.5l-2 5-5 2 2-5z',
+      cal: 'M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM3 10h18M8 3v4M16 3v4',
+    };
+    const earned = [
+      ['Primera respiración', 'star', '#B9DEC3', '12 sep'],
+      ['Brote constante', 'sprout', '#9CC5A1', '3 días seguidos'],
+      ['Semana de hojas', 'leaf', '#9CC5A1', '7 días seguidos'],
+      ['Madrugador', 'sun', '#E2CC94', '5 al despertar'],
+      ['Búho sereno', 'moon', '#E9DFC4', '5 antes de dormir'],
+      ['Nariz despejada', 'wind', '#E2CC94', '3 veces destapar la nariz'],
+      ['Caminante', 'steps', '#B9DEC3', '50 pasos'],
+      ['BOLT 20', 'watch', '#9CC5A1', '20 segundos'],
+      ['Equipo Hinojosa', 'users', '#9CC5A1', 'Semana pasada'],
+    ];
+    const locked = [
+      ['Alumno estrella', 'medal', 5, 7, '5 de 7 días'],
+      ['Explorador', 'compass', 4, 5, '4 de 5 ejercicios'],
+      ['Mes de calma', 'cal', 12, 30, '12 de 30 días'],
+    ];
+    const medal = (on, c) => 'width: 60px; height: 60px; margin: 0 auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; ' + (on ? 'background: #2A4033; border: 2px solid ' + c + ';' : 'background: transparent; border: 2px dashed #4A5A50;');
+    const badges = tab === 'earned'
+      ? earned.map(([name, ic, c, caption]) => ({ name, caption, d: I[ic], color: c, medal: medal(true, c), locked: false, bar: '' }))
+      : locked.map(([name, ic, v, max, caption]) => ({
+          name, caption, d: I[ic], color: '#6B7A70', medal: medal(false), locked: true,
+          bar: 'height: 4px; border-radius: 4px; background: #9CC5A1; width: ' + Math.round((v / max) * 100) + '%;',
+        }));
+    const levels = [['Semilla', '0'], ['Brote', '100'], ['Planta', '250'], ['Árbol', '500'], ['Bosque', '1000']].map(([name, min], i) => ({
+      name, min,
+      style: 'padding: 8px 2px; border-radius: 14px; ' + (i === 2 ? 'background: rgba(156,197,161,0.16); color: #B9DEC3; border: 1px solid rgba(156,197,161,0.5);' : i < 2 ? 'background: #16231C; color: #EEF3EC; border: 1px solid transparent;' : 'background: transparent; color: #A9B8AC; border: 1px dashed rgba(238,243,236,0.12);'),
+    }));
+    const segOn = 'height: 44px; border-radius: 999px; border: none; background: #2A4033; color: #EEF3EC; font-family: inherit; font-size: 14px; font-weight: 600;';
+    const segOff = 'height: 44px; border-radius: 999px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px;';
+    return {
+      badges, levels,
+      earnedPressed: tab === 'earned' ? 'true' : 'false',
+      lockedPressed: tab === 'locked' ? 'true' : 'false',
+      earnedStyle: tab === 'earned' ? segOn : segOff,
+      lockedStyle: tab === 'locked' ? segOn : segOff,
+      showEarned: () => this.setState({ tab: 'earned' }),
+      showLocked: () => this.setState({ tab: 'locked' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

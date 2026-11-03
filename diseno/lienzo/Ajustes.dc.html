@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Ajustes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+input[type=range]{accent-color:#9CC5A1;width:100%;min-height:44px}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; gap: 14px;">
+    <a href="Perfil.dc.html" aria-label="Volver a Mi perfil" style="width: 44px; height: 44px; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px;">Ajustes</h1>
+  </div>
+
+  <div style="position: absolute; top: 116px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 0 20px 40px; box-sizing: border-box;">
+    <sc-for list="{{groups}}" as="grp" hint-placeholder-count="2">
+      <p style="margin: 22px 0 8px; font-size: 13px; color: #A9B8AC;">{{grp.title}}</p>
+      <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 22px; padding: 4px 8px 4px 16px;">
+        <sc-for list="{{grp.rows}}" as="row" hint-placeholder-count="3">
+          <div style="{{row.rowStyle}}">
+            <div style="min-width: 0;">
+              <p style="margin: 0; font-size: 15px;">{{row.label}}</p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{row.hint}}</p>
+            </div>
+            <button role="switch" aria-checked="{{row.checked}}" aria-label="{{row.label}}" onClick="{{row.toggle}}" style="flex: none; width: 64px; height: 48px; padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center;"><span style="{{row.track}}"><span style="{{row.knob}}"></span></span></button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-for>
+
+    <p style="margin: 22px 0 8px; font-size: 13px; color: #A9B8AC;">Voz guía de Julia</p>
+    <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 22px; padding: 14px 16px;">
+      <p style="margin: 0; font-size: 15px;">{{voiceTitle}}</p>
+      <p style="margin: 2px 0 12px; font-size: 12px; color: #8A9B8F;">Dice "Huele la flor… suelta el aire" en las sesiones de Julia</p>
+      <div role="group" aria-label="Voz guía de Julia" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #16231C;">
+        <sc-for list="{{voices}}" as="v" hint-placeholder-count="2">
+          <button onClick="{{v.pick}}" aria-pressed="{{v.pressed}}" style="{{v.style}}">{{v.label}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{isRecord}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 10px 0 0; font-size: 12px; line-height: 1.5; color: #E2CC94;">Grabarás 10 frases cortas. Mientras tanto se usa la voz del iPhone.</p>
+      </sc-if>
+    </div>
+
+    <p style="margin: 22px 0 8px; font-size: 13px; color: #A9B8AC;">Volumen por defecto</p>
+    <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 22px; padding: 8px 16px; display: flex; flex-direction: column; gap: 4px;">
+      <label style="display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 14px; color: #A9B8AC;">Música <input type="range" min="0" max="100" value="60"></label>
+      <label style="display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 14px; color: #A9B8AC;">Naturaleza <input type="range" min="0" max="100" value="45"></label>
+      <label style="display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 14px; color: #A9B8AC;">Tonos de fase <input type="range" min="0" max="100" value="80"></label>
+    </div>
+
+    <p style="margin: 22px 0 8px; font-size: 13px; color: #A9B8AC;">Apariencia</p>
+    <div role="group" aria-label="Tema" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #16231C;">
+      <sc-for list="{{themes}}" as="t" hint-placeholder-count="3">
+        <button onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+
+    <p style="margin: 22px 0 8px; font-size: 13px; color: #A9B8AC;">Maestra</p>
+    <div style="background: #1C2B23; border: 1px solid rgba(226,204,148,0.22); border-radius: 22px; padding: 14px 8px 14px 16px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(226,204,148,0.20); color: #E2CC94; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">P</span>
+        <div style="flex: 1; min-width: 0;">
+          <p style="margin: 0; font-size: 15px;">Pamela</p>
+          <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{pamelaHint}}</p>
+        </div>
+        <button role="switch" aria-checked="{{pamelaChecked}}" aria-label="Acceso de Pamela" onClick="{{togglePamela}}" style="flex: none; width: 64px; height: 48px; padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center;"><span style="{{pamelaTrack}}"><span style="{{pamelaKnob}}"></span></span></button>
+      </div>
+      <sc-if value="{{showRemoveLink}}" hint-placeholder-val="{{true}}">
+        <button onClick="{{askRemove}}" style="margin-top: 6px; min-height: 44px; padding: 0; border: none; background: transparent; color: #E9B27D; font-family: inherit; font-size: 14px;">Quitar acceso</button>
+      </sc-if>
+      <sc-if value="{{confirmRemove}}" hint-placeholder-val="{{false}}">
+        <div style="margin: 10px 8px 0 0; padding: 12px; border-radius: 16px; background: rgba(233,178,125,0.10);">
+          <p style="margin: 0; font-size: 14px; line-height: 1.5; color: #E9B27D;">¿Quitarle el acceso a Pamela? Dejará de ver el progreso y no podrá asignar prácticas. Puedes invitarla otra vez cuando quieras.</p>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button onClick="{{cancelRemove}}" style="flex: 1; min-height: 44px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); background: transparent; color: #EEF3EC; font-family: inherit; font-size: 14px;">Cancelar</button>
+            <button onClick="{{doRemove}}" style="flex: 1; min-height: 44px; border-radius: 999px; border: none; background: #E9B27D; color: #0F1A14; font-family: inherit; font-size: 14px; font-weight: 600;">Sí, quitar</button>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{removed}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 10px 0 0; font-size: 13px; color: #A9B8AC;">Pamela ya no tiene acceso. <a href="InstalarIphone.dc.html" style="color: #9CC5A1; display: inline-flex; align-items: center; min-height: 44px;">Invitarla de nuevo</a></p>
+      </sc-if>
+    </div>
+
+    <p style="margin: 22px 0 8px; font-size: 13px; color: #A9B8AC;">Familia</p>
+    <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 22px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <p style="margin: 0; font-size: 15px;">Familia Hinojosa</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #A9B8AC; letter-spacing: 0.12em; font-variant-numeric: tabular-nums;">Código HNJ4K7</p>
+      </div>
+      <a href="InstalarIphone.dc.html" style="min-height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); color: #EEF3EC; font-size: 13px; display: inline-flex; align-items: center; text-decoration: none;">Compartir</a>
+    </div>
+    <button style="margin-top: 18px; width: 100%; height: 48px; border-radius: 999px; border: 1px solid rgba(233,178,125,0.35); background: transparent; color: #E9B27D; font-family: inherit; font-size: 15px;">Cerrar sesión</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const track = (on) => 'width: 52px; height: 32px; box-sizing: border-box; border-radius: 999px; padding: 3px; display: flex; justify-content: ' + (on ? 'flex-end' : 'flex-start') + '; background: ' + (on ? '#9CC5A1' : 'rgba(238,243,236,0.14)') + ';';
+    const knob = (on) => 'width: 26px; height: 26px; border-radius: 50%; background: ' + (on ? '#0F1A14' : '#A9B8AC') + ';';
+    const sw = (key, label, hint, def, last) => {
+      const on = st[key] ?? def;
+      return {
+        label, hint,
+        checked: on ? 'true' : 'false',
+        rowStyle: 'display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 60px; padding: 6px 0;' + (last ? '' : ' border-bottom: 1px solid rgba(238,243,236,0.06);'),
+        track: track(on),
+        knob: knob(on),
+        toggle: () => this.setState({ [key]: !on }),
+      };
+    };
+    const groups = [
+      { title: 'Durante la sesión', rows: [
+        sw('tonos', 'Tonos por fase', 'Un sonido distinto al inhalar, retener y exhalar', true),
+        sw('vibra', 'Vibración en cada fase', 'Para practicar con los ojos cerrados', true),
+        sw('cuenta', 'Cuenta regresiva 3-2-1', 'Antes de empezar cada sesión', true),
+        sw('bloqueo', 'Seguir con la pantalla bloqueada', 'La guía continúa con sonido y vibración', true, true),
+      ] },
+      { title: 'Recordatorios', rows: [
+        sw('rutinas', 'Mis rutinas', 'Aviso a la hora de cada sesión planeada', true),
+        sw('boltRec', 'Medir BOLT', 'Lunes 05:15, al despertar', true),
+        sw('semanal', 'Resumen semanal', 'Domingo 19:00', false, true),
+      ] },
+    ];
+    const seg = (on) => on
+      ? 'min-height: 44px; border-radius: 999px; border: none; background: #2A4033; color: #EEF3EC; font-family: inherit; font-size: 14px; font-weight: 600;'
+      : 'min-height: 44px; border-radius: 999px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px;';
+    const theme = st.theme ?? 'auto';
+    const themes = [['auto', 'Automático'], ['noche', 'Noche'], ['dia', 'Día']].map(([k, label]) => ({
+      label,
+      pressed: k === theme ? 'true' : 'false',
+      style: seg(k === theme),
+      pick: () => this.setState({ theme: k }),
+    }));
+    const voice = st.voice ?? 'iphone';
+    const voices = [['iphone', 'Voz del iPhone'], ['grabar', 'Grabar mamá o papá']].map(([k, label]) => ({
+      label,
+      pressed: k === voice ? 'true' : 'false',
+      style: seg(k === voice),
+      pick: () => this.setState({ voice: k }),
+    }));
+    const removed = !!st.removed;
+    const pamelaOn = removed ? false : (st.pamela ?? true);
+    return {
+      groups,
+      themes,
+      voices,
+      voiceTitle: voice === 'iphone' ? 'Voz del iPhone' : 'Voz de mamá o papá',
+      isRecord: voice === 'grabar',
+      pamelaChecked: pamelaOn ? 'true' : 'false',
+      pamelaTrack: track(pamelaOn),
+      pamelaKnob: knob(pamelaOn),
+      pamelaHint: removed ? 'Sin acceso' : pamelaOn ? 'Ve el progreso de toda la familia' : 'Acceso en pausa: no ve el progreso',
+      togglePamela: () => { if (!removed) this.setState({ pamela: !pamelaOn }); },
+      showRemoveLink: !removed && !st.ask,
+      confirmRemove: !removed && !!st.ask,
+      removed,
+      askRemove: () => this.setState({ ask: true }),
+      cancelRemove: () => this.setState({ ask: false }),
+      doRemove: () => this.setState({ ask: false, removed: true }),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Familia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif; box-sizing: border-box; padding: 60px 20px 0;">
+  <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px;">{{title}}</h1>
+    <sc-if value="{{isAdult}}" hint-placeholder-val="{{true}}">
+      <a href="InstalarIphone.dc.html" style="height: 44px; padding: 0 16px; box-sizing: border-box; border-radius: 999px; background: #1C2B23; color: #9CC5A1; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+        Invitar
+      </a>
+    </sc-if>
+  </div>
+
+  <div role="group" aria-label="Vista" style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #16231C;">
+    <button onClick="{{showRanking}}" aria-pressed="{{rankPressed}}" style="{{rankStyle}}">{{rankLabel}}</button>
+    <button onClick="{{showReto}}" aria-pressed="{{retoPressed}}" style="{{retoStyle}}">Reto en equipo</button>
+  </div>
+
+  <div style="margin: 14px -20px 0; height: 572px; overflow-y: auto; padding: 0 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px;">
+    <sc-if value="{{isRanking}}" hint-placeholder-val="{{true}}">
+      <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 28px; padding: 18px 16px 8px;">
+        <p style="margin: 0; font-size: 15px; font-weight: 600;">{{rankTitle}}</p>
+        <p style="margin: 2px 0 6px; font-size: 12px; color: #8A9B8F;">{{rankSub}}</p>
+        <sc-for list="{{ranking}}" as="r" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(238,243,236,0.06);">
+            <span style="width: 22px; flex: none; text-align: center; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 20px; color: #A9B8AC;">{{r.pos}}</span>
+            <span style="{{r.avatarStyle}}">{{r.initial}}</span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <p style="margin: 0; font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                  {{r.name}}
+                  <sc-if value="{{r.top}}" hint-placeholder-val="{{false}}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" role="img" aria-label="Hoja dorada"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15z" fill="#E2CC94"></path><path d="M5 19 13 11" fill="none" stroke="#7A6630" stroke-width="1.6" stroke-linecap="round"></path></svg>
+                  </sc-if>
+                </p>
+                <span style="font-size: 14px; font-variant-numeric: tabular-nums; color: #EEF3EC;">{{r.pctLabel}}</span>
+              </div>
+              <div style="margin-top: 6px; height: 6px; border-radius: 6px; background: rgba(238,243,236,0.07);"><div style="{{r.bar}}"></div></div>
+              <p style="margin: 5px 0 0; font-size: 12px; color: {{r.lineColor}};">{{r.line}}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isReto}}" hint-placeholder-val="{{false}}">
+      <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 28px; padding: 20px;">
+        <p style="margin: 0; font-size: 13px; color: #A9B8AC;">Reto en equipo · todos suman · últimos 7 días</p>
+        <p style="margin: 6px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 34px;">317 <span style="font-family: 'Figtree', sans-serif; font-size: 14px; color: #A9B8AC;">de 400 min</span></p>
+        <div style="margin-top: 12px; height: 8px; border-radius: 8px; background: rgba(238,243,236,0.08);"><div style="width: 79%; height: 8px; border-radius: 8px; background: #9CC5A1;"></div></div>
+        <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex;">
+            <sc-for list="{{members}}" as="m" hint-placeholder-count="5">
+              <span style="{{m.miniStyle}}">{{m.initial}}</span>
+            </sc-for>
+          </div>
+          <span style="font-size: 12px; color: #A9B8AC;">Faltan 83 min · ¡vamos, familia!</span>
+        </div>
+        <p style="margin: 14px 0 0; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #E2CC94;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z"></path></svg>
+          Insignia Equipo Hinojosa: la ganan todos juntos
+        </p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <sc-for list="{{members}}" as="m" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 12px; background: #16231C; border-radius: 18px; padding: 10px 14px;">
+            <span style="{{m.avatarStyle}}">{{m.initial}}</span>
+            <p style="margin: 0; flex: 1; font-size: 14px;">{{m.name}} aportó</p>
+            <span style="font-size: 14px; font-variant-numeric: tabular-nums;">{{m.minutos}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isAdult}}" hint-placeholder-val="{{true}}">
+      <a href="PremiosAdmin.dc.html" style="display: flex; align-items: center; gap: 12px; background: rgba(233,178,125,0.08); border: 1px solid rgba(233,178,125,0.25); border-radius: 20px; padding: 14px 16px; color: #EEF3EC; text-decoration: none;">
+        <span style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(233,178,125,0.18); color: #E9B27D; display: flex; align-items: center; justify-content: center;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="9" width="18" height="12" rx="2"></rect><path d="M3 13h18M12 9v12"></path><path d="M12 9c-2-4-6-4-6-1.5S9 9 12 9zM12 9c2-4 6-4 6-1.5S15 9 12 9z"></path></svg>
+        </span>
+        <span style="flex: 1; min-width: 0;">
+          <span style="display: block; font-size: 15px; font-weight: 600;">Premios · 2 por aprobar</span>
+          <span style="display: block; font-size: 12px; color: #A9B8AC;">Solo papá y mamá lo ven</span>
+        </span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9B8F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+    </sc-if>
+
+    <p style="margin: 6px 0 0; font-size: 13px; color: #A9B8AC;">{{membersTitle}}</p>
+    <sc-for list="{{members}}" as="m" hint-placeholder-count="5">
+      <sc-if value="{{m.link}}" hint-placeholder-val="{{true}}">
+        <a href="EditarMiembro.dc.html" aria-label="{{m.editLabel}}" style="display: block; background: #1C2B23; border: 1px solid rgba(238,243,236,0.05); border-radius: 20px; padding: 14px; color: #EEF3EC; text-decoration: none;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="{{m.avatarStyle}}">{{m.initial}}</span>
+            <div style="flex: 1; min-width: 0;">
+              <p style="margin: 0; font-size: 15px; font-weight: 600;">{{m.name}}</p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{m.sub}}</p>
+            </div>
+            <span style="{{m.chipStyle}}">{{m.perfil}}</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9B8F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+          </div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(238,243,236,0.06); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <div>
+              <p style="margin: 0; display: inline-flex; align-items: center; gap: 4px; font-size: 15px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E9B27D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z"></path></svg>
+                {{m.racha}}
+              </p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">Días seguidos</p>
+            </div>
+            <div>
+              <p style="margin: 0; font-size: 15px;">{{m.minutos}}</p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{m.metaLabel}}</p>
+            </div>
+            <div>
+              <p style="margin: 0; font-size: 15px;">{{m.bolt}}</p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{boltLabel}}</p>
+            </div>
+          </div>
+        </a>
+      </sc-if>
+      <sc-if value="{{m.plain}}" hint-placeholder-val="{{false}}">
+        <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.05); border-radius: 20px; padding: 14px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="{{m.avatarStyle}}">{{m.initial}}</span>
+            <div style="flex: 1; min-width: 0;">
+              <p style="margin: 0; font-size: 15px; font-weight: 600;">{{m.name}}</p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{m.sub}}</p>
+            </div>
+          </div>
+          <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(238,243,236,0.06); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <div>
+              <p style="margin: 0; display: inline-flex; align-items: center; gap: 4px; font-size: 15px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E9B27D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z"></path></svg>
+                {{m.racha}}
+              </p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">Días seguidos</p>
+            </div>
+            <div>
+              <p style="margin: 0; font-size: 15px;">{{m.minutos}}</p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{m.metaLabel}}</p>
+            </div>
+            <div>
+              <p style="margin: 0; font-size: 15px;">{{m.bolt}}</p>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{boltLabel}}</p>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </sc-for>
+
+    <div style="margin-top: 4px; background: rgba(226,204,148,0.08); border: 1px solid rgba(226,204,148,0.20); border-radius: 20px; padding: 16px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(226,204,148,0.20); color: #E2CC94; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600;">P</span>
+        <div style="flex: 1;">
+          <p style="margin: 0; font-size: 15px; font-weight: 600;">{{pamelaTitle}}</p>
+          <p style="margin: 2px 0 0; font-size: 12px; color: #A9B8AC;">{{pamelaSub}}</p>
+        </div>
+        <span style="padding: 4px 10px; border-radius: 999px; background: rgba(226,204,148,0.14); color: #E2CC94; font-size: 12px; font-weight: 500;">Maestra</span>
+      </div>
+      <sc-if value="{{isAdult}}" hint-placeholder-val="{{true}}">
+        <a href="Ajustes.dc.html" style="margin-top: 10px; display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; font-weight: 500; color: #E2CC94; text-decoration: none;">Administrar su acceso</a>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{isAdult}}" hint-placeholder-val="{{true}}">
+    <nav aria-label="Navegación principal" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 8px 8px 0; box-sizing: border-box; background: #0D1611; border-top: 1px solid rgba(238,243,236,0.06); display: flex; justify-content: space-around; align-items: flex-start;">
+      <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg>
+        Inicio
+      </a>
+      <a href="Calendario.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+        Calendario
+      </a>
+      <a href="Progreso.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"></path></svg>
+        Progreso
+      </a>
+      <a href="Perfil.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+        Mi perfil
+      </a>
+      <a href="Familia.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #9CC5A1; font-size: 11px; font-weight: 600;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.3.6 3.5 2.8 3.5 6"></path></svg>
+        Familia
+      </a>
+    </nav>
+  </sc-if>
+  <sc-if value="{{isJunior}}" hint-placeholder-val="{{false}}">
+    <nav aria-label="Navegación principal" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 8px 8px 0; box-sizing: border-box; background: #0D1611; border-top: 1px solid rgba(238,243,236,0.06); display: flex; justify-content: space-around; align-items: flex-start;">
+      <a href="InicioJunior.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 64px; min-height: 52px; text-decoration: none; color: #8A9B8F; font-size: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg>
+        Inicio
+      </a>
+      <a href="Logros.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 64px; min-height: 52px; text-decoration: none; color: #8A9B8F; font-size: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z"></path></svg>
+        Logros
+      </a>
+      <a href="PerfilJunior.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 64px; min-height: 52px; text-decoration: none; color: #8A9B8F; font-size: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+        Mi perfil
+      </a>
+      <a href="FamiliaJunior.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 64px; min-height: 52px; text-decoration: none; color: #9CC5A1; font-size: 12px; font-weight: 600;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.3.6 3.5 2.8 3.5 6"></path></svg>
+        Familia
+      </a>
+    </nav>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"perfil":{"editor":"enum","options":["adulto","junior"],"default":"adulto"},"yo":{"editor":"enum","options":["sergio","mariel","luciana"],"default":"sergio"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const view = st.view ?? 'ranking';
+    const junior = (this.props.perfil ?? 'adulto') === 'junior';
+    const yo = this.props.yo ?? (junior ? 'mariel' : 'sergio');
+    const P = [
+      { id: 'sergio', name: 'Sergio', role: 'Admin', kid: 'Papá', perfil: 'Adulto', racha: '12', min: 126, meta: 150, bolt: '24 s', bg: 'rgba(156,197,161,0.22)', fg: '#B9DEC3' },
+      { id: 'marcela', name: 'Marcela', role: 'Admin', kid: 'Mamá', perfil: 'Adulto', racha: '5', min: 96, meta: 150, bolt: '19 s', bg: 'rgba(226,204,148,0.20)', fg: '#E2CC94' },
+      { id: 'luciana', name: 'Luciana', role: '11 años', kid: '11 años', perfil: 'Junior', racha: '3', min: 45, meta: 60, bolt: '17 s', bg: 'rgba(233,178,125,0.20)', fg: '#E9B27D' },
+      { id: 'mariel', name: 'Mariel', role: '9 años', kid: '9 años', perfil: 'Junior', racha: '7', min: 38, meta: 40, bolt: '15 s', bg: 'rgba(111,165,138,0.28)', fg: '#B9DEC3' },
+      { id: 'julia', name: 'Julia', role: '5 años', kid: '5 años', perfil: 'Peque', racha: '4', min: 12, meta: 10, bolt: 'Por medir', bg: 'rgba(238,243,236,0.10)', fg: '#EEF3EC' },
+    ];
+    const chip = {
+      Adulto: 'flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(238,243,236,0.06); color: #A9B8AC;',
+      Junior: 'flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(111,165,138,0.18); color: #B9DEC3;',
+      Peque: 'flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(233,178,125,0.16); color: #E9B27D;',
+    };
+    const avatar = (p, size) => 'width: ' + size + 'px; height: ' + size + 'px; flex: none; border-radius: 50%; background: ' + p.bg + '; color: ' + p.fg + '; display: flex; align-items: center; justify-content: center; font-size: ' + (size > 40 ? 16 : 14) + 'px; font-weight: 600;';
+    const sub = (p) => {
+      const base = junior ? p.kid : p.role;
+      return p.id === yo ? base + ' · tú' : base;
+    };
+    const members = P.map((p, i) => ({
+      name: p.name, perfil: p.perfil, racha: p.racha,
+      sub: sub(p),
+      bolt: junior && p.bolt === 'Por medir' ? 'Aún no' : p.bolt,
+      minutos: p.min + ' min',
+      metaLabel: 'Meta ' + p.meta + ' min',
+      initial: p.name.charAt(0),
+      chipStyle: chip[p.perfil],
+      avatarStyle: avatar(p, 44),
+      link: !junior,
+      plain: junior,
+      editLabel: 'Editar a ' + p.name,
+      miniStyle: 'width: 28px; height: 28px; border-radius: 50%; border: 2px solid #1C2B23; background: #1C2B23; box-shadow: inset 0 0 0 20px ' + p.bg + '; color: ' + p.fg + '; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; margin-left: ' + (i === 0 ? 0 : -8) + 'px;',
+    }));
+    const lines = {
+      julia: '¡Meta cumplida! Va en primer lugar',
+      mariel: 'Le faltan 2 min para su meta',
+      sergio: '2 sesiones más para subir un lugar',
+      luciana: '1 sesión más para subir un lugar',
+      marcela: '2 sesiones más para subir un lugar',
+    };
+    const mine = {
+      julia: '¡Meta cumplida! Vas en primer lugar',
+      mariel: 'Te faltan 2 min para tu meta',
+      sergio: '2 sesiones más para subir un lugar',
+      luciana: '1 sesión más y subes un lugar',
+      marcela: '2 sesiones más para subir un lugar',
+    };
+    const ranking = P.map((p) => Object.assign({}, p, { pct: Math.round((p.min / p.meta) * 100) }))
+      .sort((a, b) => b.pct - a.pct)
+      .map((p, i) => ({
+        pos: i + 1,
+        name: p.id === yo ? p.name + ' (tú)' : p.name,
+        initial: p.name.charAt(0),
+        top: i < 3,
+        pctLabel: p.pct >= 100 ? '¡Meta cumplida!' : p.pct + ' %',
+        line: p.id === yo ? mine[p.id] : lines[p.id],
+        lineColor: p.pct >= 100 ? '#E2CC94' : '#A9B8AC',
+        avatarStyle: avatar(p, 40),
+        bar: 'height: 6px; border-radius: 6px; background: ' + (p.pct >= 100 ? '#E2CC94' : '#9CC5A1') + '; width: ' + Math.min(100, p.pct) + '%;',
+      }));
+    const segOn = 'height: 44px; border-radius: 999px; border: none; background: #2A4033; color: #EEF3EC; font-family: inherit; font-size: 14px; font-weight: 600;';
+    const segOff = 'height: 44px; border-radius: 999px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px;';
+    return {
+      members,
+      ranking,
+      isAdult: !junior,
+      isJunior: junior,
+      title: junior ? 'Mi familia' : 'Familia Hinojosa',
+      rankLabel: junior ? '¿Cómo vamos?' : 'Ranking',
+      rankTitle: junior ? '¿Cómo vamos?' : 'Ranking · últimos 7 días',
+      rankSub: junior ? 'Gana quien más avanza en su propia meta · últimos 7 días' : 'Gana quien más avanza en su propia meta · cuenta los últimos 7 días',
+      membersTitle: junior ? 'Así va cada quien · últimos 7 días' : 'Miembros · últimos 7 días',
+      boltLabel: junior ? 'Reto del aire' : 'BOLT',
+      pamelaTitle: junior ? 'Pamela, tu maestra' : 'Pamela te da seguimiento',
+      pamelaSub: junior ? 'Ve cómo vas y te deja prácticas' : 'Tu maestra ve el progreso de toda la familia',
+      isRanking: view === 'ranking',
+      isReto: view === 'reto',
+      rankPressed: view === 'ranking' ? 'true' : 'false',
+      retoPressed: view === 'reto' ? 'true' : 'false',
+      rankStyle: view === 'ranking' ? segOn : segOff,
+      retoStyle: view === 'reto' ? segOn : segOff,
+      showRanking: () => this.setState({ view: 'ranking' }),
+      showReto: () => this.setState({ view: 'reto' }),
+    };
+  }
+}
+</script>
+</body>
+</html>

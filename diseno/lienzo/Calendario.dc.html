@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Calendario</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif; box-sizing: border-box; padding: 56px 20px 0;">
+  <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px;">Calendario</h1>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <div role="group" aria-label="Vista" style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: #16231C;">
+        <button onClick="{{showDias}}" aria-pressed="{{diasPressed}}" style="{{diasStyle}}">Días</button>
+        <button onClick="{{showMes}}" aria-pressed="{{mesPressed}}" style="{{mesStyle}}">Mes</button>
+      </div>
+      <a href="Planear.dc.html" aria-label="Planear una sesión o rutina" style="width: 44px; height: 44px; border-radius: 50%; background: #9CC5A1; color: #0F1A14; display: flex; align-items: center; justify-content: center;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      </a>
+    </div>
+  </div>
+
+  <sc-if value="{{isDias}}" hint-placeholder-val="{{true}}">
+    <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between;">
+      <div>
+        <p style="margin: 0; font-size: 15px; font-weight: 600;">Semana {{weekNum}} <span style="font-weight: 400; color: #A9B8AC;">· {{weekRange}}</span></p>
+        <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">{{wDone}} de {{wPlan}} planeadas · {{wExtra}} extra</p>
+      </div>
+      <div style="display: flex; gap: 4px;">
+        <button onClick="{{prevWeek}}" aria-label="Semana anterior" style="width: 44px; height: 44px; border-radius: 50%; border: none; background: #16231C; color: #A9B8AC;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+        <button onClick="{{nextWeek}}" aria-label="Semana siguiente" style="width: 44px; height: 44px; border-radius: 50%; border: none; background: #16231C; color: #A9B8AC;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+      </div>
+    </div>
+    <div style="margin: 10px -20px 0; height: 586px; overflow-y: auto; padding: 0 20px 24px; box-sizing: border-box;">
+      <sc-for list="{{weekDays}}" as="wd" hint-placeholder-count="7">
+        <div style="display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; padding: 14px 0; border-top: 1px solid rgba(238,243,236,0.06);">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+            <span style="font-size: 13px; color: #A9B8AC;">{{wd.dow}}</span>
+            <span style="{{wd.numStyle}}">{{wd.n}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <sc-if value="{{wd.empty}}" hint-placeholder-val="{{false}}">
+              <p style="margin: 10px 0 0; font-size: 13px; color: #8A9B8F;">Sin sesiones</p>
+            </sc-if>
+            <sc-for list="{{wd.items}}" as="it" hint-placeholder-count="2">
+              <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.05); border-radius: 18px; padding: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <sc-if value="{{it.isBolt}}" hint-placeholder-val="{{false}}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CC5A1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2.5 2M10 2h4"></path></svg>
+                  </sc-if>
+                  <sc-if value="{{it.isSesion}}" hint-placeholder-val="{{true}}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CC5A1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"></path><path d="M5 19 13 11"></path></svg>
+                  </sc-if>
+                  <span style="{{it.srcStyle}}">{{it.src}}</span>
+                </div>
+                <p style="margin: 6px 0 0; font-size: 15px; font-weight: 600;">{{it.title}}</p>
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(238,243,236,0.06); display: flex; align-items: center; gap: 10px; min-height: 28px; font-size: 13px; color: #A9B8AC; font-variant-numeric: tabular-nums;">
+                  <span style="display: inline-flex; align-items: center; gap: 5px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                    {{it.timeLine}}
+                  </span>
+                  <span style="width: 1px; height: 14px; background: rgba(238,243,236,0.12);"></span>
+                  <sc-if value="{{it.isDone}}" hint-placeholder-val="{{true}}">
+                    <span style="display: inline-flex; align-items: center; gap: 5px; color: #B9DEC3;"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#9CC5A1"></circle><path d="M8 12.5l2.5 2.5 5.5-6" fill="none" stroke="#0F1A14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{it.status}}</span>
+                  </sc-if>
+                  <sc-if value="{{it.isPending}}" hint-placeholder-val="{{false}}">
+                    <span style="display: inline-flex; align-items: center; gap: 5px; color: #9CC5A1;"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#9CC5A1" stroke-width="1.8"></circle></svg>{{it.status}}</span>
+                  </sc-if>
+                  <sc-if value="{{it.isMissed}}" hint-placeholder-val="{{false}}">
+                    <span style="display: inline-flex; align-items: center; gap: 5px; color: #8A9B8F;"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#6B7A70" stroke-width="1.8"></circle><path d="M8.5 12h7" stroke="#6B7A70" stroke-width="1.8" stroke-linecap="round"></path></svg>{{it.status}}</span>
+                  </sc-if>
+                </div>
+                <sc-if value="{{it.canStart}}" hint-placeholder-val="{{false}}">
+                  <a href="{{it.startHref}}" style="margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 15px; font-weight: 600; text-decoration: none;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+                    Empezar
+                  </a>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{isMes}}" hint-placeholder-val="{{false}}">
+    <p style="margin: 10px 0 0; font-size: 13px; color: #A9B8AC;">Esta semana: {{wDone}} de {{wPlan}} planeadas · {{wExtra}} extra</p>
+    <div style="margin-top: 10px; background: #16231C; border-radius: 24px; padding: 8px 10px 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 4px;">
+        <button onClick="{{prevMonth}}" aria-label="Mes anterior" aria-disabled="{{prevMonthDisabled}}" style="{{prevMonthStyle}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+        <span style="font-size: 15px; font-weight: 600;">{{monthLabel}}</span>
+        <button onClick="{{nextMonth}}" aria-label="Mes siguiente" aria-disabled="{{nextMonthDisabled}}" style="{{nextMonthStyle}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; font-size: 11px; color: #8A9B8F; padding-bottom: 4px;">
+        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px;">
+        <sc-for list="{{days}}" as="d" hint-placeholder-count="42">
+          <button onClick="{{d.pick}}" aria-label="{{d.aria}}" aria-pressed="{{d.pressed}}" style="{{d.style}}">
+            <span style="{{d.numStyle}}">{{d.n}}</span>
+            <span style="display: flex; gap: 3px; height: 6px; margin-top: 3px;">
+              <sc-for list="{{d.dots}}" as="dt" hint-placeholder-count="2">
+                <span style="{{dt}}"></span>
+              </sc-for>
+            </span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="display: flex; justify-content: center; gap: 14px; padding: 8px 0 2px; font-size: 11px; color: #A9B8AC;">
+        <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #9CC5A1;"></span>Hecha</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 4px; height: 4px; border-radius: 50%; border: 1px solid #9CC5A1;"></span>Pendiente</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 4px; height: 4px; border-radius: 50%; border: 1px solid #8A9B8F;"></span>No realizada</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #E9B27D;"></span>Extra</span>
+      </div>
+    </div>
+
+    <p style="margin: 12px 0 8px; font-size: 13px; color: #A9B8AC;">{{selTitle}}</p>
+    <div style="display: flex; flex-direction: column; gap: 8px; max-height: 196px; overflow-y: auto;">
+      <sc-for list="{{agenda}}" as="it" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 12px; background: #1C2B23; border-radius: 18px; padding: 8px 14px; min-height: 44px;">
+          <span style="width: 42px; flex: none; font-size: 13px; color: #A9B8AC; font-variant-numeric: tabular-nums;">{{it.time}}</span>
+          <div style="flex: 1; min-width: 0;">
+            <p style="margin: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{it.title}}</p>
+            <p style="margin: 1px 0 0; font-size: 12px; color: #8A9B8F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{it.meta}}</p>
+          </div>
+          <span style="{{it.chip}}">{{it.status}}</span>
+          <sc-if value="{{it.canStart}}" hint-placeholder-val="{{false}}">
+            <a href="{{it.startHref}}" style="flex: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 14px; font-weight: 600; text-decoration: none;">Empezar</a>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <nav aria-label="Navegación principal" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 8px 8px 0; box-sizing: border-box; background: #0D1611; border-top: 1px solid rgba(238,243,236,0.06); display: flex; justify-content: space-around; align-items: flex-start;">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg>
+      Inicio
+    </a>
+    <a href="Calendario.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #9CC5A1; font-size: 11px; font-weight: 600;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>
+      Calendario
+    </a>
+    <a href="Progreso.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"></path></svg>
+      Progreso
+    </a>
+    <a href="Perfil.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+      Mi perfil
+    </a>
+    <a href="Familia.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 60px; min-height: 48px; text-decoration: none; color: #8A9B8F; font-size: 11px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.3.6 3.5 2.8 3.5 6"></path></svg>
+      Familia
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const TODAY = 8;
+    const view = st.view ?? 'dias';
+    const sel = st.sel ?? TODAY;
+    const wk = st.wk ?? 1;
+    const mo = st.mo ?? 0;
+    const DOW = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const DOWS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const MESC = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    const done = { '9-27': 2, '9-28': 1, '9-29': 2, '9-30': 2, '9-31': 1, '10-1': 2, '10-2': 2, '10-3': 1 };
+    const extras = {
+      '9-26': [['Suspiro cíclico', 3, '18:20']],
+      '9-28': [['Exhalación larga', 5, '14:10']],
+      '10-1': [['Respira ligero en reposo', 8, '11:30']],
+      '10-3': [['Suspiro cíclico', 3, '13:40']],
+    };
+    const ringOn = 'width: 4px; height: 4px; border-radius: 50%; border: 1px solid #9CC5A1;';
+    const ringOff = 'width: 4px; height: 4px; border-radius: 50%; border: 1px solid #8A9B8F;';
+    const fillOn = 'width: 6px; height: 6px; border-radius: 50%; background: #9CC5A1;';
+    const fillX = 'width: 6px; height: 6px; border-radius: 50%; background: #E9B27D;';
+    const chip = {
+      Hecha: 'flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(156,197,161,0.16); color: #B9DEC3;',
+      Pendiente: 'flex: none; padding: 3px 9px; border-radius: 999px; font-size: 12px; border: 1px solid rgba(156,197,161,0.5); color: #9CC5A1;',
+      'No realizada': 'flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(238,243,236,0.05); color: #A9B8AC;',
+      Extra: 'flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; background: rgba(233,178,125,0.16); color: #E9B27D;',
+    };
+    const src = {
+      pamela: 'padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 500; background: rgba(226,204,148,0.14); color: #E2CC94;',
+      tuya: 'padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 500; background: rgba(156,197,161,0.12); color: #B9DEC3;',
+      extra: 'padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 500; background: rgba(233,178,125,0.16); color: #E9B27D;',
+    };
+    const card = (o) => {
+      const canStart = o.status === 'Pendiente' && o.today;
+      return Object.assign(o, {
+        canStart,
+        startHref: o.kind === 'bolt' ? 'BoltMedicion.dc.html' : 'Configurar.dc.html',
+        chip: canStart ? 'display: none;' : chip[o.status],
+        isDone: o.status === 'Hecha' || o.status === 'Extra',
+        isPending: o.status === 'Pendiente',
+        isMissed: o.status === 'No realizada',
+        isBolt: o.kind === 'bolt',
+        isSesion: o.kind !== 'bolt',
+      });
+    };
+    const info = [];
+    for (let i = 0; i < 77; i++) {
+      const dt = new Date(2026, 9, 26 + i);
+      const key = dt.getMonth() + '-' + dt.getDate();
+      const today = i === TODAY;
+      const planned = i >= 1 ? 2 : 0;
+      const nDone = i <= TODAY ? (done[key] ?? 0) : 0;
+      const ex = extras[key] || [];
+      const slots = ['05:30', '21:00'].slice(0, planned).map((time, k) => {
+        let status = 'Pendiente';
+        if (k < nDone) status = 'Hecha';
+        else if (i < TODAY) status = 'No realizada';
+        const title = k === 0 ? 'Al despertar · Coherente' : 'Antes de dormir · Coherente';
+        return card({ kind: 'sesion', today, time, title, meta: '10 min · rutina diaria de Pamela', timeLine: time + ' · 10 min · diaria', src: 'De Pamela', srcStyle: src.pamela, status });
+      });
+      if (dt.getDay() === 1 && i >= 1) {
+        const status = i <= TODAY ? 'Hecha' : 'Pendiente';
+        slots.unshift(card({ kind: 'bolt', today, time: '05:15', title: 'Medir BOLT', meta: 'Al despertar · rutina tuya, cada lunes', timeLine: '05:15 · cada lunes', src: 'Tuya', srcStyle: src.tuya, status }));
+      }
+      const extraItems = ex.map(([n, m, time]) => card({ kind: 'sesion', today, time, title: n, meta: m + ' min · no planeada', timeLine: time + ' · ' + m + ' min', src: 'Extra', srcStyle: src.extra, status: 'Extra' }));
+      const agenda = slots.concat(extraItems).sort((a, b) => a.time.localeCompare(b.time));
+      const dots = ['05:30', '21:00'].slice(0, planned).map((_, k) => (k < nDone ? fillOn : i < TODAY ? ringOff : ringOn)).concat(ex.map(() => fillX));
+      info.push({ dt, i, agenda, dots, planned, nDone, extra: ex.length });
+    }
+    const monthStart = mo === 0 ? 0 : 35;
+    const monthNum = mo === 0 ? 10 : 11;
+    const days = info.slice(monthStart, monthStart + 42).map((d) => {
+      const inMonth = d.dt.getMonth() === monthNum;
+      const isToday = d.i === TODAY;
+      const isSel = d.i === sel;
+      return {
+        n: d.dt.getDate(),
+        aria: d.dt.getDate() + ' de ' + MES[d.dt.getMonth()],
+        pressed: isSel ? 'true' : 'false',
+        dots: d.dots,
+        style: 'height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 14px; font-family: inherit; color: #EEF3EC; padding: 0; background: ' + (isToday ? '#2A4033' : 'transparent') + '; border: 1px solid ' + (isSel ? '#9CC5A1' : 'transparent') + ';',
+        numStyle: 'font-size: 14px; font-variant-numeric: tabular-nums; font-weight: ' + (isToday ? 600 : 400) + '; color: ' + (inMonth ? '#EEF3EC' : '#5E6E63') + ';',
+        pick: () => this.setState({ sel: d.i, wk: Math.floor(d.i / 7) }),
+      };
+    });
+    const week = info.slice(wk * 7, wk * 7 + 7);
+    const weekDays = week.map((d) => ({
+      dow: DOWS[d.dt.getDay()],
+      n: d.dt.getDate(),
+      empty: d.agenda.length === 0,
+      items: d.agenda,
+      numStyle: d.i === TODAY
+        ? 'width: 36px; height: 36px; border-radius: 50%; background: #9CC5A1; color: #0F1A14; display: flex; align-items: center; justify-content: center; font-family: Fraunces, Georgia, serif; font-size: 18px; font-weight: 500;'
+        : 'width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-family: Fraunces, Georgia, serif; font-size: 18px; color: #EEF3EC;',
+    }));
+    const first = week[0].dt, last = week[6].dt;
+    const weekRange = first.getDate() + (first.getMonth() !== last.getMonth() ? ' ' + MESC[first.getMonth()] : '') + ' – ' + last.getDate() + ' ' + MESC[last.getMonth()];
+    const s = info[sel];
+    const selTitle = (sel === TODAY ? 'Hoy, ' : '') + DOW[s.dt.getDay()] + ' ' + s.dt.getDate() + ' de ' + MES[s.dt.getMonth()];
+    const segOn = 'height: 44px; padding: 0 14px; border-radius: 999px; border: none; background: #2A4033; color: #EEF3EC; font-family: inherit; font-size: 14px; font-weight: 600;';
+    const segOff = 'height: 44px; padding: 0 14px; border-radius: 999px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px;';
+    const arrow = (off) => 'width: 44px; height: 44px; border-radius: 50%; border: none; background: transparent; display: flex; align-items: center; justify-content: center; color: ' + (off ? '#4A5A50' : '#A9B8AC') + ';';
+    return {
+      isDias: view === 'dias',
+      isMes: view === 'mes',
+      diasPressed: view === 'dias' ? 'true' : 'false',
+      mesPressed: view === 'mes' ? 'true' : 'false',
+      diasStyle: view === 'dias' ? segOn : segOff,
+      mesStyle: view === 'mes' ? segOn : segOff,
+      showDias: () => this.setState({ view: 'dias' }),
+      showMes: () => this.setState({ view: 'mes' }),
+      prevWeek: () => this.setState({ wk: Math.max(0, wk - 1) }),
+      nextWeek: () => this.setState({ wk: Math.min(9, wk + 1) }),
+      weekNum: 44 + wk,
+      weekRange,
+      weekDays,
+      wPlan: week.reduce((a, d) => a + d.planned, 0),
+      wDone: week.reduce((a, d) => a + d.nDone, 0),
+      wExtra: week.reduce((a, d) => a + d.extra, 0),
+      days,
+      monthLabel: mo === 0 ? 'Noviembre 2026' : 'Diciembre 2026',
+      prevMonth: () => this.setState({ mo: 0 }),
+      nextMonth: () => this.setState({ mo: 1 }),
+      prevMonthDisabled: mo === 0 ? 'true' : 'false',
+      nextMonthDisabled: mo === 1 ? 'true' : 'false',
+      prevMonthStyle: arrow(mo === 0),
+      nextMonthStyle: arrow(mo === 1),
+      selTitle: selTitle.charAt(0).toUpperCase() + selTitle.slice(1),
+      agenda: s.agenda.length ? s.agenda : [{ time: '—', title: 'Sin sesiones', meta: 'Toca + para planear una', status: '', chip: 'display: none;', canStart: false, startHref: 'Planear.dc.html' }],
+    };
+  }
+}
+</script>
+</body>
+</html>

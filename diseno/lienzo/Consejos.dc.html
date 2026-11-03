@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Consejos</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; gap: 14px;">
+    <a href="Perfil.dc.html" aria-label="Volver a Mi perfil" style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px;">Consejos</h1>
+  </div>
+
+  <div style="position: absolute; top: 112px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 20px 40px; box-sizing: border-box;">
+  <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 28px; padding: 18px 20px; display: flex; gap: 14px; align-items: flex-start;">
+    <span style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(156,197,161,0.14); display: flex; align-items: center; justify-content: center; color: #9CC5A1;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"></path><path d="M5 19 13 11"></path></svg>
+    </span>
+    <div>
+      <p style="margin: 0; font-size: 12px; color: #E2CC94; font-weight: 500;">Consejo del día</p>
+      <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 48; font-size: 19px; line-height: 1.3;">Respira por la nariz también al caminar.</p>
+      <p style="margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: #A9B8AC;">Tu BOLT sube cuando la nariz se vuelve tu forma normal de respirar, no solo en la práctica.</p>
+    </div>
+  </div>
+
+  <div role="group" aria-label="Filtrar por categoría" style="margin: 16px -20px 0; display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 2px; box-sizing: border-box;">
+    <sc-for list="{{chips}}" as="c" hint-placeholder-count="8">
+      <button onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="{{c.style}}">{{c.label}}</button>
+    </sc-for>
+  </div>
+
+  <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+    <sc-for list="{{tips}}" as="t" hint-placeholder-count="5">
+      <div style="background: #16231C; border: 1px solid rgba(238,243,236,0.05); border-radius: 20px; padding: 14px 16px;">
+        <p style="margin: 0; font-size: 12px; color: #8A9B8F;">{{t.catLabel}}</p>
+        <p style="margin: 4px 0 0; font-size: 15px; font-weight: 600; line-height: 1.35;">{{t.t}}</p>
+        <p style="margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: #A9B8AC;">{{t.d}}</p>
+        <sc-if value="{{t.hasTry}}" hint-placeholder-val="{{false}}">
+          <a href="Configurar.dc.html" style="margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; font-weight: 600; color: #9CC5A1; text-decoration: none;">
+            Probar {{t.tryName}}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </a>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const cat = st.cat ?? 'todos';
+    const CATS = [
+      ['todos', 'Todos'],
+      ['oa', 'Principios Oxygen Advantage'],
+      ['habitos', 'Hábitos'],
+      ['tecnica', 'Cuándo usar cada técnica'],
+      ['bolt', 'Mejorar el BOLT'],
+      ['dormir', 'Dormir'],
+      ['ejercicio', 'Ejercicio físico'],
+      ['seguridad', 'Seguridad'],
+    ];
+    const label = {};
+    CATS.forEach(([k, l]) => { label[k] = l; });
+    const T = [
+      { c: 'oa', t: 'Respira menos, no más', d: 'Una respiración suave y silenciosa oxigena mejor que una grande. Si se oye, es demasiado.', p: 'respira ligero' },
+      { c: 'oa', t: 'Deja que se mueva el abdomen', d: 'Respirar profundo es usar el diafragma, no meter más aire. Pon una mano en el abdomen y otra en el pecho.' },
+      { c: 'habitos', t: 'Evita suspiros y bostezos grandes', d: 'Si sientes ganas, traga saliva y vuelve a respirar suave por la nariz.' },
+      { c: 'habitos', t: 'Practica a la misma hora cada día', d: 'Amarrarla a algo que ya haces, como el café de la mañana, la vuelve automática.' },
+      { c: 'tecnica', t: 'Respiración cuadrada antes de una junta', d: 'Cuatro tiempos iguales ordenan la mente en unos 3 minutos.', p: 'cuadrada' },
+      { c: 'tecnica', t: 'Suspiro cíclico ante el estrés agudo', d: 'Doble inhalación por la nariz y una exhalación larga, también por la nariz. De 1 a 3 minutos bastan.', p: 'suspiro cíclico' },
+      { c: 'bolt', t: 'Mide tu BOLT al despertar', d: 'Siempre en las mismas condiciones: antes del café y antes de moverte.' },
+      { c: 'bolt', t: 'Cada 5 segundos cuentan', d: 'Subir tu BOLT 5 segundos se nota en energía y en cómo duermes. La meta es 40 s.' },
+      { c: 'dormir', t: '4-7-8 ya acostado', d: 'Cuatro ciclos en la cama ayudan a soltar el día.', p: '4-7-8' },
+      { c: 'dormir', t: 'Cinta en la boca para dormir, con precaución', d: 'Una tira pequeña ayuda a mantener la boca cerrada. Pruébala de día primero; nunca con la nariz tapada ni en niñas pequeñas.' },
+      { c: 'ejercicio', t: 'Haz ejercicio con la boca cerrada', d: 'Baja la intensidad hasta poder respirar solo por la nariz. Tu cuerpo se adapta en pocas semanas.' },
+      { c: 'seguridad', t: 'Practica 2 horas después de comer', d: 'Con el estómago vacío los ejercicios intensos son más cómodos y seguros.' },
+      { c: 'seguridad', t: 'Nunca retengas el aire en el agua', d: 'Tampoco manejando. Las retenciones largas hazlas sentado o acostado; las retenciones caminando, en un lugar plano y seguro.' },
+    ];
+    const tips = T.filter((x) => cat === 'todos' || x.c === cat).map((x) => ({
+      t: x.t, d: x.d, catLabel: label[x.c], hasTry: !!x.p, tryName: x.p || '',
+    }));
+    const chips = CATS.map(([k, l]) => ({
+      label: l,
+      pressed: k === cat ? 'true' : 'false',
+      style: k === cat
+        ? 'flex: none; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #9CC5A1; background: #9CC5A1; color: #0F1A14; font-family: inherit; font-size: 14px; font-weight: 600; white-space: nowrap;'
+        : 'flex: none; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.10); background: #16231C; color: #EEF3EC; font-family: inherit; font-size: 14px; white-space: nowrap;',
+      pick: () => this.setState({ cat: k }),
+    }));
+    return { chips, tips };
+  }
+}
+</script>
+</body>
+</html>

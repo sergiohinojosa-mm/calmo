@@ -41,6 +41,9 @@ function period(p, o) {
 
 const hour = (s) => new Date(s.startedAt).getHours();
 
+// Minutos siempre hacia abajo, igual en totales, barras e historial.
+const minText = (m) => (m > 0 && m < 1 ? '&lt;1 min' : minutesLabel(Math.floor(m)));
+
 export default {
   tab: 'progreso',
   render(ctx) {
@@ -73,7 +76,7 @@ export default {
     </a>`;
 
     const seg = `<div class="seg" role="group" aria-label="Periodo" style="margin-top:22px">
-      ${[['dia', 'Día'], ['7d', '7 días'], ['mes', 'Mes']].map(([k, l]) => `<a href="#/progreso?p=${k}" aria-pressed="${k === p}">${l}</a>`).join('')}
+      ${[['dia', 'Día'], ['7d', '7 días'], ['mes', 'Mes']].map(([k, l]) => `<a href="#/progreso?p=${k}" ${k === p ? 'aria-current="page"' : ''}>${l}</a>`).join('')}
     </div>`;
     const nav = `<div class="between" style="margin-top:14px">
       <a class="icon-btn" href="#/progreso?p=${p}&o=${o - 1}" aria-label="Periodo anterior">${icon('back', 20)}</a>
@@ -85,7 +88,7 @@ export default {
     const max = Math.max(10, ...values.map((v) => v[1]));
     const chart = `<div class="row" style="align-items:flex-end;gap:8px;height:130px;margin-top:16px">
       ${values.map(([label, v], i) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
-        <span class="muted" style="font-size:11px">${v >= 1 ? Math.round(v) : ''}</span>
+        <span class="muted" style="font-size:11px">${v >= 1 ? Math.floor(v) : ''}</span>
         <div style="width:100%;max-width:30px;border-radius:10px;height:${Math.max(4, Math.round((v / max) * 92))}px;background:${i === values.length - 1 && o === 0 ? 'var(--sage)' : 'rgba(156,197,161,0.38)'}"></div>
         <span class="muted" style="font-size:11px">${esc(label)}</span></div>`).join('')}
     </div>`;
@@ -97,7 +100,7 @@ export default {
       const ex = byId(id);
       const color = ex ? GOALS[ex.goal].color : 'var(--sage)';
       return `<div><div class="between" style="font-size:14px"><span class="row" style="gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${color}"></span>${esc(ex ? nameFor(ex, kind) : id)}</span>
-        <span class="muted" style="font-size:13px">${minutesLabel(m)}</span></div><div style="margin-top:6px">${bar((m / (total || 1)) * 100, color)}</div></div>`;
+        <span class="muted" style="font-size:13px">${minText(m)}</span></div><div style="margin-top:6px">${bar((m / (total || 1)) * 100, color)}</div></div>`;
     }).join('');
 
     const history = list.slice(0, 30).map((s) => {
@@ -107,7 +110,7 @@ export default {
         <div style="flex:1;min-width:0"><p style="margin:0;font-size:14px">${esc(ex ? nameFor(ex, kind) : 'Sesión')}</p>
         <p class="muted" style="margin:1px 0 0">${DIAS_C[dow(d)]} ${d.getDate()} ${MES_C(d.getMonth())} · ${pad2(d.getHours())}:${pad2(d.getMinutes())}</p></div>
         <span class="chip ${s.routineId ? 'arena' : 'brasa'}">${s.routineId ? 'Rutina' : 'Extra'}</span>
-        <span class="num" style="font-size:18px;min-width:56px;text-align:right">${Math.max(1, Math.round(s.durationSec / 60))} min</span></div>`;
+        <span class="num" style="font-size:18px;min-width:56px;text-align:right">${minText(s.durationSec / 60)}</span></div>`;
     }).join('');
 
     const empty = `<div class="tile" style="margin-top:16px;text-align:center"><p class="sub">${kind === 'adulto' ? 'Aún no hay sesiones en este periodo.' : '¡Todavía no respiras en estos días!'}</p>
@@ -119,7 +122,7 @@ export default {
       ${nav}
       <div class="card" style="margin-top:12px">
         <p class="muted" style="margin:0">Tiempo respirando</p>
-        <p class="num" style="margin:4px 0 0;font-size:34px">${minutesLabel(total)}</p>
+        <p class="num" style="margin:4px 0 0;font-size:34px">${minText(total)}</p>
         <p class="muted" style="margin:2px 0 0">${list.length} ${list.length === 1 ? 'sesión' : 'sesiones'}</p>
         ${chart}
       </div>

@@ -1,5 +1,6 @@
-import { esc, icon, toast, askConfirm } from '../ui.js';
+import { esc, icon, toast, askConfirm, dayKey } from '../ui.js';
 import { AMBIENTS } from '../catalog.js';
+import * as sync from '../sync.js';
 
 export default {
   tab: 'perfil',
@@ -32,7 +33,7 @@ export default {
         <div id="pinPad"></div>
       </div>` : ''}
 
-      ${adult ? `<p class="label">Cuenta</p>
+      ${adult && sync.enabled() ? `<p class="label">Cuenta</p>
       <div class="card" style="padding:6px 16px">
         <a class="list-row" href="#/usuarios">${icon('lock', 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1"><span style="display:block">Cuenta y usuarios</span><span class="muted">Contraseña, quién puede entrar y cerrar sesión</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
       </div>` : ''}
@@ -44,10 +45,12 @@ export default {
 
       <p class="label">Datos</p>
       <div class="card" style="padding:6px 16px">
-        <button class="list-row" id="export" style="width:100%;background:none;border:none;border-bottom:1px solid var(--line);text-align:left">${icon('download', 20, 'style="color:var(--text2)"')}<span style="flex:1">Exportar mis datos</span></button>
+        <button class="list-row" id="export" style="width:100%;background:none;border:none;border-bottom:1px solid var(--line);text-align:left">${icon('download', 20, 'style="color:var(--text2)"')}<span style="flex:1"><span style="display:block">Exportar respaldo</span><span class="muted">Guarda un archivo con todo, por si cambias de teléfono</span></span></button>
+        <label class="list-row" style="width:100%;border-bottom:1px solid var(--line);cursor:pointer">${icon('upload', 20, 'style="color:var(--text2)"')}<span style="flex:1"><span style="display:block">Importar respaldo</span><span class="muted">Recupera un archivo calmo-AAAA-MM-DD.json</span></span>
+          <input type="file" id="import" accept="application/json,.json" class="sr-only"></label>
         <button class="list-row" id="reset" style="width:100%;background:none;border:none;text-align:left;color:var(--brasa)">${icon('trash', 20)}<span style="flex:1">Borrar todo y empezar de nuevo</span></button>
       </div>
-      <p class="muted" style="margin-top:10px">Los datos viven en este teléfono. Pronto se sincronizarán con la hoja de la familia en Google Drive.</p>` : ''}`;
+      <p class="muted" style="margin-top:10px">${sync.enabled() ? 'Tus datos se guardan en el teléfono y en el servidor de la familia.' : 'Los datos viven en este teléfono. Exporta un respaldo de vez en cuando.'}</p>` : ''}`;
   },
   mount(root, ctx) {
     const { store, rerender } = ctx;
@@ -85,20 +88,42 @@ export default {
     });
 
     root.querySelector('#export')?.addEventListener('click', async () => {
+      const filename = `calmo-${dayKey()}.json`;
+      const json = store.exportJSON();
       const dl = window.claude?.use ? await window.claude.use('downloads') : null;
       if (dl) {
-        try { await dl.save({ filename: 'calmo-datos.json', data: store.exportJSON() }); toast('Datos exportados'); }
+        try { await dl.save({ filename, data: json }); toast('Respaldo exportado'); }
         catch (e) { if (e?.code !== 'declined') toast('No se pudo exportar ahora'); }
         return;
       }
-      const url = URL.createObjectURL(new Blob([store.exportJSON()], { type: 'application/json' }));
+      // En iPhone, compartir el archivo funciona mejor que una descarga (Guardar en Archivos, AirDrop…).
+      const file = typeof File === 'function' ? new File([json], filename, { type: 'application/json' }) : null;
+      if (file && navigator.canShare?.({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: 'Respaldo de Calmo' }); return; }
+        catch (e) { if (e?.name === 'AbortError') return; }
+      }
+      const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'calmo-datos.json';
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+    root.querySelector('#import')?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+      if (!file) return;
+      file.text().then((text) => {
+        askConfirm('Se reemplazarán los datos de este teléfono por los del respaldo. ¿Continuar?', { ok: 'Importar' }).then((ok) => {
+          if (!ok) return;
+          let done = false;
+          try { done = typeof store.importJSON === 'function' && store.importJSON(text) !== false; } catch (err) { done = false; }
+          if (done) { toast('Respaldo importado'); location.hash = '#/inicio'; }
+          else toast('Ese archivo no es un respaldo de Calmo');
+        });
+      });
     });
     root.querySelector('#reset')?.addEventListener('click', () => {
       askConfirm('Se borrarán todas las sesiones, mediciones y rutinas. ¿Continuar?', { ok: 'Borrar todo' }).then((ok) => {

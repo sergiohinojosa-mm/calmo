@@ -3,9 +3,15 @@
 
 import { esc, icon, moment } from '../ui.js';
 import { heroSVG } from '../hero.js';
+import * as store from '../store.js';
 
-const KINDS = [['adulto', 'Adulto'], ['junior', 'Junior · 7 a 15'], ['peque', 'Peque · hasta 6']];
-const kindForAge = (age) => (!age ? null : age <= 6 ? 'peque' : age <= 15 ? 'junior' : 'adulto');
+const KINDS = [['adulto', 'Adulto'], ['junior', 'Junior 7–15'], ['peque', 'Peque ≤6']];
+// Misma regla en toda la app (store.kindForAge); aquí solo un respaldo por si no existe.
+const kindForAge = (age) => {
+  if (!age) return null;
+  if (typeof store.kindForAge === 'function') return store.kindForAge(age);
+  return age <= 6 ? 'peque' : age <= 15 ? 'junior' : 'adulto';
+};
 
 function personRow(i, kind = 'adulto') {
   return `<div class="tile stack" data-person="${i}" style="gap:10px">

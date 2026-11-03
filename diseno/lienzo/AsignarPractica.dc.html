@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Asignar práctica</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+textarea::placeholder{color:#8A9B8F}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div aria-hidden="true" style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; gap: 12px;">
+    <span style="width: 44px; height: 44px; border-radius: 50%; background: #1C2B23;"></span>
+    <span style="font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 28px;">Alumnos</span>
+  </div>
+  <div style="position: absolute; inset: 0; background: rgba(5,10,8,0.62);"></div>
+
+  <div role="dialog" aria-label="{{title}}" style="position: absolute; left: 0; right: 0; top: 48px; bottom: 0; box-sizing: border-box; padding: 10px 20px 34px; background: #1C2B23; border-radius: 28px 28px 0 0; display: flex; flex-direction: column;">
+    <div style="width: 40px; height: 5px; border-radius: 3px; background: rgba(238,243,236,0.20); margin: 0 auto 8px;"></div>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+      <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 48; font-weight: 400; font-size: 24px; line-height: 1.2;">{{title}}</h1>
+      <a href="{{closeHref}}" aria-label="Cerrar" style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(238,243,236,0.06); display: flex; align-items: center; justify-content: center; color: #A9B8AC;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+      </a>
+    </div>
+
+    <div style="flex: 1; min-height: 0; overflow-y: auto; margin: 0 -20px; padding: 0 20px 12px;">
+      <p style="margin: 14px 0 8px; font-size: 13px; color: #A9B8AC;">Para</p>
+      <div role="group" aria-label="Para quién" style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <sc-for list="{{people}}" as="p" hint-placeholder-count="5">
+          <button onClick="{{p.toggle}}" aria-pressed="{{p.pressed}}" style="{{p.style}}">{{p.name}}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{hasJulia}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: #E2CC94;">Para Julia: solo ejercicios Peque de 1 a 3 min, con un adulto.</p>
+      </sc-if>
+
+      <p style="margin: 16px 0 8px; font-size: 13px; color: #A9B8AC;">Ejercicio</p>
+      <a href="CatalogoPractica.dc.html" style="display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 18px; border: 1px solid rgba(238,243,236,0.06); background: #16231C; color: #EEF3EC; text-decoration: none;">
+        <span style="width: 40px; height: 40px; flex: none; border-radius: 50%; background: rgba(156,197,161,0.14); display: flex; align-items: center; justify-content: center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CC5A1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"></path><path d="M5 19 13 11"></path></svg>
+        </span>
+        <span style="flex: 1;">
+          <span style="display: block; font-size: 15px; font-weight: 600;">Respiración coherente</span>
+          <span style="display: block; font-size: 12px; color: #8A9B8F; margin-top: 2px;">Inhala 5.5 · exhala 5.5 · por la nariz · Cambiar</span>
+        </span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9B8F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+
+      <p style="margin: 16px 0 8px; font-size: 13px; color: #A9B8AC;">Minutos por sesión</p>
+      <div style="display: flex; gap: 8px;">
+        <sc-for list="{{mins}}" as="m" hint-placeholder-count="5">
+          <button onClick="{{m.pick}}" aria-pressed="{{m.pressed}}" style="{{m.style}}">{{m.label}}</button>
+        </sc-for>
+      </div>
+
+      <p style="margin: 16px 0 8px; font-size: 13px; color: #A9B8AC;">Veces al día y horario</p>
+      <div role="group" aria-label="Veces al día" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 999px; background: #16231C;">
+        <sc-for list="{{veces}}" as="v" hint-placeholder-count="3">
+          <button onClick="{{v.pick}}" aria-pressed="{{v.pressed}}" style="{{v.style}}">{{v.label}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <sc-for list="{{horas}}" as="h" hint-placeholder-count="2">
+          <button onClick="{{h.edit}}" aria-label="{{h.aria}}" aria-expanded="{{h.open}}" style="{{h.style}}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+            {{h.t}}
+          </button>
+        </sc-for>
+      </div>
+      <sc-if value="{{picking}}" hint-placeholder-val="{{false}}">
+        <div role="group" aria-label="Elige la hora" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; background: #16231C; border-radius: 18px; padding: 10px;">
+          <sc-for list="{{opciones}}" as="o" hint-placeholder-count="8">
+            <button onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="{{o.style}}">{{o.t}}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <p style="margin: 16px 0 8px; font-size: 13px; color: #A9B8AC;">Días</p>
+      <div style="display: flex; justify-content: space-between;">
+        <sc-for list="{{dias}}" as="d" hint-placeholder-count="7">
+          <button onClick="{{d.toggle}}" aria-label="{{d.aria}}" aria-pressed="{{d.pressed}}" style="{{d.style}}">{{d.l}}</button>
+        </sc-for>
+      </div>
+
+      <label style="display: block; margin: 16px 0 0; font-size: 13px; color: #A9B8AC;">Nota (opcional)
+        <textarea placeholder="Boca cerrada y exhala sin prisa." style="display: block; box-sizing: border-box; width: 100%; height: 64px; margin-top: 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid rgba(238,243,236,0.08); background: #16231C; color: #EEF3EC; font-family: inherit; font-size: 15px; resize: none;"></textarea>
+      </label>
+
+      <sc-if value="{{isEdit}}" hint-placeholder-val="{{true}}">
+        <div style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #16231C; border-radius: 18px; padding: 10px 14px;">
+          <div>
+            <p style="margin: 0; font-size: 15px;">Pausar práctica</p>
+            <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">No le aparecerá en su Inicio ni en su calendario</p>
+          </div>
+          <button role="switch" aria-checked="{{pausadaChecked}}" aria-label="Pausar práctica" onClick="{{togglePausa}}" style="{{pausaTrack}}"><span style="{{pausaKnob}}"></span></button>
+        </div>
+        <sc-if value="{{notConfirming}}" hint-placeholder-val="{{true}}">
+          <button onClick="{{askQuitar}}" style="margin-top: 10px; width: 100%; min-height: 44px; border: none; background: transparent; color: #E9B27D; font-family: inherit; font-size: 15px; font-weight: 500;">Quitar práctica</button>
+        </sc-if>
+        <sc-if value="{{confirming}}" hint-placeholder-val="{{false}}">
+          <div role="alert" style="margin-top: 10px; background: rgba(233,178,125,0.10); border: 1px solid rgba(233,178,125,0.35); border-radius: 18px; padding: 12px 14px;">
+            <p style="margin: 0; font-size: 14px; line-height: 1.45;">¿Quitar la práctica de {{primero}}? Dejará de aparecer en su Inicio.</p>
+            <div style="margin-top: 10px; display: flex; gap: 8px;">
+              <a href="MaestraDetalle.dc.html" style="flex: 1; min-height: 44px; border-radius: 999px; background: #E9B27D; color: #0F1A14; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; text-decoration: none;">Sí, quitar</a>
+              <button onClick="{{cancelQuitar}}" style="flex: 1; min-height: 44px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); background: transparent; color: #EEF3EC; font-family: inherit; font-size: 14px;">Cancelar</button>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+    </div>
+
+    <div style="padding-top: 10px; border-top: 1px solid rgba(238,243,236,0.06);">
+      <p style="margin: 0 0 10px; text-align: center; font-size: 13px; color: #A9B8AC;">{{resumen}}</p>
+      <a href="{{ctaHref}}" style="display: flex; align-items: center; justify-content: center; height: 56px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 17px; font-weight: 600; text-decoration: none;">{{ctaLabel}}</a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"editar":{"editor":"boolean","default":true},"para":{"editor":"enum","options":["marcela","sergio","luciana","mariel","julia"],"default":"marcela"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const editar = this.props.editar ?? true;
+    const para = this.props.para ?? 'marcela';
+    const P = [['marcela', 'Marcela'], ['sergio', 'Sergio'], ['luciana', 'Luciana'], ['mariel', 'Mariel'], ['julia', 'Julia']];
+    const nameOf = (k) => (P.find((p) => p[0] === k) || P[0])[1];
+    const sel = st.sel ?? [para];
+    const min = st.min ?? 10;
+    const veces = st.veces ?? 2;
+    const DEF = { 1: ['05:30'], 2: ['05:30', '21:00'], 3: ['05:30', '14:00', '21:00'] };
+    const horas = st.horas ?? DEF[veces];
+    const editing = st.editing ?? null;
+    const dias = st.dias ?? [true, true, true, true, true, true, true];
+    const pausada = !!st.pausada;
+    const single = sel.length === 1;
+    const isEdit = editar && single && sel[0] === para;
+    const chipOn = 'min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid #9CC5A1; background: rgba(156,197,161,0.18); color: #EEF3EC; font-family: inherit; font-size: 15px; font-weight: 600;';
+    const chipOff = 'min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.10); background: #16231C; color: #A9B8AC; font-family: inherit; font-size: 15px;';
+    const pillOn = 'height: 44px; flex: 1; border-radius: 999px; border: 1px solid #9CC5A1; background: #9CC5A1; color: #0F1A14; font-family: inherit; font-size: 15px; font-weight: 600;';
+    const pillOff = 'height: 44px; flex: 1; border-radius: 999px; border: 1px solid rgba(238,243,236,0.10); background: #16231C; color: #EEF3EC; font-family: inherit; font-size: 15px;';
+    const segOn = 'height: 44px; border-radius: 999px; border: none; background: #2A4033; color: #EEF3EC; font-family: inherit; font-size: 14px; font-weight: 600;';
+    const segOff = 'height: 44px; border-radius: 999px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px;';
+    const dayOn = 'width: 44px; height: 44px; border-radius: 50%; border: 1px solid #9CC5A1; background: rgba(156,197,161,0.18); color: #EEF3EC; font-family: inherit; font-size: 14px; font-weight: 600;';
+    const dayOff = 'width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.10); background: transparent; color: #8A9B8F; font-family: inherit; font-size: 14px;';
+    const hourStyle = (open) => 'height: 44px; padding: 0 14px; border-radius: 999px; font-family: inherit; font-size: 14px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 6px; '
+      + (open ? 'border: 1px solid #9CC5A1; background: rgba(156,197,161,0.14); color: #EEF3EC;' : 'border: 1px solid rgba(238,243,236,0.10); background: transparent; color: #EEF3EC;');
+    const OPC = ['05:00', '05:30', '06:00', '07:00', '14:00', '20:00', '20:30', '21:00', '21:30'];
+    const L = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    const N = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const nDias = dias.filter(Boolean).length;
+    const names = sel.map(nameOf);
+    const joined = names.length <= 2 ? names.join(' y ') : names.slice(0, -1).join(', ') + ' y ' + names[names.length - 1];
+    const title = isEdit ? 'Editar práctica de ' + nameOf(para) : (single ? 'Nueva práctica para ' + names[0] : 'Nueva práctica · ' + sel.length + ' personas');
+    return {
+      title,
+      isEdit,
+      primero: names[0],
+      closeHref: isEdit ? 'MaestraDetalle.dc.html' : 'MaestraAlumnos.dc.html',
+      people: P.map(([k, name]) => {
+        const on = sel.includes(k);
+        return {
+          name,
+          pressed: on ? 'true' : 'false',
+          style: on ? chipOn : chipOff,
+          toggle: () => {
+            const next = on ? sel.filter((x) => x !== k) : sel.concat([k]);
+            if (next.length) this.setState({ sel: next, confirm: false });
+          },
+        };
+      }),
+      hasJulia: sel.includes('julia'),
+      mins: [3, 5, 10, 15, 25].map((m) => ({
+        label: m + '′',
+        pressed: m === min ? 'true' : 'false',
+        style: m === min ? pillOn : pillOff,
+        pick: () => this.setState({ min: m }),
+      })),
+      veces: [1, 2, 3].map((v) => ({
+        label: v === 1 ? '1 vez' : v + ' veces',
+        pressed: v === veces ? 'true' : 'false',
+        style: v === veces ? segOn : segOff,
+        pick: () => this.setState({ veces: v, horas: DEF[v], editing: null }),
+      })),
+      horas: horas.map((t, i) => ({
+        t,
+        aria: 'Cambiar la hora ' + t,
+        open: editing === i ? 'true' : 'false',
+        style: hourStyle(editing === i),
+        edit: () => this.setState({ editing: editing === i ? null : i }),
+      })),
+      picking: editing !== null,
+      opciones: OPC.map((t) => {
+        const on = editing !== null && horas[editing] === t;
+        return {
+          t,
+          pressed: on ? 'true' : 'false',
+          style: 'min-height: 44px; padding: 0 12px; border-radius: 999px; font-family: inherit; font-size: 14px; font-variant-numeric: tabular-nums; '
+            + (on ? 'border: none; background: #9CC5A1; color: #0F1A14; font-weight: 600;' : 'border: 1px solid rgba(238,243,236,0.10); background: transparent; color: #EEF3EC;'),
+          pick: () => { const next = horas.slice(); next[editing] = t; this.setState({ horas: next.sort(), editing: null }); },
+        };
+      }),
+      dias: L.map((l, i) => ({
+        l,
+        aria: N[i],
+        pressed: dias[i] ? 'true' : 'false',
+        style: dias[i] ? dayOn : dayOff,
+        toggle: () => { const next = dias.slice(); next[i] = !next[i]; this.setState({ dias: next }); },
+      })),
+      pausadaChecked: pausada ? 'true' : 'false',
+      togglePausa: () => this.setState({ pausada: !pausada }),
+      pausaTrack: 'flex: none; width: 52px; height: 32px; border-radius: 999px; border: none; padding: 3px; display: flex; justify-content: ' + (pausada ? 'flex-end' : 'flex-start') + '; background: ' + (pausada ? '#9CC5A1' : 'rgba(238,243,236,0.14)') + ';',
+      pausaKnob: 'width: 26px; height: 26px; border-radius: 50%; background: ' + (pausada ? '#0F1A14' : '#A9B8AC') + ';',
+      confirming: !!st.confirm,
+      notConfirming: !st.confirm,
+      askQuitar: () => this.setState({ confirm: true }),
+      cancelQuitar: () => this.setState({ confirm: false }),
+      resumen: (pausada && isEdit ? 'En pausa · ' : '') + min + ' min · ' + horas.join(' y ') + ' · ' + (nDias === 7 ? 'todos los días' : nDias + ' días por semana'),
+      ctaLabel: isEdit ? 'Guardar cambios' : 'Asignar a ' + joined,
+      ctaHref: isEdit ? 'MaestraDetalle.dc.html' : 'MaestraAlumnos.dc.html',
+    };
+  }
+}
+</script>
+</body>
+</html>

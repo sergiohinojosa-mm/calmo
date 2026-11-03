@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Únete a tu familia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif; box-sizing: border-box; padding: 56px 24px 0;">
+  <div style="display: flex; align-items: center; justify-content: space-between;">
+    <a href="Bienvenida.dc.html" aria-label="Volver" style="width: 44px; height: 44px; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <span style="font-size: 13px; color: #A9B8AC;">{{stepLabel}}</span>
+    <span style="width: 44px;"></span>
+  </div>
+
+  <h1 style="margin: 16px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 30px;">{{heading}}</h1>
+
+  <sc-if value="{{isFamilia}}" hint-placeholder-val="{{true}}">
+    <label style="display: block; margin-top: 12px; font-size: 13px; color: #A9B8AC;">Código que te compartieron
+      <input type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="6" value="HNJ4K7" aria-label="Código familiar de 6 caracteres" style="display: block; box-sizing: border-box; width: 100%; margin-top: 8px; height: 54px; padding: 0 0 0 0.6em; border-radius: 16px; border: 1px solid rgba(156,197,161,0.35); background: #1C2B23; color: #EEF3EC; font-family: 'Fraunces', Georgia, serif; font-size: 26px; letter-spacing: 0.6em; text-align: center; text-transform: uppercase;">
+    </label>
+  </sc-if>
+  <sc-if value="{{isMaestra}}" hint-placeholder-val="{{false}}">
+    <label style="display: block; margin-top: 12px; font-size: 13px; color: #A9B8AC;">Código de maestra que te compartieron
+      <input type="text" inputmode="text" autocapitalize="characters" autocomplete="off" maxlength="8" value="PAM-HNJ4" aria-label="Código de maestra" style="display: block; box-sizing: border-box; width: 100%; margin-top: 8px; height: 54px; padding: 0 0 0 0.3em; border-radius: 16px; border: 1px solid rgba(226,204,148,0.40); background: #1C2B23; color: #EEF3EC; font-family: 'Fraunces', Georgia, serif; font-size: 26px; letter-spacing: 0.3em; text-align: center; text-transform: uppercase;">
+    </label>
+  </sc-if>
+  <div style="margin-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+    <span style="font-size: 12px; line-height: 1.4; color: #8A9B8F;">{{nota}}</span>
+    <button onClick="{{switchMode}}" style="flex: none; min-height: 44px; padding: 0; border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: #E2CC94;">{{switchLabel}}</button>
+  </div>
+
+  <label style="display: block; margin-top: 2px; font-size: 13px; color: #A9B8AC;">Tu nombre
+    <input type="text" value="{{nombre}}" autocomplete="given-name" readonly style="display: block; box-sizing: border-box; width: 100%; margin-top: 8px; height: 48px; padding: 0 16px; border-radius: 16px; border: 1px solid rgba(238,243,236,0.10); background: #16231C; color: #EEF3EC; font-family: inherit; font-size: 16px;">
+  </label>
+
+  <button onClick="{{signIn}}" aria-pressed="{{signedPressed}}" style="{{signStyle}}">
+    <sc-if value="{{signed}}" hint-placeholder-val="{{false}}">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#9CC5A1"></circle><path d="M8 12.5l2.5 2.5 5.5-6" fill="none" stroke="#0F1A14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+    </sc-if>
+    <sc-if value="{{notSigned}}" hint-placeholder-val="{{true}}">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+    </sc-if>
+    {{signLabel}}
+  </button>
+
+  <sc-if value="{{isFamilia}}" hint-placeholder-val="{{true}}">
+    <p style="margin: 12px 0 0; font-size: 13px; color: #A9B8AC;">Crea tu PIN de 4 dígitos</p>
+    <div role="img" aria-label="{{pinAria}}" style="margin-top: 8px; display: flex; justify-content: center; gap: 16px;">
+      <sc-for list="{{dots}}" as="dt" hint-placeholder-count="4">
+        <span style="{{dt}}"></span>
+      </sc-for>
+    </div>
+    <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding: 0 24px;">
+      <sc-for list="{{keys}}" as="k" hint-placeholder-count="12">
+        <sc-if value="{{k.isKey}}" hint-placeholder-val="{{true}}">
+          <button onClick="{{k.press}}" aria-label="{{k.aria}}" style="{{k.style}}">{{k.label}}</button>
+        </sc-if>
+        <sc-if value="{{k.isBlank}}" hint-placeholder-val="{{false}}">
+          <span aria-hidden="true" style="height: 44px;"></span>
+        </sc-if>
+      </sc-for>
+    </div>
+    <p style="margin: 8px 0 0; text-align: center; font-size: 12px; color: #8A9B8F;">Tu PIN protege tu perfil cuando las niñas usan tu teléfono</p>
+  </sc-if>
+  <sc-if value="{{isMaestra}}" hint-placeholder-val="{{false}}">
+    <div style="margin-top: 14px; display: flex; gap: 12px; align-items: flex-start; background: #16231C; border-radius: 20px; padding: 14px 16px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E2CC94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px;"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.3.6 3.5 2.8 3.5 6"></path></svg>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #C9D6CB;">Verás el avance de los 5 miembros, podrás asignarles prácticas y dejarles notas. Sergio o Marcela pueden quitarte el acceso cuando quieran.</p>
+    </div>
+  </sc-if>
+
+  <div style="position: absolute; left: 24px; right: 24px; bottom: 34px;">
+    <sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+      <a href="{{ctaHref}}" style="display: flex; align-items: center; justify-content: center; height: 58px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 17px; font-weight: 600; text-decoration: none;">{{ctaLabel}}</a>
+    </sc-if>
+    <sc-if value="{{notReady}}" hint-placeholder-val="{{true}}">
+      <sc-if value="{{nudged}}" hint-placeholder-val="{{false}}">
+        <p role="status" style="margin: 0 0 8px; text-align: center; font-size: 13px; color: #E2CC94;">{{nudgeText}}</p>
+      </sc-if>
+      <button onClick="{{nudge}}" aria-disabled="true" style="width: 100%; height: 58px; border-radius: 999px; border: none; background: #9CC5A1; opacity: 0.4; color: #0F1A14; font-family: inherit; font-size: 17px; font-weight: 600;">{{ctaLabel}}</button>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const maestra = !!st.maestra;
+    const pin = st.pin ?? '';
+    const signed = !!st.signed;
+    const dots = [0, 1, 2, 3].map((i) => i < pin.length
+      ? 'width: 16px; height: 16px; border-radius: 50%; background: #9CC5A1;'
+      : 'width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.35);');
+    const keyStyle = 'width: 100%; height: 44px; border-radius: 16px; border: none; background: #16231C; color: #EEF3EC; font-family: Fraunces, Georgia, serif; font-size: 22px;';
+    const ghost = 'width: 100%; height: 44px; border-radius: 16px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 14px;';
+    const add = (d) => () => { if (pin.length < 4) this.setState({ pin: pin + d, nudged: false }); };
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => ({ isKey: true, isBlank: false, label: d, aria: 'Dígito ' + d, style: keyStyle, press: add(d) }));
+    keys.push({ isKey: false, isBlank: true, label: '', aria: '', style: ghost, press: () => {} });
+    keys.push({ isKey: true, isBlank: false, label: '0', aria: 'Dígito 0', style: keyStyle, press: add('0') });
+    keys.push({ isKey: true, isBlank: false, label: 'Borrar', aria: 'Borrar dígito', style: ghost, press: () => this.setState({ pin: pin.slice(0, -1) }) });
+    const ready = maestra ? signed : signed && pin.length === 4;
+    return {
+      isFamilia: !maestra,
+      isMaestra: maestra,
+      stepLabel: maestra ? 'Acceso de maestra' : 'Paso 1 de 2',
+      heading: maestra ? 'Entra como maestra' : 'Únete a tu familia',
+      nota: maestra ? 'Familia Hinojosa · entrarás como maestra' : 'Familia Hinojosa · entrarás como adulta administradora',
+      switchLabel: maestra ? 'Soy de la familia' : 'Soy Pamela, la maestra',
+      switchMode: () => this.setState({ maestra: !maestra, signed: false, pin: '', nudged: false }),
+      nombre: maestra ? 'Pamela' : 'Marcela',
+      signed,
+      notSigned: !signed,
+      signedPressed: signed ? 'true' : 'false',
+      signLabel: signed ? 'Sesión iniciada con Apple' : 'Iniciar sesión con Apple',
+      signStyle: 'margin-top: 12px; width: 100%; height: 50px; border-radius: 16px; font-family: inherit; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; '
+        + (signed ? 'border: 1px solid rgba(156,197,161,0.45); background: rgba(156,197,161,0.12); color: #B9DEC3;' : 'border: none; background: #EEF3EC; color: #0F1A14;'),
+      signIn: () => this.setState({ signed: true, nudged: false }),
+      dots, keys, ready,
+      notReady: !ready,
+      nudged: !!st.nudged,
+      nudge: () => this.setState({ nudged: true }),
+      nudgeText: !signed ? 'Inicia sesión con Apple para continuar' : 'Escribe los 4 dígitos de tu PIN para entrar',
+      ctaLabel: maestra ? 'Entrar como maestra' : 'Entrar',
+      ctaHref: maestra ? 'MaestraAlumnos.dc.html' : 'BoltInicial.dc.html',
+      pinAria: 'PIN: ' + pin.length + ' de 4 dígitos',
+    };
+  }
+}
+</script>
+</body>
+</html>

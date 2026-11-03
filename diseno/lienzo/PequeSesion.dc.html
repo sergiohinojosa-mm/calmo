@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Sesión de Julia</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+@keyframes calmo-sway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+.calmo-sway{animation:calmo-sway 1.6s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes calmo-pop{0%{transform:scale(0.3);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}
+.calmo-pop{animation:calmo-pop 0.9s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes calmo-fall{0%{transform:translateY(-80px) rotate(0deg);opacity:0}10%{opacity:1}100%{transform:translateY(900px) rotate(220deg);opacity:0.5}}
+.calmo-fall{position:absolute;animation:calmo-fall 6s linear infinite}
+@media (prefers-reduced-motion: reduce){.calmo-sway,.calmo-pop,.calmo-fall{animation:none}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <sc-if value="{{running}}" hint-placeholder-val="{{true}}">
+    <div style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; justify-content: space-between;">
+      <a href="PequeInicio.dc.html" aria-label="Salir" style="width: 48px; height: 48px; border-radius: 50%; background: rgba(238,243,236,0.06); display: flex; align-items: center; justify-content: center; color: #A9B8AC;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+      </a>
+      <div style="text-align: center;">
+        <p style="margin: 0; font-size: 15px; font-weight: 600;">{{title}}</p>
+        <p style="margin: 2px 0 0; font-size: 13px; color: #A9B8AC;">{{mins}}</p>
+      </div>
+      <button onClick="{{toggleVoz}}" aria-pressed="{{vozPressed}}" aria-label="{{vozAria}}" style="{{vozStyle}}">
+        <sc-if value="{{vozOn}}" hint-placeholder-val="{{true}}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10z"></path><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"></path></svg>
+        </sc-if>
+        <sc-if value="{{vozOff}}" hint-placeholder-val="{{false}}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10z"></path><path d="M17 10l4 4M21 10l-4 4"></path></svg>
+        </sc-if>
+        Voz
+      </button>
+    </div>
+
+    <div style="position: absolute; top: 140px; left: 0; right: 0; height: 320px; display: flex; align-items: center; justify-content: center;">
+      <div style="position: absolute; width: 280px; height: 280px; border-radius: 50%; background: rgba(156,197,161,0.06);"></div>
+      <sc-if value="{{isFlor}}" hint-placeholder-val="{{true}}">
+        <div style="{{growStyle}}">
+          <svg width="220" height="220" viewBox="0 0 100 100" aria-hidden="true">
+            <path d="M50 58 V96" stroke="#6FA58A" stroke-width="3.5" stroke-linecap="round"></path>
+            <path d="M50 80 C 40 78, 33 72, 32 65 C 41 65, 48 71, 50 80Z" fill="#6FA58A"></path>
+            <path d="M50 84 C 60 82, 67 76, 68 69 C 59 69, 52 75, 50 84Z" fill="#6FA58A"></path>
+            <circle cx="50" cy="24" r="13" fill="#F0A8B4"></circle>
+            <circle cx="68" cy="37" r="13" fill="#F0A8B4"></circle>
+            <circle cx="61" cy="58" r="13" fill="#F0A8B4"></circle>
+            <circle cx="39" cy="58" r="13" fill="#F0A8B4"></circle>
+            <circle cx="32" cy="37" r="13" fill="#F0A8B4"></circle>
+            <circle cx="50" cy="42" r="11" fill="#E2CC94"></circle>
+          </svg>
+        </div>
+      </sc-if>
+      <sc-if value="{{isVela}}" hint-placeholder-val="{{false}}">
+        <div style="position: absolute; display: flex; flex-direction: column; align-items: center;">
+          <div style="{{flameStyle}}">
+            <div class="calmo-sway">
+              <svg width="80" height="110" viewBox="0 0 40 55" aria-hidden="true">
+                <path d="M20 2 C 30 16, 32 28, 20 40 C 8 28, 10 16, 20 2Z" fill="#E9B27D"></path>
+                <path d="M20 16 C 25 24, 25 30, 20 36 C 15 30, 15 24, 20 16Z" fill="#E2CC94"></path>
+              </svg>
+            </div>
+          </div>
+          <svg width="100" height="140" viewBox="0 0 50 70" aria-hidden="true">
+            <path d="M25 0 V8" stroke="#5E6E63" stroke-width="2" stroke-linecap="round"></path>
+            <rect x="10" y="8" width="30" height="58" rx="5" fill="#E9DFC4"></rect>
+            <path d="M14 20 C 18 24, 18 30, 16 34" fill="none" stroke="#C9BFA4" stroke-width="2" stroke-linecap="round"></path>
+          </svg>
+        </div>
+      </sc-if>
+      <sc-if value="{{isRaton}}" hint-placeholder-val="{{false}}">
+        <div style="{{growStyle}}">
+          <svg width="210" height="210" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="30" cy="34" r="15" fill="#A9B8AC"></circle>
+            <circle cx="70" cy="34" r="15" fill="#A9B8AC"></circle>
+            <circle cx="30" cy="34" r="8" fill="#F0A8B4"></circle>
+            <circle cx="70" cy="34" r="8" fill="#F0A8B4"></circle>
+            <ellipse cx="50" cy="58" rx="28" ry="25" fill="#C9D6CB"></ellipse>
+            <circle cx="40" cy="54" r="3.5" fill="#0F1A14"></circle>
+            <circle cx="60" cy="54" r="3.5" fill="#0F1A14"></circle>
+            <circle cx="41" cy="53" r="1.1" fill="#EEF3EC"></circle>
+            <circle cx="61" cy="53" r="1.1" fill="#EEF3EC"></circle>
+            <circle cx="50" cy="65" r="4" fill="#F0A8B4"></circle>
+            <path d="M46 70 C 48 73, 52 73, 54 70" fill="none" stroke="#0F1A14" stroke-width="1.8" stroke-linecap="round"></path>
+            <path d="M34 64 H20 M34 68 H22 M66 64 H80 M66 68 H78" stroke="#8A9B8F" stroke-width="1.4" stroke-linecap="round"></path>
+          </svg>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="position: absolute; top: 480px; left: 20px; right: 20px; text-align: center;">
+      <p style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 96; font-weight: 400; font-size: 40px; line-height: 1.1; color: {{labelColor}};">{{label}}</p>
+      <p style="margin: 6px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 64px; line-height: 1; font-variant-numeric: tabular-nums;">{{count}}</p>
+      <p style="margin: 8px 0 0; font-size: 16px; color: #A9B8AC;">{{hint}}</p>
+    </div>
+
+    <sc-if value="{{showDots}}" hint-placeholder-val="{{false}}">
+      <div role="img" aria-label="{{progressAria}}" style="position: absolute; top: 700px; left: 0; right: 0; display: flex; justify-content: center; gap: 12px;">
+        <sc-for list="{{dots}}" as="dt" hint-placeholder-count="6">
+          <span style="{{dt}}"></span>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{showBar}}" hint-placeholder-val="{{true}}">
+      <div role="img" aria-label="{{progressAria}}" style="position: absolute; top: 690px; left: 48px; right: 48px;">
+        <div style="height: 12px; border-radius: 12px; background: rgba(238,243,236,0.08); overflow: hidden;">
+          <div style="{{barStyle}}"></div>
+        </div>
+        <p style="margin: 10px 0 0; text-align: center; font-size: 14px; color: #A9B8AC;">{{barLabel}}</p>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{done}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none;">
+      <sc-for list="{{fall}}" as="f" hint-placeholder-count="9">
+        <span class="calmo-fall" style="{{f}}">
+          <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="#E2CC94"></path></svg>
+        </span>
+      </sc-for>
+    </div>
+    <div style="position: absolute; top: 150px; left: 24px; right: 24px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+      <div class="calmo-pop">
+        <svg width="160" height="160" viewBox="0 0 24 24" role="img" aria-label="Ganaste una estrella"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="#E2CC94" stroke="#F4DCA8" stroke-width="0.6" stroke-linejoin="round"></path></svg>
+      </div>
+      <h1 style="margin: 24px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 96; font-weight: 400; font-size: 36px; line-height: 1.15;">¡Lo hiciste muy bien, Julia!</h1>
+      <p style="margin: 14px 0 0; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: rgba(226,204,148,0.16); color: #E2CC94; font-size: 17px; font-weight: 600;">
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="#E2CC94"></path></svg>
+        +1 estrella
+      </p>
+      <p style="margin: 10px 0 0; font-size: 16px; color: #A9B8AC;">Ya tienes 5 estrellas en los últimos 7 días</p>
+    </div>
+    <a href="PequeInicio.dc.html" style="position: absolute; left: 32px; right: 32px; bottom: 56px; display: flex; align-items: center; justify-content: center; height: 64px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 20px; font-weight: 600; text-decoration: none;">¡Listo!</a>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"modo":{"editor":"enum","options":["flor","vela","raton"],"default":"flor"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  cfg() {
+    const M = {
+      flor: { title: 'Huele la flor', mins: '1 minuto', breaths: 9, inT: 6, exT: 8, inLabel: 'Huele la flor', exLabel: 'Suelta el aire', inHint: 'Por la nariz, despacito', exHint: 'Por la nariz, despacito como una brisa', inColor: '#F0C4CB', exColor: '#B9DEC3' },
+      vela: { title: 'La vela tranquila', mins: '2 minutos', breaths: 17, inT: 6, exT: 8, inLabel: 'Toma aire', exLabel: 'Suelta el aire', inHint: 'Por la nariz, despacito', exHint: 'Por la nariz, tan suave que la llama casi no se mueve', inColor: '#B9DEC3', exColor: '#E9B27D' },
+      raton: { title: 'Respira como ratón', mins: '3 minutos', breaths: 45, inT: 4, exT: 4, inLabel: 'Suavecito adentro', exLabel: 'Suavecito afuera', inHint: 'Por la nariz, suavecito como un ratón', exHint: 'Por la nariz, suavecito como un ratón', inColor: '#C9D6CB', exColor: '#C9D6CB' },
+    };
+    return M[this.props.modo] || M.flor;
+  }
+  componentDidMount() {
+    const c = this.cfg();
+    const cycle = c.inT + c.exT;
+    this.setState({ t: 0, started: false, done: false });
+    this.kick = setTimeout(() => this.setState({ started: true }), 60);
+    this.iv = setInterval(() => {
+      const next = ((this.state && this.state.t) || 0) + 1;
+      if (Math.floor(next / cycle) >= c.breaths) {
+        clearInterval(this.iv);
+        this.setState({ t: next, done: true });
+      } else {
+        this.setState({ t: next });
+      }
+    }, 500);
+  }
+  componentWillUnmount() {
+    clearInterval(this.iv);
+    clearTimeout(this.kick);
+  }
+  renderVals() {
+    const st = this.state || {};
+    const c = this.cfg();
+    const modo = this.props.modo || 'flor';
+    const t = st.t || 0;
+    const cycle = c.inT + c.exT;
+    const inPhase = t % cycle;
+    const inhale = inPhase < c.inT;
+    const count = inhale ? Math.floor(inPhase / 2) + 1 : Math.floor((inPhase - c.inT) / 2) + 1;
+    const total = c.breaths;
+    const breaths = Math.min(total, Math.floor(t / cycle));
+    const done = !!st.done;
+    const grow = st.started && inhale;
+    const dur = inhale ? c.inT / 2 : c.exT / 2;
+    const dots = Array.from({ length: Math.min(total, 8) }, (_, i) => i < breaths
+      ? 'width: 14px; height: 14px; border-radius: 50%; background: #E2CC94;'
+      : 'width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(238,243,236,0.3);');
+    const vozOn = st.voz ?? true;
+    const big = modo === 'raton' ? 1.06 : 1.12;
+    const small = modo === 'raton' ? 0.96 : 0.9;
+    const fall = [8, 22, 36, 50, 64, 78, 90, 15, 70].map((left, i) =>
+      'left: ' + left + '%; top: ' + ((i * 97) % 600) + 'px; animation-duration: ' + (5 + (i % 4)) + 's; animation-delay: -' + (i * 0.7).toFixed(1) + 's;');
+    return {
+      title: c.title,
+      mins: c.mins,
+      isFlor: modo === 'flor',
+      isVela: modo === 'vela',
+      isRaton: modo === 'raton',
+      label: inhale ? c.inLabel : c.exLabel,
+      labelColor: inhale ? c.inColor : c.exColor,
+      hint: inhale ? c.inHint : c.exHint,
+      count,
+      dots,
+      showDots: total <= 8,
+      showBar: total > 8,
+      barStyle: 'height: 12px; border-radius: 12px; background: #E2CC94; width: ' + Math.round((breaths / total) * 100) + '%; transition: width 0.6s ease;',
+      barLabel: breaths + ' de ' + total + ' respiraciones',
+      running: !done,
+      done,
+      fall,
+      progressAria: breaths + ' de ' + total + ' respiraciones',
+      vozOn,
+      vozOff: !vozOn,
+      vozPressed: vozOn ? 'true' : 'false',
+      vozAria: vozOn ? 'Voz del iPhone encendida' : 'Voz del iPhone apagada',
+      vozStyle: 'height: 48px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); display: inline-flex; align-items: center; gap: 6px; font-family: inherit; font-size: 14px; font-weight: 500; ' + (vozOn ? 'background: rgba(156,197,161,0.16); color: #B9DEC3;' : 'background: transparent; color: #8A9B8F;'),
+      toggleVoz: () => this.setState({ voz: !vozOn }),
+      growStyle: 'position: absolute; transition: transform ' + dur + 's cubic-bezier(.45,0,.55,1); transform: scale(' + (grow ? big : small) + ');',
+      flameStyle: 'transform-origin: 50% 100%; transition: transform ' + dur + 's cubic-bezier(.45,0,.55,1); margin-bottom: -6px; transform: ' + (inhale ? 'rotate(0deg) scale(1)' : 'rotate(-3deg) scale(0.96)') + ';',
+    };
+  }
+}
+</script>
+</body>
+</html>

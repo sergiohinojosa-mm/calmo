@@ -34,11 +34,11 @@ export default {
     const goalSum = people.reduce((a, x) => a + x.goal, 0);
     const reto = `<div class="card" style="margin-top:14px">
       <p class="muted" style="margin:0">Meta de la familia · últimos 7 días</p>
-      <p class="num" style="margin:4px 0 0;font-size:34px">${Math.round(sum)} <span style="font-size:16px;color:var(--text2)">de ${goalSum} min</span></p>
+      <p class="num" style="margin:4px 0 0;font-size:34px">${Math.floor(sum)} <span style="font-size:16px;color:var(--text2)">de ${goalSum} min</span></p>
       <div style="margin-top:12px">${bar((sum / goalSum) * 100)}</div>
       <p class="muted" style="margin:8px 0 0">${sum >= goalSum ? '¡Lo lograron juntos!' : `Faltan ${Math.ceil(goalSum - sum)} min entre todos`}</p>
       <div class="stack" style="margin-top:16px">${people.map((x) => `<div class="row">${avatar(x.p, 32)}<span style="flex:1;font-size:14px">${esc(x.p.name)}</span>
-        <span style="width:40%">${bar(sum ? (x.mins / sum) * 100 : 0, 'var(--hoja)')}</span><span class="muted" style="width:56px;text-align:right">${Math.round(x.mins)} min</span></div>`).join('')}</div>
+        <span style="width:40%">${bar(sum ? (x.mins / sum) * 100 : 0, 'var(--hoja)')}</span><span class="muted" style="width:56px;text-align:right">${Math.floor(x.mins)} min</span></div>`).join('')}</div>
     </div>`;
 
     const cards = people.map((x) => {
@@ -47,14 +47,14 @@ export default {
         ${avatar(x.p, 44)}
         <div style="flex:1;min-width:0">
           <p style="margin:0;font-weight:600">${esc(x.p.name)}${x.p.id === me.id ? ' <span class="muted">(tú)</span>' : ''}${kidView ? '' : ` <span class="chip" style="margin-left:4px">${x.p.admin ? 'Admin' : KIND[x.p.kind]}</span>`}</p>
-          <p class="muted" style="margin:4px 0 0">${store.streak(x.p.id)} ${store.streak(x.p.id) === 1 ? "día seguido" : "días seguidos"} · ${Math.round(x.mins)} min en 7 días · ${kidView ? 'Reto del aire' : 'BOLT'} ${lb ? `${lb.seconds} s` : '—'}</p>
+          <p class="muted" style="margin:4px 0 0">${store.streak(x.p.id)} ${store.streak(x.p.id) === 1 ? "día seguido" : "días seguidos"} · ${Math.floor(x.mins)} min en los últimos 7 días · ${kidView ? 'Reto del aire' : 'BOLT'} ${lb ? `${lb.seconds} s` : '—'}</p>
         </div></div>`;
     }).join('');
 
     return `<div class="top"><h1 class="h1">${kidView ? 'Mi familia' : esc(store.familyName())}</h1></div>
       <div class="seg" role="group" aria-label="Vista">
-        <a href="#/familia?v=ranking" aria-pressed="${v === 'ranking'}">${kidView ? '¿Cómo vamos?' : 'Ranking'}</a>
-        <a href="#/familia?v=reto" aria-pressed="${v === 'reto'}">${kidView ? 'Todos juntos' : 'Reto en equipo'}</a>
+        <a href="#/familia?v=ranking" ${v === 'ranking' ? 'aria-current="page"' : ''}>${kidView ? '¿Cómo vamos?' : 'Ranking'}</a>
+        <a href="#/familia?v=reto" ${v === 'reto' ? 'aria-current="page"' : ''}>${kidView ? 'Todos juntos' : 'Reto en equipo'}</a>
       </div>
       ${v === 'ranking' ? `<div class="card" style="margin-top:14px;padding-top:6px;padding-bottom:6px">${ranking}</div>
         <p class="muted" style="margin:10px 0 0;text-align:center">${kidView ? 'Cada quien contra su propia meta' : 'Últimos 7 días · cada quien contra su propia meta'}</p>` : reto}

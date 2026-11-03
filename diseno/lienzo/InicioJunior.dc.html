@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Inicio Junior</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: relative; height: 300px; background: {{h.sky}};">
+    <svg width="390" height="300" viewBox="0 0 390 300" aria-hidden="true" style="position: absolute; inset: 0;">
+      <g opacity="{{h.stars}}">
+        <circle cx="40" cy="70" r="1.2" fill="#EEF3EC" opacity="0.5"></circle>
+        <circle cx="120" cy="40" r="1" fill="#EEF3EC" opacity="0.4"></circle>
+        <circle cx="210" cy="90" r="1.3" fill="#EEF3EC" opacity="0.35"></circle>
+        <circle cx="250" cy="30" r="1" fill="#EEF3EC" opacity="0.5"></circle>
+        <circle cx="360" cy="140" r="1.1" fill="#EEF3EC" opacity="0.35"></circle>
+      </g>
+      <g opacity="{{h.moon}}">
+        <circle cx="300" cy="86" r="58" fill="#E9DFC4" opacity="0.05"></circle>
+        <circle cx="300" cy="86" r="40" fill="#E9DFC4" opacity="0.06"></circle>
+        <circle cx="300" cy="86" r="24" fill="#E9DFC4" opacity="0.92"></circle>
+        <circle cx="311" cy="78" r="21" fill="{{h.sky}}"></circle>
+      </g>
+      <g opacity="{{h.sun}}">
+        <circle cx="300" cy="{{h.sunY}}" r="62" fill="{{h.sunColor}}" opacity="0.16"></circle>
+        <circle cx="300" cy="{{h.sunY}}" r="42" fill="{{h.sunColor}}" opacity="0.24"></circle>
+        <circle cx="300" cy="{{h.sunY}}" r="25" fill="{{h.sunColor}}"></circle>
+      </g>
+      <path d="M0 200 C 70 168, 130 170, 200 192 S 330 160, 390 178 V300 H0Z" fill="{{h.back}}"></path>
+      <path d="M0 214 C 90 202, 200 214, 390 204 V236 H0Z" fill="#F4F8F2" opacity="{{h.fog}}"></path>
+      <path d="M0 232 C 90 208, 160 222, 230 236 S 340 214, 390 226 V300 H0Z" fill="{{h.mid}}"></path>
+      <path d="M40 236 l12 -30 l12 30Z M58 238 l9 -22 l9 22Z M318 228 l11 -28 l11 28Z M336 230 l8 -20 l8 20Z" fill="{{h.trees}}"></path>
+      <path d="M0 268 C 110 250, 260 262, 390 248 V300 H0Z" fill="#101A15"></path>
+    </svg>
+    <div style="position: absolute; top: 60px; left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: flex-start;">
+      <div>
+        <p style="margin: 0; font-size: 13px; letter-spacing: 0.02em; color: {{h.date}};">Martes 3 de noviembre</p>
+        <h1 style="margin: 6px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 32px; line-height: 1.15; letter-spacing: -0.01em; color: {{h.title}};">{{h.greeting}}<br>{{nombre}}</h1>
+      </div>
+      <a href="SelectorPerfilJunior.dc.html" aria-label="Cambiar de perfil" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 56px; min-height: 48px; text-decoration: none;">
+        <span style="width: 44px; height: 44px; box-sizing: border-box; border-radius: 50%; border: 1px solid {{h.avatarBorder}}; background: {{h.avatarBg}}; color: {{h.avatarFg}}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500;">{{inicial}}</span>
+        <span style="font-size: 12px; color: {{h.label}};">Cambiar</span>
+      </a>
+    </div>
+    <a href="Logros.dc.html" style="position: absolute; top: 176px; left: 24px; display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; border-radius: 999px; background: rgba(16,26,21,0.72); border: 1px solid rgba(156,197,161,0.25); color: #EEF3EC; text-decoration: none;">
+      <svg width="32" height="32" viewBox="0 0 80 80" aria-hidden="true">
+        <circle cx="40" cy="40" r="38" fill="#2A4033"></circle>
+        <path d="M40 56V34" stroke="#9CC5A1" stroke-width="4" stroke-linecap="round" fill="none"></path>
+        <path d="M40 40c-10 0-15-6-15-15 10 0 15 6 15 15z" fill="#9CC5A1"></path>
+        <path d="M40 36c0-9 5-14 14-14 0 9-5 14-14 14z" fill="#B9DEC3"></path>
+        <path d="M27 54h26l-3 12H30z" fill="#E9B27D"></path>
+      </svg>
+      <span style="display: flex; flex-direction: column; gap: 3px;">
+        <span style="font-size: 14px; font-weight: 600;">Nivel {{nivel}} · {{hojas}} hojas</span>
+        <span style="font-size: 12px; color: #C9D6CB;">Te faltan {{faltan}} hojas para {{siguiente}}</span>
+        <span style="display: block; width: 190px; height: 5px; border-radius: 5px; background: rgba(238,243,236,0.10);"><span style="{{levelBar}}"></span></span>
+      </span>
+    </a>
+  </div>
+
+  <div style="margin-top: -24px; padding: 0 20px; display: flex; flex-direction: column; gap: 12px; position: relative;">
+    <div style="background: #1C2B23; border: 1px solid rgba(238,243,236,0.06); border-radius: 28px; padding: 18px 20px 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(226,204,148,0.14); color: #E2CC94; font-size: 12px; font-weight: 500;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"></path></svg>
+          De Pamela · 20:30
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: #B9DEC3;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"></path><path d="M5 19 13 11"></path></svg>
+          Ganas 10 hojas
+        </span>
+      </div>
+      <h2 style="margin: 12px 0 4px; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 48; font-weight: 400; font-size: 26px; line-height: 1.2;">Respira suavecito</h2>
+      <p style="margin: 0 0 16px; font-size: 15px; color: #A9B8AC;">5 minutos · ¡hoy llegas a {{rachaHoy}} días!</p>
+      <a href="SesionJunior.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 60px; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 18px; font-weight: 600; text-decoration: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+        Empezar
+      </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+      <div style="background: #16231C; border-radius: 20px; padding: 12px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E9B27D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z"></path></svg>
+        <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px;">{{racha}}</p>
+        <p style="margin: 0; font-size: 12px; color: #A9B8AC;">Días seguidos</p>
+      </div>
+      <div style="background: #16231C; border-radius: 20px; padding: 12px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B9DEC3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+        <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px;">{{minutos}}</p>
+        <p style="margin: 0; font-size: 12px; color: #A9B8AC;">Min. en 7 días</p>
+      </div>
+      <a href="Logros.dc.html" style="background: #16231C; border-radius: 20px; padding: 12px; color: #EEF3EC; text-decoration: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E2CC94" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14 7 22l5-3 5 3-1.5-8"></path></svg>
+        <p style="margin: 4px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 26px;">{{insignias}}</p>
+        <p style="margin: 0; font-size: 12px; color: #A9B8AC;">Insignias</p>
+      </a>
+    </div>
+
+    <a href="Logros.dc.html" style="display: flex; align-items: center; gap: 12px; background: #1C2B23; border: 1px solid rgba(233,178,125,0.30); border-radius: 22px; padding: 12px 14px; color: #EEF3EC; text-decoration: none;">
+      <svg width="52" height="52" viewBox="0 0 64 64" aria-hidden="true" style="flex: none;">
+        <circle cx="32" cy="32" r="29" fill="#16231C" stroke="rgba(233,178,125,0.45)" stroke-width="2.5"></circle>
+        <path d="M20 44c0-14 9-24 26-24 0 17-10 26-24 26M20 44l12-12" fill="none" stroke="#E9B27D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      <span style="flex: 1; min-width: 0;">
+        <span style="display: block; font-size: 12px; color: #E9B27D;">¡Casi la tienes!</span>
+        <span style="display: block; margin-top: 1px; font-size: 16px; font-weight: 600;">{{proxima}}</span>
+        <span style="display: block; margin-top: 1px; font-size: 13px; color: #A9B8AC;">{{proximaDetalle}}</span>
+        <span style="display: block; margin-top: 6px; height: 5px; border-radius: 5px; background: rgba(238,243,236,0.08);"><span style="{{proximaBar}}"></span></span>
+      </span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9B8F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+
+    <a href="CatalogoJunior.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.14); color: #EEF3EC; font-size: 15px; font-weight: 500; text-decoration: none;">
+      Más ejercicios
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+    </a>
+  </div>
+
+  <nav aria-label="Navegación" style="position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 8px 12px 0; box-sizing: border-box; background: #0D1611; border-top: 1px solid rgba(238,243,236,0.06); display: flex; justify-content: space-around; align-items: flex-start;">
+    <a href="{{inicioHref}}" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 72px; min-height: 52px; text-decoration: none; color: #9CC5A1; font-size: 12px; font-weight: 600;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg>
+      Inicio
+    </a>
+    <a href="Logros.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 72px; min-height: 52px; text-decoration: none; color: #8A9B8F; font-size: 12px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14 7 22l5-3 5 3-1.5-8"></path></svg>
+      Logros
+    </a>
+    <a href="PerfilJunior.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 72px; min-height: 52px; text-decoration: none; color: #8A9B8F; font-size: 12px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"></path></svg>
+      Mi perfil
+    </a>
+    <a href="FamiliaJunior.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 72px; min-height: 52px; text-decoration: none; color: #8A9B8F; font-size: 12px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2.3.6 3.5 2.8 3.5 6"></path></svg>
+      Familia
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"momento":{"editor":"enum","options":["auto","manana","tarde","noche"],"default":"auto"},"nombre":{"editor":"text","default":"Mariel"},"edad":{"editor":"int","default":9},"hojas":{"editor":"int","default":186},"faltan":{"editor":"int","default":64},"racha":{"editor":"int","default":6},"minutos":{"editor":"int","default":34},"insignias":{"editor":"int","default":4},"siguienteInsignia":{"editor":null,"default":"Semana de hojas"},"siguienteDetalle":{"editor":null,"default":"Respira hoy y la ganas"},"siguientePct":{"editor":null,"default":86},"inicioHref":{"editor":null,"default":"InicioJunior.dc.html"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    let m = p.momento ?? 'auto';
+    if (m === 'auto') {
+      const hr = new Date().getHours();
+      m = hr >= 5 && hr < 12 ? 'manana' : hr >= 12 && hr < 19 ? 'tarde' : 'noche';
+    }
+    const T = {
+      manana: {
+        greeting: 'Buenos días,', sky: '#DCE7DA', back: '#B4CAB6', mid: '#88A78F', trees: '#5E8068',
+        date: '#41584A', title: '#1F2A23', label: '#2E4637', avatarBg: 'rgba(255,255,255,0.55)', avatarFg: '#1F2A23', avatarBorder: 'rgba(31,42,35,0.12)',
+        stars: 0, moon: 0, sun: 1, sunY: 92, sunColor: '#F4D9A2', fog: 0.45,
+      },
+      tarde: {
+        greeting: 'Buenas tardes,', sky: '#4A6855', back: '#3B5645', mid: '#2E4637', trees: '#253B2E',
+        date: '#DCE5DB', title: '#F4F6F0', label: '#DCE5DB', avatarBg: 'rgba(16,26,21,0.35)', avatarFg: '#EEF3EC', avatarBorder: 'rgba(238,243,236,0.18)',
+        stars: 0, moon: 0, sun: 1, sunY: 158, sunColor: '#EDB985', fog: 0.08,
+      },
+      noche: {
+        greeting: 'Buenas noches,', sky: '#101A15', back: '#17251D', mid: '#1C2D23', trees: '#223629',
+        date: '#A9B8AC', title: '#EEF3EC', label: '#C9D6CB', avatarBg: 'rgba(226,204,148,0.18)', avatarFg: '#E2CC94', avatarBorder: 'rgba(238,243,236,0.10)',
+        stars: 1, moon: 1, sun: 0, sunY: 92, sunColor: '#E9DFC4', fog: 0,
+      },
+    };
+    const nombre = p.nombre ?? 'Mariel';
+    const hojas = p.hojas ?? 186;
+    const L = [['Semilla', 0], ['Brote', 100], ['Planta', 250], ['Árbol', 500], ['Bosque', 1000]];
+    let i = 0;
+    L.forEach((l, k) => { if (hojas >= l[1]) i = k; });
+    const next = L[i + 1];
+    const pct = next ? Math.round(((hojas - L[i][1]) / (next[1] - L[i][1])) * 100) : 100;
+    const racha = p.racha ?? 6;
+    return {
+      h: T[m] || T.noche,
+      nombre,
+      inicial: nombre.charAt(0),
+      nivel: L[i][0],
+      hojas,
+      faltan: p.faltan ?? (next ? next[1] - hojas : 0),
+      siguiente: next ? next[0] : 'Bosque',
+      levelBar: 'display: block; width: ' + pct + '%; height: 5px; border-radius: 5px; background: #9CC5A1;',
+      racha,
+      rachaHoy: racha + 1,
+      minutos: p.minutos ?? 34,
+      insignias: p.insignias ?? 4,
+      proxima: p.siguienteInsignia ?? 'Semana de hojas',
+      proximaDetalle: p.siguienteDetalle ?? 'Respira hoy y la ganas',
+      proximaBar: 'display: block; height: 5px; border-radius: 5px; background: #E9B27D; width: ' + (p.siguientePct ?? 86) + '%;',
+      inicioHref: p.inicioHref ?? 'InicioJunior.dc.html',
+    };
+  }
+}
+</script>
+</body>
+</html>

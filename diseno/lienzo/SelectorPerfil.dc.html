@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Cambiar de perfil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div aria-hidden="true" style="position: absolute; inset: 0; padding: 60px 24px; box-sizing: border-box;">
+    <p style="margin: 0; font-size: 13px; color: #A9B8AC;">Martes 3 de noviembre</p>
+    <p style="margin: 6px 0 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100; font-size: 32px; line-height: 1.15;">{{bgGreeting}}</p>
+    <div style="margin-top: 40px; height: 230px; border-radius: 28px; background: #1C2B23;"></div>
+  </div>
+  <div style="position: absolute; inset: 0; background: rgba(5,10,8,0.62);"></div>
+
+  <div role="dialog" aria-label="Cambiar de perfil" style="position: absolute; left: 0; right: 0; bottom: 0; background: #1C2B23; border-radius: 28px 28px 0 0; padding: 12px 20px 34px; box-sizing: border-box;">
+    <div style="width: 36px; height: 4px; border-radius: 4px; background: rgba(238,243,236,0.18); margin: 0 auto 14px;"></div>
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+      <div>
+        <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px;">¿Quién va a respirar?</h1>
+        <p style="margin: 4px 0 0; font-size: 15px; color: #A9B8AC;">Toca tu foto</p>
+      </div>
+      <a href="{{closeHref}}" aria-label="Cerrar" style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: #16231C; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+      </a>
+    </div>
+
+    <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+      <sc-for list="{{people}}" as="p" hint-placeholder-count="4">
+        <a href="{{p.href}}" aria-label="{{p.aria}}" style="{{p.card}}">
+          <span style="{{p.avatar}}">{{p.initial}}</span>
+          <span style="display: block; margin-top: 8px; font-size: 17px; font-weight: 600;">{{p.name}}</span>
+          <span style="display: block; margin-top: 2px; font-size: 13px; color: #A9B8AC;">{{p.profile}}</span>
+          <sc-if value="{{p.locked}}" hint-placeholder-val="{{false}}">
+            <span style="display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 12px; color: #E2CC94;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+              Pide PIN
+            </span>
+          </sc-if>
+        </a>
+      </sc-for>
+      <sc-if value="{{showAdd}}" hint-placeholder-val="{{true}}">
+        <a href="AgregarPerfil.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 128px; border-radius: 22px; border: 1.5px dashed rgba(238,243,236,0.22); color: #A9B8AC; text-decoration: none; font-size: 15px; font-weight: 500;">
+          <span style="width: 56px; height: 56px; border-radius: 50%; background: rgba(156,197,161,0.12); color: #9CC5A1; display: flex; align-items: center; justify-content: center;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          </span>
+          <span style="margin-top: 8px;">Agregar perfil</span>
+        </a>
+      </sc-if>
+    </div>
+
+    <p style="margin: 16px 0 0; display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.45; color: #A9B8AC;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none;"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+      Entrar al perfil de una niña no pide PIN. Volver al de un adulto, sí.
+    </p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"actual":{"editor":"enum","options":["sergio","luciana","mariel","julia"],"default":"sergio"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const actual = this.props.actual ?? 'sergio';
+    const HOME = { sergio: 'Main.dc.html', luciana: 'InicioLuciana.dc.html', mariel: 'InicioJunior.dc.html', julia: 'PequeInicio.dc.html' };
+    const P = [
+      { k: 'sergio', name: 'Sergio', profile: 'Adulto', tint: 'rgba(226,204,148,0.18)', fg: '#E2CC94' },
+      { k: 'luciana', name: 'Luciana', profile: 'Junior · 11 años', tint: '#2A4033', fg: '#B9DEC3' },
+      { k: 'mariel', name: 'Mariel', profile: 'Junior · 9 años', tint: 'rgba(156,197,161,0.20)', fg: '#9CC5A1' },
+      { k: 'julia', name: 'Julia', profile: 'Peque · 5 años', tint: 'rgba(233,178,125,0.22)', fg: '#E9B27D' },
+    ];
+    const kidNow = actual !== 'sergio';
+    const people = P.map((p) => {
+      const isCurrent = p.k === actual;
+      const locked = p.k === 'sergio' && kidNow;
+      let href = HOME[p.k];
+      if (locked) href = 'PinAdulto.dc.html';
+      if (isCurrent) href = HOME[actual];
+      const label = p.profile + (isCurrent ? ' · actual' : '');
+      return {
+        name: p.name,
+        profile: label,
+        initial: p.name.charAt(0),
+        locked,
+        href,
+        aria: p.name + ', ' + label + (locked ? ', pide PIN' : ''),
+        card: 'display: block; text-align: center; min-height: 128px; box-sizing: border-box; padding: 14px 8px; border-radius: 22px; color: #EEF3EC; text-decoration: none; background: ' + (isCurrent ? 'rgba(156,197,161,0.14)' : '#16231C') + '; border: ' + (isCurrent ? '2px solid #9CC5A1' : '1px solid rgba(238,243,236,0.06)') + ';',
+        avatar: 'width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Fraunces, Georgia, serif; font-size: 28px; background: ' + p.tint + '; color: ' + p.fg + ';',
+      };
+    });
+    const names = { sergio: 'Sergio', luciana: 'Luciana', mariel: 'Mariel', julia: 'Julia' };
+    return {
+      people,
+      showAdd: !kidNow,
+      closeHref: HOME[actual],
+      bgGreeting: 'Buenas noches, ' + names[actual],
+    };
+  }
+}
+</script>
+</body>
+</html>

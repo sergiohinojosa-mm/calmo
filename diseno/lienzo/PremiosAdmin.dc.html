@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calmo · Premios para aprobar</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&amp;family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#9CC5A1}a:hover{color:#B9DEC3}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #101A15; color: #EEF3EC; font-family: 'Figtree', system-ui, sans-serif;">
+  <div style="position: absolute; top: 56px; left: 20px; right: 20px; display: flex; align-items: center; gap: 14px;">
+    <a href="Familia.dc.html" aria-label="Volver a Familia" style="width: 44px; height: 44px; flex: none; border-radius: 50%; background: #1C2B23; display: flex; align-items: center; justify-content: center; color: #EEF3EC;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+    </a>
+    <h1 style="margin: 0; font-family: 'Fraunces', Georgia, serif; font-variation-settings: 'SOFT' 100, 'opsz' 72; font-weight: 400; font-size: 28px;">Premios</h1>
+  </div>
+
+  <div style="position: absolute; top: 116px; left: 0; right: 0; bottom: 110px; overflow-y: auto; padding: 0 20px 24px; box-sizing: border-box;">
+    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+      <h2 style="margin: 6px 0 10px; font-size: 15px; font-weight: 600;">Por aprobar</h2>
+      <span style="font-size: 12px; color: #A9B8AC;">{{pendingCount}}</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <sc-for list="{{requests}}" as="r" hint-placeholder-count="2">
+        <sc-if value="{{r.visible}}" hint-placeholder-val="{{true}}">
+          <div style="background: #1C2B23; border: 1px solid rgba(226,204,148,0.28); border-radius: 22px; padding: 14px 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span style="{{r.avatar}}">{{r.initial}}</span>
+              <div style="flex: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 15px; font-weight: 600;">{{r.who}}</p>
+                <p style="margin: 2px 0 0; font-size: 13px; color: #A9B8AC;">{{r.what}} · {{r.cost}} hojas</p>
+              </div>
+            </div>
+            <sc-if value="{{r.isOpen}}" hint-placeholder-val="{{true}}">
+              <div style="margin-top: 12px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px;">
+                <button onClick="{{r.approve}}" style="height: 48px; border-radius: 999px; border: none; background: #9CC5A1; color: #0F1A14; font-family: inherit; font-size: 15px; font-weight: 600;">Aprobar</button>
+                <button onClick="{{r.decline}}" style="height: 48px; border-radius: 999px; border: 1px solid rgba(238,243,236,0.16); background: transparent; color: #EEF3EC; font-family: inherit; font-size: 15px;">Ahora no</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{r.isApproved}}" hint-placeholder-val="{{false}}">
+              <p style="margin: 12px 0 0; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(156,197,161,0.16); color: #B9DEC3; font-size: 13px; font-weight: 600;">
+                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#9CC5A1"></circle><path d="M8 12.5l2.5 2.5 5.5-6" fill="none" stroke="#0F1A14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                Aprobado · le avisamos a {{r.who}}
+              </p>
+            </sc-if>
+            <sc-if value="{{r.isPostponed}}" hint-placeholder-val="{{false}}">
+              <div style="margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <p style="margin: 0; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: rgba(226,204,148,0.14); color: #E2CC94; font-size: 13px; font-weight: 600;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                  Pospuesto · le avisamos a {{r.who}}
+                </p>
+                <button onClick="{{r.reopen}}" style="min-height: 44px; padding: 0 12px; border-radius: 999px; border: none; background: transparent; color: #A9B8AC; font-family: inherit; font-size: 13px;">Deshacer</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </sc-for>
+      <sc-if value="{{noneLeft}}" hint-placeholder-val="{{false}}">
+        <p style="margin: 0; padding: 16px; border-radius: 20px; background: #16231C; font-size: 14px; color: #A9B8AC; text-align: center;">No hay premios por aprobar.</p>
+      </sc-if>
+      <p style="margin: 2px 0 0; font-size: 12px; color: #8A9B8F;">Solo Sergio o Marcela, con su PIN, pueden aprobar.</p>
+    </div>
+
+    <h2 style="margin: 24px 0 6px; font-size: 15px; font-weight: 600;">Premios activos</h2>
+    <div style="display: flex; flex-direction: column;">
+      <sc-for list="{{active}}" as="a" hint-placeholder-count="5">
+        <a href="PremioEditar.dc.html" aria-label="{{a.aria}}" style="display: flex; align-items: center; gap: 12px; min-height: 64px; border-bottom: 1px solid rgba(238,243,236,0.06); color: #EEF3EC; text-decoration: none;">
+          <div style="flex: 1; min-width: 0;">
+            <p style="margin: 0; font-size: 15px;">{{a.name}}</p>
+            <p style="margin: 4px 0 0; display: flex; gap: 6px; flex-wrap: wrap;">
+              <span style="padding: 2px 8px; border-radius: 999px; background: rgba(185,222,195,0.12); color: #B9DEC3; font-size: 12px;">{{a.cost}} hojas</span>
+              <sc-for list="{{a.who}}" as="w" hint-placeholder-count="2">
+                <span style="padding: 2px 8px; border-radius: 999px; background: rgba(238,243,236,0.06); color: #A9B8AC; font-size: 12px;">{{w}}</span>
+              </sc-for>
+            </p>
+          </div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A9B8F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </a>
+      </sc-for>
+    </div>
+    <p style="margin: 16px 0 0; font-size: 13px; line-height: 1.5; color: #A9B8AC;">Los premios no tienen dinero real: ustedes deciden qué significan. Sergio y Marcela pueden aprobar, y usar hojas en premios nunca baja el nivel de las niñas.</p>
+  </div>
+
+  <div style="position: absolute; left: 20px; right: 20px; bottom: 40px;">
+    <a href="PremioEditar.dc.html" style="width: 100%; height: 56px; box-sizing: border-box; border-radius: 999px; background: #9CC5A1; color: #0F1A14; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      Nuevo premio
+    </a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const st = this.state || {};
+    const dec = st.dec || {};
+    const R = [
+      { k: 'r1', who: 'Mariel', what: 'Elegir la película del viernes', cost: 80, tint: 'rgba(233,178,125,0.22)', fg: '#E9B27D' },
+      { k: 'r2', who: 'Luciana', what: 'Media hora más de juego', cost: 100, tint: 'rgba(185,222,195,0.18)', fg: '#B9DEC3' },
+    ];
+    const set = (k, v) => () => this.setState({ dec: Object.assign({}, dec, { [k]: v }) });
+    const requests = R.map((r) => ({
+      who: r.who, what: r.what, cost: r.cost, initial: r.who.charAt(0),
+      visible: true,
+      isOpen: !dec[r.k],
+      isApproved: dec[r.k] === 'ok',
+      isPostponed: dec[r.k] === 'later',
+      avatar: 'width: 44px; height: 44px; flex: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Fraunces, Georgia, serif; font-size: 20px; background: ' + r.tint + '; color: ' + r.fg + ';',
+      approve: set(r.k, 'ok'),
+      decline: set(r.k, 'later'),
+      reopen: set(r.k, undefined),
+    }));
+    const open = R.filter((r) => !dec[r.k]).length;
+    const active = [
+      ['Elegir la película del viernes', 80, ['Luciana', 'Mariel']],
+      ['Media hora más de juego', 100, ['Luciana', 'Mariel']],
+      ['Ir por un helado', 150, ['Luciana', 'Mariel']],
+      ['Libro nuevo', 250, ['Luciana', 'Mariel']],
+      ['Pijamada con primas', 400, ['Luciana']],
+    ].map(([name, cost, who]) => ({ name, cost, who, aria: 'Editar ' + name }));
+    return {
+      requests,
+      active,
+      pendingCount: open === 1 ? '1 pendiente' : open + ' pendientes',
+      noneLeft: open === 0 && R.every((r) => dec[r.k] === 'ok'),
+    };
+  }
+}
+</script>
+</body>
+</html>

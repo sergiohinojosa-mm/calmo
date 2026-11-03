@@ -19,26 +19,45 @@ const STATUS = {
   extra: `<span class="row" style="gap:5px;color:var(--brasa);font-size:13px">${icon('check', 16)} Hecha</span>`,
 };
 
-function itemCard(it, kind, isToday) {
+// Enlaces del calendario que conservan de quién es (?p=<id>).
+function link(who, params) {
+  const q = new URLSearchParams(params);
+  if (who) q.set('p', who);
+  return `#/calendario?${q}`;
+}
+
+// Hora y duración: lo hecho muestra cuándo y cuánto fue de verdad.
+function when(it) {
+  if (it.status !== 'hecha' || !it.realTime) return `${esc(it.time)}${it.minutes ? ` · ${it.minutes} min` : ''}`;
+  const amount = it.realMinutes ? ` · ${it.realMinutes} min` : it.measure ? ` · ${it.measure.seconds} s` : '';
+  return `${esc(it.realTime)}${amount}${it.realTime !== it.time ? `<span style="color:var(--muted)"> · plan ${esc(it.time)}</span>` : ''}`;
+}
+
+// view: { kind, isToday, own, edit, who }. Empezar solo en el calendario propio;
+// los adultos tocan una rutina para editarla.
+function itemCard(it, view) {
+  const { kind } = view;
   const isBolt = it.type === 'plan' && it.routine.kind === 'bolt';
   const title = isBolt && kind !== 'adulto' ? 'Reto del aire' : it.title;
   const exName = it.exercise ? nameFor(it.exercise, kind) : (isBolt ? (kind === 'adulto' ? 'BOLT score' : 'Aguanta tranquila') : '');
-  const start = isBolt ? '#/bolt' : `#/configurar/${it.exercise?.id}?min=${it.minutes}&rutina=${it.routine?.id}`;
-  return `<div class="tile" style="border:1px solid var(--line)">
+  const start = isBolt ? `#/bolt?rutina=${it.routine.id}` : `#/configurar/${it.exercise?.id}?min=${it.minutes}&rutina=${it.routine?.id}`;
+  const edit = view.edit && it.type === 'plan' && !it.routine.deletedAt
+    ? `planear?editar=${encodeURIComponent(it.routine.id)}${view.who ? `&p=${encodeURIComponent(view.who)}` : ''}` : '';
+  return `<div class="tile" style="border:1px solid var(--line)${edit ? ';cursor:pointer' : ''}" ${edit ? `data-edit="${esc(edit)}"` : ''}>
     <div class="between">
       ${it.type === 'extra' ? '<span class="chip brasa">Extra</span>' : `<span class="chip arena">${icon('repeat', 13)} Rutina</span>`}
       ${STATUS[it.status]}
     </div>
-    <p style="margin:8px 0 0;font-size:15px;font-weight:600">${esc(title)}</p>
+    <p style="margin:8px 0 0;font-size:15px;font-weight:600">${edit ? `<a href="#/${esc(edit)}" style="color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(title)} ${esc(it.time)}">${esc(title)}</a>` : esc(title)}</p>
     ${exName && exName !== title ? `<p class="muted" style="margin:2px 0 0">${esc(exName)}</p>` : ''}
     <div class="between" style="margin-top:10px">
-      <span class="row muted" style="gap:6px;font-size:13px">${icon('timer', 15)} ${esc(it.time)}${it.minutes ? ` · ${it.minutes} min` : ''}</span>
-      ${isToday && it.status === 'pendiente' ? `<a class="btn primary small" ${isBolt ? '' : 'data-audio'} href="${start}">${icon('play', 14)} Empezar</a>` : ''}
+      <span class="row muted" style="gap:6px;font-size:13px">${icon('timer', 15)} ${when(it)}</span>
+      ${view.own && view.isToday && it.status === 'pendiente' ? `<a class="btn primary small" ${isBolt ? '' : 'data-audio'} href="${start}">${icon('play', 14)} Empezar</a>` : ''}
     </div>
   </div>`;
 }
 
-function dayView(store, me, kind, w) {
+function dayView(store, me, view, w) {
   const today = new Date();
   const monday = addDays(addDays(today, -dow(today)), w * 7);
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
@@ -53,21 +72,21 @@ function dayView(store, me, kind, w) {
     const isToday = dayKey(d) === dayKey(today);
     return `<div class="daycol">
       <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><span class="muted" style="font-size:13px">${DIAS_C[dow(d)]}</span><span class="daynum ${isToday ? 'today' : ''}">${d.getDate()}</span></div>
-      <div class="stack" style="gap:8px">${items.length ? items.map((it) => itemCard(it, kind, isToday)).join('') : '<p class="muted" style="margin:10px 0 0;font-size:13px">Sin sesiones</p>'}</div>
+      <div class="stack" style="gap:8px">${items.length ? items.map((it) => itemCard(it, { ...view, isToday })).join('') : '<p class="muted" style="margin:10px 0 0;font-size:13px">Sin sesiones</p>'}</div>
     </div>`;
   }).join('');
   return `<div class="between" style="margin-top:16px">
       <div><p style="margin:0;font-size:15px;font-weight:600">Semana ${isoWeek(first)} <span style="font-weight:400;color:var(--text2)">· ${range}</span></p>
       <p class="muted" style="margin:2px 0 0">${done} de ${planned} planeadas · ${extra} extra</p></div>
       <div class="row" style="gap:6px">
-        <a class="icon-btn" href="#/calendario?v=dias&w=${w - 1}" aria-label="Semana anterior">${icon('back', 20)}</a>
-        <a class="icon-btn" href="#/calendario?v=dias&w=${w + 1}" aria-label="Semana siguiente">${icon('chev', 20)}</a>
+        <a class="icon-btn" href="${link(view.who, { v: 'dias', w: w - 1 })}" aria-label="Semana anterior">${icon('back', 20)}</a>
+        <a class="icon-btn" href="${link(view.who, { v: 'dias', w: w + 1 })}" aria-label="Semana siguiente">${icon('chev', 20)}</a>
       </div>
     </div>
     <div style="margin-top:8px">${rows}</div>`;
 }
 
-function monthView(store, me, kind, m, dParam) {
+function monthView(store, me, view, m, dParam) {
   const today = new Date();
   const first = new Date(today.getFullYear(), today.getMonth() + m, 1);
   const start = addDays(first, -dow(first));
@@ -80,16 +99,17 @@ function monthView(store, me, kind, m, dParam) {
     const key = dayKey(d);
     const items = store.agenda(me.id, d);
     const dots = items.slice(0, 4).map((it) => `<span class="dot ${it.status === 'hecha' ? 'done' : it.status === 'pendiente' ? 'pending' : it.status === 'no' ? 'missed' : 'extra'}"></span>`).join('');
-    return `<a href="#/calendario?v=mes&m=${m}&d=${key}" class="${key === dayKey(today) ? 'today' : ''} ${inMonth(d) ? '' : 'out'}" aria-pressed="${key === selKey}" aria-label="${d.getDate()} de ${MESES[d.getMonth()]}">
+    const on = key === selKey;
+    return `<a href="${link(view.who, { v: 'mes', m, d: key })}" class="${key === dayKey(today) ? 'today' : ''} ${inMonth(d) ? '' : 'out'}" ${on ? 'aria-current="true" style="border-color:var(--sage)"' : ''} aria-label="${d.getDate()} de ${MESES[d.getMonth()]}">
       <span class="num" style="font-size:15px">${d.getDate()}</span><span class="dots">${dots}</span></a>`;
   }).join('');
   const items = store.agenda(me.id, sel);
   const title = `${selKey === dayKey(today) ? 'Hoy, ' : ''}${DIAS[dow(sel)]} ${sel.getDate()} de ${MESES[sel.getMonth()]}`;
   return `<div class="card" style="margin-top:16px;padding:12px 10px">
       <div class="between" style="padding:0 4px 8px">
-        <a class="icon-btn" href="#/calendario?v=mes&m=${m - 1}" aria-label="Mes anterior" style="background:transparent">${icon('back', 20)}</a>
+        <a class="icon-btn" href="${link(view.who, { v: 'mes', m: m - 1 })}" aria-label="Mes anterior" style="background:transparent">${icon('back', 20)}</a>
         <span style="font-weight:600">${cap(MESES[first.getMonth()])} ${first.getFullYear()}</span>
-        <a class="icon-btn" href="#/calendario?v=mes&m=${m + 1}" aria-label="Mes siguiente" style="background:transparent">${icon('chev', 20)}</a>
+        <a class="icon-btn" href="${link(view.who, { v: 'mes', m: m + 1 })}" aria-label="Mes siguiente" style="background:transparent">${icon('chev', 20)}</a>
       </div>
       <div class="month" style="text-align:center;margin-bottom:4px">${DIAS_L.map((l) => `<span class="muted" style="font-size:11px">${l}</span>`).join('')}</div>
       <div class="month">${cells}</div>
@@ -99,7 +119,15 @@ function monthView(store, me, kind, m, dParam) {
       </div>
     </div>
     <p class="label">${esc(cap(title))}</p>
-    <div class="stack" style="gap:8px">${items.length ? items.map((it) => itemCard(it, kind, selKey === dayKey(today))).join('') : '<p class="muted" style="font-size:13px">Sin sesiones</p>'}</div>`;
+    <div class="stack" style="gap:8px">${items.length ? items.map((it) => itemCard(it, { ...view, isToday: selKey === dayKey(today) })).join('') : '<p class="muted" style="font-size:13px">Sin sesiones</p>'}</div>`;
+}
+
+// De quién es el calendario: un adulto puede ver el de quienes cuida (?p=<id>).
+function viewed(ctx) {
+  const { store, query } = ctx;
+  const me = ctx.profile;
+  const asked = query.get('p');
+  return asked && asked !== me.id && store.canManage(me.id, asked) ? store.profile(asked) : me;
 }
 
 export default {
@@ -107,16 +135,37 @@ export default {
   render(ctx) {
     const { store, query } = ctx;
     const me = ctx.profile;
+    const them = viewed(ctx);
+    const who = them.id === me.id ? null : them.id;
+    const view = { kind: them.kind, own: !who, edit: me.kind === 'adulto', who };
     const v = query.get('v') === 'mes' ? 'mes' : 'dias';
     const body = v === 'mes'
-      ? monthView(store, me, me.kind, Number(query.get('m')) || 0, query.get('d'))
-      : dayView(store, me, me.kind, Number(query.get('w')) || 0);
+      ? monthView(store, them, view, Number(query.get('m')) || 0, query.get('d'))
+      : dayView(store, them, view, Number(query.get('w')) || 0);
+    const people = me.kind === 'adulto' ? store.profiles().filter((p) => store.canManage(me.id, p.id)) : [];
+    const keep = {};
+    ['v', 'w', 'm', 'd'].forEach((k) => { if (query.get(k)) keep[k] = query.get(k); });
+    const picker = people.length > 1 ? `<p class="muted" style="margin:14px 0 6px">De quién</p>
+      <div class="pills" role="group" aria-label="De quién">
+        ${people.map((p) => `<a class="pill" href="${link(p.id === me.id ? null : p.id, keep)}" ${p.id === them.id ? 'aria-current="page"' : ''} style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">${esc(p.id === me.id ? 'Yo' : p.name)}</a>`).join('')}
+      </div>` : '';
     return `<div class="top"><h1 class="h1">Calendario</h1>
-        <a class="icon-btn" href="#/planear" aria-label="Planear una rutina" style="background:var(--sage);color:var(--on-sage)">${icon('plus', 20)}</a></div>
+        <a class="icon-btn" href="#/planear${who ? `?p=${encodeURIComponent(who)}` : ''}" aria-label="Planear una rutina${who ? ` para ${esc(them.name)}` : ''}" style="background:var(--sage);color:var(--on-sage)">${icon('plus', 20)}</a></div>
       <div class="seg" role="group" aria-label="Vista">
-        <a href="#/calendario?v=dias" aria-pressed="${v === 'dias'}">Días</a>
-        <a href="#/calendario?v=mes" aria-pressed="${v === 'mes'}">Mes</a>
+        <a href="${link(who, { v: 'dias' })}" ${v === 'dias' ? 'aria-current="page"' : ''}>Días</a>
+        <a href="${link(who, { v: 'mes' })}" ${v === 'mes' ? 'aria-current="page"' : ''}>Mes</a>
       </div>
+      ${picker}
       ${body}`;
+  },
+  mount(root, ctx) {
+    // Tocar la tarjeta de una rutina abre su edición (los botones y enlaces siguen funcionando).
+    const onClick = (e) => {
+      const card = e.target.closest('[data-edit]');
+      if (!card || e.target.closest('a, button')) return;
+      ctx.go(card.dataset.edit);
+    };
+    root.addEventListener('click', onClick);
+    return () => root.removeEventListener('click', onClick);
   },
 };

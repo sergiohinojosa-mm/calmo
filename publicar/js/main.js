@@ -65,6 +65,8 @@ function drawTabs(active) {
     `<a href="#/${route}" ${route === active ? 'aria-current="page"' : ''}>${icon(ic, 22)}<span>${esc(label)}</span></a>`).join('');
 }
 
+let shownHash = null;
+
 async function render() {
   const token = ++renderToken;
   const parsed = parse();
@@ -88,15 +90,28 @@ async function render() {
   const noTabs = mod.full || !ctx.profile || ctx.profile.kind === 'peque' || mod.tab === false;
   app.classList.toggle('no-tabs', !!noTabs);
   view.className = 'view' + (mod.full ? ' full' : '');
+  // Al volver a dibujar la misma pantalla (cambiar una meta, pausar una rutina,
+  // llegar datos de otro teléfono) se queda donde estaba; solo sube al cambiar de pantalla.
+  const keepY = location.hash === shownHash ? window.scrollY : 0;
   view.innerHTML = mod.render(ctx);
   drawTabs(mod.tab || name);
-  window.scrollTo(0, 0);
+  shownHash = location.hash;
+  window.scrollTo(0, keepY);
   if (mod.mount) cleanup = mod.mount(view, ctx) || null;
 }
 
 window.addEventListener('hashchange', render);
-render();
+render().then(prefetch);
 sync.pull();
+
+// Carga por adelantado las pantallas de las pestañas para que abran al instante.
+function prefetch() {
+  const later = window.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
+  later(() => {
+    ['calendario', 'progreso', 'perfil', 'familia', 'logros', 'configurar', 'sesion', 'resumen']
+      .forEach((s) => import(`./screens/${s}.js`).catch(() => {}));
+  });
+}
 
 const LIVE = new Set(['sesion', 'bolt', 'pasos', 'serie', 'planear', 'perfiles', 'cambiar', 'ingresar', 'usuarios', 'bienvenida']);
 store.onRemote(() => { if (!LIVE.has(parse().name)) render(); });

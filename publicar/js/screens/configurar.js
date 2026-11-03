@@ -1,68 +1,106 @@
-import { esc, icon } from '../ui.js';
-import { byId, nameFor, GOALS, AMBIENTS, DURATIONS } from '../catalog.js';
+import { esc, icon, askConfirm } from '../ui.js';
+import { byId, textsFor, goalLabel, AMBIENTS, DURATIONS } from '../catalog.js';
+
+// ¿El último BOLT del perfil queda por debajo de lo que pide el ejercicio?
+const lowBoltOf = (store, ex, id) => {
+  const lb = store.lastBolt(id);
+  return ex.minBolt && lb && lb.seconds < ex.minBolt ? lb : null;
+};
 
 export default {
   tab: 'inicio',
   render(ctx) {
     const { store, query } = ctx;
     const kind = ctx.profile.kind;
+    const kid = kind !== 'adulto';
     const ex = byId(ctx.params[0]) || byId('coherente');
+    const t = textsFor(ex, kind);
     const prefs = store.prefs();
     const durs = DURATIONS.filter((d) => !ex.maxMin || d <= ex.maxMin);
-    const asked = Number(query.get('min')) || prefs.lastDur[ex.id] || ex.defaultMin;
+    const asked = Number(query.get('min')) || prefs.lastDur[ex.id] || t.defaultMin;
     const min = Math.min(ex.maxMin || 60, Math.max(1, Math.round(asked)));
     const other = !durs.includes(min);
     const amb = query.get('amb') || prefs.ambient || 'bosque';
     const rutina = query.get('rutina') || '';
-    const lb = store.lastBolt();
-    const lowBolt = ex.minBolt && lb && lb.seconds < ex.minBolt;
+    const lb = lowBoltOf(store, ex, ctx.profile.id);
     const isSerie = ex.mode === 'serie';
     const fixed = ex.mode === 'pausas' || ex.mode === 'destapar';
     const qs = (o) => `#/configurar/${ex.id}?min=${o.min ?? min}&amb=${o.amb ?? amb}${rutina ? `&rutina=${rutina}` : ''}`;
     const start = isSerie ? '#/serie' : `#/sesion/${ex.id}?min=${min}&amb=${amb}${rutina ? `&rutina=${rutina}` : ''}`;
+    const lowMsg = kid
+      ? `Tu reto del aire (${lb?.seconds} s) todavía es corto para este ejercicio. Hazlo suave y con un adulto cerca.`
+      : `Tu BOLT (${lb?.seconds} s) está por debajo de ${ex.minBolt} s. Puedes hacerlo, pero empieza suave.`;
     return `<div class="top"><a class="icon-btn" href="#/catalogo" aria-label="Volver">${icon('back', 20)}</a><span></span></div>
-      <h1 class="h1">${esc(nameFor(ex, kind))}</h1>
+      <h1 class="h1">${esc(t.name)}</h1>
       <div class="pills" style="margin-top:10px">
-        <span class="chip sage">${esc(GOALS[ex.goal].label)}</span><span class="chip">${esc(ex.pattern)}</span><span class="chip">${icon('nose', 13)} Nariz</span>
+        <span class="chip sage">${esc(goalLabel(ex.goal, kind))}</span><span class="chip">${esc(t.pattern)}</span><span class="chip">${icon('nose', 13)} Nariz</span>
       </div>
-      <p class="sub" style="margin-top:14px">${esc(ex.desc)}</p>
-      ${lowBolt ? `<div class="tile" style="margin-top:14px;color:var(--brasa)">Tu BOLT (${lb.seconds} s) está por debajo de ${ex.minBolt} s. Puedes hacerlo, pero empieza suave.</div>` : ''}
-      ${ex.steps ? `<details class="tile" style="margin-top:14px"><summary style="min-height:28px;cursor:pointer;font-weight:600">Cómo se hace</summary>
-        <ol style="margin:10px 0 0;padding-left:20px;color:var(--text2);line-height:1.6">${ex.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}
+      <p class="sub" style="margin-top:14px">${esc(t.desc)}</p>
+      ${lb ? `<div class="tile" style="margin-top:14px;color:var(--brasa)">${esc(lowMsg)}</div>` : ''}
+      ${t.steps ? `<details class="tile" style="margin-top:14px"><summary style="min-height:28px;cursor:pointer;font-weight:600">Cómo se hace</summary>
+        <ol style="margin:10px 0 0;padding-left:20px;color:var(--text2);line-height:1.6">${t.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}
       ${isSerie || fixed ? '' : `<p class="label">Duración</p>
-      <div class="pills" role="group" aria-label="Duración">${durs.map((d) => `<a class="pill" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="${qs({ min: d })}" aria-pressed="${d === min}">${d} min</a>`).join('')}
-        <label class="pill" aria-pressed="${other}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">Otra
-          <input type="number" inputmode="numeric" min="1" max="${ex.maxMin || 60}" step="1" value="${other ? min : ''}" placeholder="min" id="otherMin" aria-label="Otra duración en minutos" style="width:52px;min-height:32px;border:none;border-radius:10px;background:var(--bg);color:var(--text);text-align:center;font-size:15px"></label>
+      <div class="pills" role="group" aria-label="Duración">${durs.map((d) => `<a class="pill" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="${qs({ min: d })}" ${d === min && !other ? 'aria-current="page"' : ''}>${d} min</a>`).join('')}
+        <label class="pill" id="otherPill" aria-pressed="${other}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">Otra
+          <input type="number" inputmode="numeric" min="1" max="${ex.maxMin || 60}" step="1" value="${other ? min : ''}" placeholder="min" id="otherMin" aria-label="Otra duración en minutos" style="width:52px;min-height:32px;border:none;border-radius:10px;background:var(--bg);color:var(--text);text-align:center;font-size:16px"></label>
       </div>
       <p id="minErr" role="alert" class="muted" style="margin:6px 0 0;color:var(--brasa);min-height:16px"></p>`}
       ${isSerie ? '' : `<p class="label">Ambiente</p>
-      <div class="grid2">${AMBIENTS.map((a) => `<a href="${qs({ amb: a.id })}" class="tile" aria-pressed="${a.id === amb}" style="color:inherit;text-decoration:none;border:1px solid ${a.id === amb ? 'var(--sage)' : 'var(--line)'};background:${a.id === amb ? 'rgba(156,197,161,0.14)' : 'var(--low)'}">
+      <div class="grid2">${AMBIENTS.map((a) => `<a href="${qs({ amb: a.id })}" class="tile" ${a.id === amb ? 'aria-current="page"' : ''} style="color:inherit;text-decoration:none;border:1px solid ${a.id === amb ? 'var(--sage)' : 'var(--line)'};background:${a.id === amb ? 'rgba(156,197,161,0.14)' : 'var(--low)'}">
         ${icon(a.icon, 20)}<span style="display:block;margin-top:8px;font-weight:600;font-size:14px">${esc(a.label)}</span><span class="muted">${esc(a.detail)}</span></a>`).join('')}</div>
       <div class="tile stack" style="margin-top:14px">
         <label class="row" style="font-size:14px;color:var(--text2)"><span style="width:96px">Música</span><input type="range" min="0" max="100" value="${prefs.music}" data-pref="music"></label>
         <label class="row" style="font-size:14px;color:var(--text2)"><span style="width:96px">Tonos</span><input type="range" min="0" max="100" value="${prefs.tonesVol}" data-pref="tonesVol"></label>
         <div class="between" style="font-size:14px;color:var(--text2)">Tono en cada fase <button class="switch" role="switch" aria-checked="${prefs.tones}" aria-label="Tono en cada fase" data-toggle="tones"><span></span></button></div>
       </div>`}
-      <a class="btn primary block" data-audio href="${start}" style="margin-top:22px">${icon('play', 18)} ${isSerie ? 'Ir a la serie' : `Empezar${fixed ? '' : ` · ${min} min`}`}</a>`;
+      <a class="btn primary block" id="start" data-audio href="${start}" style="margin-top:22px">${icon('play', 18)} <span id="startLabel">${isSerie ? 'Ir a la serie' : `Empezar${fixed ? '' : ` · ${min} min`}`}</span></a>`;
   },
   mount(root, ctx) {
     const { store } = ctx;
+    const kid = ctx.profile.kind !== 'adulto';
     const ex = byId(ctx.params[0]) || byId('coherente');
     const min = Number(ctx.query.get('min'));
     if (min) store.setPref('lastDur', { ...store.prefs().lastDur, [ex.id]: min });
     const amb = ctx.query.get('amb');
     if (amb) store.setPref('ambient', amb);
+    const startEl = root.querySelector('#start');
+    const startLabel = root.querySelector('#startLabel');
     const otherMin = root.querySelector('#otherMin');
-    otherMin?.addEventListener('change', () => {
-      const max = ex.maxMin || 60;
+    const max = ex.maxMin || 60;
+    const valid = () => {
       const v = Math.round(Number(otherMin.value));
+      return v >= 1 && v <= max ? v : 0;
+    };
+    // "Otra": el botón de empezar se actualiza mientras escribes, sin volver a dibujar la pantalla.
+    otherMin?.addEventListener('input', () => {
       const err = root.querySelector('#minErr');
-      if (!v || v < 1 || v > max) { err.textContent = `Elige entre 1 y ${max} minutos.`; return; }
+      if (otherMin.value === '') { err.textContent = ''; return; }
+      const v = valid();
+      if (!v) { err.textContent = `Elige entre 1 y ${max} minutos.`; return; }
       err.textContent = '';
-      const q = new URLSearchParams(ctx.query);
-      q.set('min', String(v));
-      ctx.go(`configurar/${ex.id}?${q.toString()}`);
+      startEl.setAttribute('href', startEl.getAttribute('href').replace(/([?&]min=)\d+/, `$1${v}`));
+      startLabel.textContent = `Empezar · ${v} min`;
+      root.querySelector('#otherPill').setAttribute('aria-pressed', 'true');
+      root.querySelectorAll('.pills a.pill[aria-current]').forEach((a) => a.removeAttribute('aria-current'));
     });
+    otherMin?.addEventListener('change', () => {
+      const v = valid();
+      if (v) store.setPref('lastDur', { ...store.prefs().lastDur, [ex.id]: v });
+    });
+    // Si el ejercicio pide más BOLT del que tienes, se confirma antes de empezar.
+    const lb = lowBoltOf(store, ex, ctx.profile.id);
+    if (lb) {
+      startEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = startEl.getAttribute('href');
+        const msg = kid
+          ? `Este ejercicio es para cuando aguantas ${ex.minBolt} s o más en el reto del aire, y tú vas en ${lb.seconds} s. ¿Quieres hacerlo suave, con un adulto cerca?`
+          : `Este ejercicio se recomienda con un BOLT de ${ex.minBolt} s o más y el tuyo es de ${lb.seconds} s. ¿Quieres hacerlo de todos modos, con calma?`;
+        askConfirm(msg, { ok: 'Empezar suave', cancel: 'Elegir otro' }).then((ok) => {
+          if (ok) ctx.go(href.replace(/^#\//, ''));
+        });
+      });
+    }
     root.querySelectorAll('[data-pref]').forEach((el) => el.addEventListener('change', () => store.setPref(el.dataset.pref, Number(el.value))));
     root.querySelectorAll('[data-toggle]').forEach((el) => el.addEventListener('click', () => {
       const v = !store.prefs()[el.dataset.toggle];
