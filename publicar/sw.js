@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube VERSION cada vez que publiques cambios.
-const VERSION = 'calmo-v4';
+const VERSION = 'calmo-v5';
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(VERSION).then((c) => c.addAll(['./', 'index.html', 'css/app.css', 'js/main.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/apple-touch-icon.png'])));
