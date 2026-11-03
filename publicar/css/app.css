@@ -26,16 +26,16 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-text-size-adjust: 100%; }
-body { min-height: 100dvh; overscroll-behavior-y: none; }
+body { min-height: 100vh; min-height: 100dvh; overscroll-behavior-y: none; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 a { color: var(--sage); -webkit-tap-highlight-color: transparent; }
 img, svg { display: block; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-.app { max-width: 520px; margin: 0 auto; min-height: 100dvh; position: relative; }
+.app { max-width: 520px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; position: relative; }
 .view { padding: calc(var(--safe-t) + 16px) 20px calc(var(--tabs-h) + var(--safe-b) + 24px); }
-.view.full { padding: 0; min-height: 100dvh; }
+.view.full { padding: 0; min-height: 100vh; min-height: 100dvh; }
 .app.no-tabs .tabs { display: none; }
 .app.no-tabs .view:not(.full) { padding-bottom: calc(var(--safe-b) + 32px); }
 
@@ -102,7 +102,7 @@ input[type=range] { accent-color: var(--sage); width: 100%; }
 .avatar { width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 18px; border: 1px solid var(--line2); text-decoration: none; flex: none; }
 
 /* Sesión */
-.session { position: relative; min-height: 100dvh; background: var(--deep); display: flex; flex-direction: column; align-items: center; padding: calc(var(--safe-t) + 16px) 20px calc(var(--safe-b) + 28px); overflow: hidden; }
+.session { position: relative; min-height: 100vh; min-height: 100dvh; background: var(--deep); display: flex; flex-direction: column; align-items: center; padding: calc(var(--safe-t) + 16px) 20px calc(var(--safe-b) + 28px); overflow: hidden; }
 .session.dim::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.55); pointer-events: none; }
 .breath-wrap { position: relative; width: min(82vw, 340px); aspect-ratio: 1; display: flex; align-items: center; justify-content: center; margin: 28px 0 10px; }
 .blob { position: absolute; border-radius: 47% 53% 52% 48% / 50% 46% 54% 50%; }

@@ -2,6 +2,15 @@
 // Cada pantalla vive en js/screens/<nombre>.js y exporta por defecto
 // { tab?, full?, render(ctx) => html, mount?(root, ctx) => cleanup }.
 
+// Compatibilidad con iPhones con iOS anterior al 15.4.
+if (!Array.prototype.at) {
+  Object.defineProperty(Array.prototype, 'at', {
+    value(n) { let i = Math.trunc(n) || 0; if (i < 0) i += this.length; return this[i]; },
+    configurable: true,
+    writable: true,
+  });
+}
+
 import * as store from './store.js';
 import { icon, esc } from './ui.js';
 import { unlock } from './audio.js';
