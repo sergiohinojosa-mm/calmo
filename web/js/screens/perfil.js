@@ -42,11 +42,11 @@ function stepper(d, who, target, label) {
   </div>`;
 }
 
-// Etiqueta «De <maestra>» en las prácticas que asignó la maestra.
-export function fromTeacher(r) {
-  if (r.source !== 'maestra') return '';
-  const t = store.profiles().find((p) => p.id === r.by && p.role === 'maestra');
-  return `<span class="chip" style="margin-top:6px;min-height:24px;font-size:12px;background:rgba(185,222,195,0.14);color:var(--hoja)">De ${esc(t ? t.name : 'tu maestra')}</span>`;
+// Etiqueta «<maestra> lo pidió» en las prácticas que asignó la maestra.
+function fromTeacher(r) {
+  const asked = store.assignedBy(r);
+  if (!asked) return '';
+  return `<span class="chip" style="margin-top:6px;min-height:24px;font-size:12px;background:rgba(185,222,195,0.14);color:var(--hoja)">${icon('leaf', 12)} ${esc(asked)} lo pidió</span>`;
 }
 
 // Fila de una rutina. Los niños la ven sin interruptor ni botón de borrar.
@@ -86,6 +86,18 @@ export function familyCard(store, x, from = 'familia') {
       <a href="#/planear?p=${encodeURIComponent(x.id)}&de=${from}" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a></div>
     <div class="stack" style="gap:8px">${list.length ? list.map((r) => routineRow(r, x, true, from)).join('') : '<p class="muted" style="margin:0">Sin rutinas todavía.</p>'}</div>
   </div>`;
+}
+
+// Conversación con la maestra (solo adultos): sus notas y tus dudas.
+function messagesCard(store, p) {
+  const t = store.teacher();
+  if (p.kind !== 'adulto' || !t) return '';
+  const unread = store.unreadNotes(p.id).length;
+  return `<a class="card row" href="#/mensajes" style="margin-top:14px;color:inherit;text-decoration:none">
+    <span style="width:44px;height:44px;flex:none;border-radius:50%;background:rgba(185,222,195,0.14);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon('msg', 22)}</span>
+    <span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600">Mensajes con ${esc(t.name)}</span><span class="muted">${unread ? `${unread === 1 ? '1 nota nueva' : `${unread} notas nuevas`}` : 'Sus notas y tus dudas'}</span></span>
+    ${icon('chev', 18, 'style="color:var(--muted)"')}
+  </a>`;
 }
 
 function row(href, ic, label) {
@@ -146,6 +158,7 @@ export default {
         <div style="flex:1;min-width:0"><h1 class="h1">${esc(p.name)}</h1><p class="sub" style="margin-top:2px">${esc(kindLabel(p))}</p></div>
       </div>
       <a href="#/cambiar" class="btn small" style="margin-top:8px">${icon('users', 18)} Cambiar de perfil</a>
+      ${messagesCard(store, p)}
 
       <p class="label">${kid ? 'Mis retos' : 'Medir'}</p>
       <div class="stack">

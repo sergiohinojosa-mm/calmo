@@ -155,7 +155,24 @@ function prefetch() {
 }
 
 const LIVE = new Set(['sesion', 'bolt', 'serie', 'planear', 'asignar', 'perfiles', 'cambiar', 'ingresar', 'usuarios', 'bienvenida']);
-store.onRemote(() => { if (!LIVE.has(parse().name)) render(); });
+// Mientras alguien escribe (un mensaje, una nota), lo que llega de otro teléfono no
+// redibuja la pantalla, para no borrarle el texto ni cerrarle el teclado: se ve al salir del campo.
+const typing = () => {
+  const a = document.activeElement;
+  return !!a && view.contains(a) && a.matches('textarea, input:not([type=checkbox]):not([type=radio]):not([type=range])');
+};
+let staleView = false;
+store.onRemote(() => {
+  if (LIVE.has(parse().name)) return;
+  if (typing()) staleView = true;
+  else render();
+});
+// Se espera un momento para que el toque en «Enviar» llegue antes de redibujar.
+view.addEventListener('focusout', () => {
+  if (!staleView) return;
+  setTimeout(() => { if (staleView && !typing()) { staleView = false; render(); } }, 400);
+});
+window.addEventListener('hashchange', () => { staleView = false; });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top) {
   // Cuando llega una versión nueva, la app se recarga sola una vez para usarla,

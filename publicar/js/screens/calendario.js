@@ -28,12 +28,6 @@ const LEGEND = `<div class="tile row" style="margin-top:10px;padding:10px 14px;g
   <span class="row" style="gap:4px;color:var(--brasa)">${icon('plus', 14)}Extra</span>
 </div>`;
 
-// «De <maestra>»: el nombre de la maestra que asignó la rutina.
-const teacherName = (r) => {
-  const t = store.profiles().find((p) => p.id === r.by && p.role === 'maestra');
-  return `De ${t ? t.name : 'tu maestra'}`;
-};
-
 // Enlaces del calendario que conservan de quién es (?p=<id>).
 function link(who, params) {
   const q = new URLSearchParams(params);
@@ -61,8 +55,8 @@ function itemCard(it, view) {
   const edit = view.edit && it.type === 'plan' && !it.routine.deletedAt
     ? `planear?editar=${encodeURIComponent(it.routine.id)}${view.who ? `&p=${encodeURIComponent(view.who)}` : ''}` : '';
   return `<div class="tile" style="border:1px solid var(--line)${edit ? ';cursor:pointer' : ''}" ${edit ? `data-edit="${esc(edit)}"` : ''}>
-    <div class="between">
-      ${it.type === 'extra' ? '<span class="chip brasa">Extra</span>' : it.routine.source === 'maestra' ? `<span class="chip sage">${icon('repeat', 13)} ${esc(teacherName(it.routine))}</span>` : `<span class="chip arena">${icon('repeat', 13)} Rutina</span>`}
+    <div class="between" style="flex-wrap:wrap;gap:6px">
+      ${it.type === 'extra' ? '<span class="chip brasa">Extra</span>' : store.assignedBy(it.routine) ? `<span class="chip sage" style="white-space:nowrap">${icon('leaf', 13)} ${esc(store.assignedBy(it.routine))} lo pidió</span>` : `<span class="chip arena">${icon('repeat', 13)} Rutina</span>`}
       ${STATUS[it.status]}
     </div>
     <p style="margin:8px 0 0;font-size:15px;font-weight:600">${edit ? `<a href="#/${esc(edit)}" style="color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(title)} ${esc(it.time)}">${esc(title)}</a>` : esc(title)}</p>

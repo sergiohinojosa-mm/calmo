@@ -15,6 +15,7 @@ const P = {
   play: '<path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/>',
   pause: '<path d="M9 5v14M15 5v14"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  msg: '<path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>',
   back: '<path d="M15 6l-6 6 6 6"/>',
   chev: '<path d="M9 6l6 6-6 6"/>',
   list: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',

@@ -1,4 +1,4 @@
-import { esc, icon, longDate, moment, bar, avatar, minutesLabel } from '../ui.js';
+import { esc, icon, longDate, moment, bar, avatar, minutesLabel, toast } from '../ui.js';
 import { heroSVG, theme } from '../hero.js';
 import { byId, nameFor, QUICK, exercisesFor } from '../catalog.js';
 
@@ -28,17 +28,22 @@ function nextPractice(store, p) {
 }
 
 // Notas de la maestra sin leer: las del perfil y, para un adulto, las de Peque (que no lee).
+// Al marcarla como leída se quita de Inicio; el adulto la sigue viendo en Mensajes.
 function teacherNotes(store, p) {
+  const adult = p.kind === 'adulto';
   const mine = store.unreadNotes(p.id).map((n) => ({ n, who: null }));
-  const peque = p.kind === 'adulto' ? store.familyMembers().filter((x) => x.kind === 'peque').flatMap((x) => store.unreadNotes(x.id).map((n) => ({ n, who: x }))) : [];
-  return [...mine, ...peque].slice(0, 3).map(({ n, who }) => {
-    const t = store.profiles().find((x) => x.id === n.by && x.role === 'maestra');
-    return `<div class="card" style="border-color:rgba(185,222,195,0.35)">
-      <span class="chip sage">${icon('leaf', 14)} ${who ? `Nota para ${esc(who.name)}` : `${esc(t ? t.name : 'Tu maestra')} te dejó una nota`}</span>
+  const peque = adult ? store.familyMembers().filter((x) => x.kind === 'peque').flatMap((x) => store.unreadNotes(x.id).map((n) => ({ n, who: x }))) : [];
+  return [...mine, ...peque].slice(0, 3).map(({ n, who }) => `<div class="card" style="border-color:rgba(185,222,195,0.35)">
+      <div class="between" style="align-items:flex-start;gap:8px">
+        <span class="chip sage">${icon('leaf', 14)} ${who ? `Nota para ${esc(who.name)}` : `${esc(store.teacherName(n.by))} te dejó una nota`}</span>
+        <button class="icon-btn" data-note-read="${esc(n.id)}" aria-label="Quitar de Inicio" style="background:transparent;color:var(--muted);margin:-8px -8px 0 0">${icon('x', 18)}</button>
+      </div>
       <p style="margin:10px 0 0;font-size:16px;line-height:1.45">${esc(n.text)}</p>
-      <button class="btn small" data-note-read="${esc(n.id)}" style="margin-top:12px">${icon('check', 16)} Leída</button>
-    </div>`;
-  }).join('');
+      <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="btn small" data-note-read="${esc(n.id)}">${icon('check', 16)} ${adult ? 'Marcar como leída' : 'Ya la leí'}</button>
+        ${adult && !who ? `<a class="btn small" href="#/mensajes?responder=1">${icon('msg', 16)} Responder</a>` : ''}
+      </div>
+    </div>`).join('');
 }
 
 // Las rutinas de hoy (sesiones y BOLT) en orden, y cuál toca ahora.
@@ -66,12 +71,14 @@ function planCarousel(store, p, kind) {
     const name = isBolt ? (kid ? 'Reto del aire' : 'Medir BOLT') : nameFor(ex, kind);
     const detail = isBolt ? (kid ? 'Toca en cuanto sientas ganas de respirar' : 'Al despertar es el más confiable') : `${min} min · ${esc(kid ? (ex.kidPattern || ex.pattern) : ex.pattern)} · por la nariz${kid ? ` · +${min + 5} hojas` : ''}`;
     const isDone = it.status === 'hecha';
+    const asked = store.assignedBy(it.routine);
     return `<div class="card slide" role="group" aria-roledescription="rutina" aria-label="${i + 1} de ${items.length}: ${esc(it.title)} ${esc(it.time)}">
       <div class="between">
-        <span class="chip ${it.routine.source === 'maestra' ? 'sage' : 'arena'}">${icon(isBolt ? 'timer' : 'repeat', 14)} ${esc(it.title)} · ${esc(it.time)}</span>
+        <span class="chip ${asked ? 'sage' : 'arena'}">${icon(isBolt ? 'timer' : 'repeat', 14)} ${esc(it.title)} · ${esc(it.time)}</span>
         ${isDone ? `<span class="row" style="gap:4px;color:var(--hoja);font-size:13px">${icon('check', 15)} Hecha</span>` : `<span class="muted">${i + 1} de ${items.length}</span>`}
       </div>
-      <h2 class="h2" style="margin-top:14px">${esc(name)}</h2>
+      ${asked ? `<p class="row" style="gap:6px;margin:12px 0 0;color:var(--hoja);font-size:14px;font-weight:600">${icon('leaf', 15)} ${esc(asked)} lo pidió</p>` : ''}
+      <h2 class="h2" style="margin-top:${asked ? 6 : 14}px">${esc(name)}</h2>
       <p class="sub">${detail}</p>
       <a class="btn ${isDone ? '' : 'primary'} block" ${isBolt ? '' : 'data-audio'} style="margin-top:16px${kid && !isDone ? ';min-height:60px;font-size:19px' : ''}" href="${href}">${icon(isDone ? 'repeat' : 'play', 18)} ${isDone ? 'Hacer otra vez' : 'Empezar'}</a>
     </div>`;
@@ -247,7 +254,12 @@ export default {
     // «Leída» en una nota de la maestra.
     const onClick = (e) => {
       const read = e.target.closest('[data-note-read]');
-      if (read) { ctx.store.markNoteRead(read.dataset.noteRead); ctx.rerender(); }
+      if (read) {
+        const own = ctx.store.notes(ctx.profile.id).some((n) => n.id === read.dataset.noteRead);
+        ctx.store.markNoteRead(read.dataset.noteRead);
+        if (own && ctx.profile.kind === 'adulto') toast('Listo. La encuentras en Mi perfil → Mensajes');
+        ctx.rerender();
+      }
     };
     root.addEventListener('click', onClick);
     const car = root.querySelector('#plan');

@@ -102,9 +102,20 @@ export function ensureTeacher(nombre) {
   return t;
 }
 
-// Notas de la maestra para cada alumno. El alumno la marca como leída.
+// Nombre de la maestra por su perfil, o «Tu maestra» si ya no está.
+export const teacherName = (id) => state.profiles.find((p) => p.id === id && p.role === 'maestra')?.name || 'Tu maestra';
+
+// Quién pidió una rutina: la maestra que la asignó, o null si es de la familia.
+export const assignedBy = (r) => (r?.source === 'maestra' ? teacherName(r.by) : null);
+
+// Mensajes: cada alumno tiene una conversación con la maestra. Ella escribe notas y el
+// alumno le responde ahí mismo; una respuesta es la que escribe el dueño de la conversación.
+// Cada quien marca como leído lo que le escribió el otro.
 export const notes = (id) => (state.notes || []).filter((n) => !id || n.profile === id).sort((a, b) => b.at.localeCompare(a.at));
-export const unreadNotes = (id) => notes(id).filter((n) => !n.readAt);
+export const isReply = (n) => !!n.by && n.by === n.profile;
+export const thread = (id) => notes(id).reverse();
+export const unreadNotes = (id) => notes(id).filter((n) => !n.readAt && !isReply(n));
+export const unreadReplies = (id) => notes(id).filter((n) => !n.readAt && isReply(n));
 
 export function addNote(profileId, text) {
   const clean = String(text || '').trim().slice(0, 280);
@@ -118,6 +129,20 @@ export function addNote(profileId, text) {
 export function markNoteRead(noteId) {
   state.notes = (state.notes || []).map((n) => (n.id === noteId ? stamp({ ...n, readAt: new Date().toISOString() }) : n));
   save();
+}
+
+// Al abrir una conversación queda leído lo que escribió el otro (nunca lo propio).
+export function markThreadRead(profileId) {
+  const me = state.current;
+  const at = new Date().toISOString();
+  let changed = false;
+  state.notes = (state.notes || []).map((n) => {
+    if (n.profile !== profileId || n.readAt || n.by === me) return n;
+    changed = true;
+    return stamp({ ...n, readAt: at });
+  });
+  if (changed) save();
+  return changed;
 }
 
 export function removeNote(noteId) {

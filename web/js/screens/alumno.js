@@ -1,12 +1,15 @@
-// Detalle de un alumno para la maestra: notas, plan contra lo hecho, BOLT, pasos,
+// Detalle de un alumno para la maestra: mensajes, plan contra lo hecho, BOLT, pasos,
 // sesiones recientes y sus metas y rutinas (las puede ajustar).
 
 import { esc, icon, avatar, toast, askConfirm, addDays, MESES } from '../ui.js';
 import { nameFor, byId } from '../catalog.js';
 import { kindLabel, sparkline, familyCard, manageGoals } from './perfil.js';
 import { constancy, lightDot } from './alumnos.js';
+import { bubbles } from './mensajes.js';
 
 // Notas de un toque; también se puede escribir una propia.
+// Lo que se lleva escrito para cada alumno sigue ahí si la pantalla se vuelve a dibujar.
+const drafts = {};
 const QUICK_NOTES = ['¡Vas muy bien!', 'Practica antes de dormir', 'Respira suave y por la nariz', 'Mantén la boca cerrada al caminar'];
 
 const shortDate = (iso) => {
@@ -39,20 +42,19 @@ export default {
     const bolts = store.bolt(p.id);
     const steps = store.steps(p.id).slice(-5).reverse();
     const sessions = store.sessions(p.id).slice().sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 10);
-    const notes = store.notes(p.id);
+    // Los últimos mensajes; los que el alumno escribió y ella no ha visto llevan «Nuevo».
+    const notes = store.thread(p.id).slice(-8);
+    const fresh = new Set(store.unreadReplies(p.id).map((n) => n.id));
     const boltWord = p.kind === 'adulto' ? 'BOLT' : 'Reto del aire';
 
     const notesHtml = `<div class="card">
-      <h2 class="h3" style="margin:0">Notas para ${esc(p.name)}</h2>
-      <div class="pills" style="margin-top:10px">${QUICK_NOTES.map((t, i) => `<button type="button" class="pill" data-quick="${i}">${esc(t)}</button>`).join('')}</div>
+      <h2 class="h3" style="margin:0">Mensajes con ${esc(p.name)}</h2>
+      ${notes.length ? `<div class="thread" style="margin-top:12px">${bubbles(store, notes, ctx.profile.id, { fresh, del: true })}</div>` : `<p class="muted" style="margin:6px 0 0">Todavía no hay mensajes.${p.kind === 'adulto' ? ` ${esc(p.name)} te puede responder desde Calmo.` : ''}</p>`}
+      <div class="pills" style="margin-top:12px">${QUICK_NOTES.map((t, i) => `<button type="button" class="pill" data-quick="${i}">${esc(t)}</button>`).join('')}</div>
       <form id="noteForm" class="row" style="margin-top:10px;gap:8px" novalidate>
-        <input class="field" name="text" maxlength="280" autocomplete="off" placeholder="Escribe una nota" aria-label="Nota para ${esc(p.name)}" style="flex:1;min-width:0">
+        <input class="field" name="text" maxlength="280" autocomplete="off" placeholder="Escribe una nota" aria-label="Nota para ${esc(p.name)}" value="${esc(drafts[p.id] || '')}" style="flex:1;min-width:0">
         <button class="btn primary small" type="submit">Enviar</button>
       </form>
-      ${notes.length ? `<div class="stack" style="margin-top:12px;gap:8px">${notes.slice(0, 6).map((n) => `<div class="tile row" style="gap:10px;padding:10px 12px">
-        <span style="flex:1;min-width:0"><span style="display:block;font-size:14px">${esc(n.text)}</span>
-        <span class="muted" style="font-size:12px">${shortDate(n.at)} · ${n.readAt ? 'Leída ✓' : 'Sin leer'}</span></span>
-        <button class="icon-btn" style="width:40px;height:40px;background:transparent;color:var(--muted)" data-del-note="${esc(n.id)}" aria-label="Borrar nota">${icon('trash', 16)}</button></div>`).join('')}</div>` : ''}
     </div>`;
 
     const boltHtml = `<div class="card">
@@ -94,8 +96,13 @@ export default {
     const { store, rerender } = ctx;
     const id = ctx.params[0];
     const stop = manageGoals(root, ctx);
+    // Abrir el detalle deja leído lo que el alumno le escribió.
+    store.markThreadRead(id);
+    const box = root.querySelector('#noteForm [name="text"]');
+    box?.addEventListener('input', () => { drafts[id] = box.value; });
     const send = async (text) => {
       if (!store.addNote(id, text)) return;
+      delete drafts[id];
       toast('Nota enviada');
       await rerender();
     };
@@ -104,7 +111,7 @@ export default {
       if (q) { send(QUICK_NOTES[Number(q.dataset.quick)]); return; }
       const del = e.target.closest('[data-del-note]');
       if (del) {
-        askConfirm('¿Borrar esta nota?', { ok: 'Borrar' }).then((ok) => { if (ok) { store.removeNote(del.dataset.delNote); rerender(); } });
+        askConfirm('¿Borrar este mensaje? También se borra para tu alumno.', { ok: 'Borrar' }).then((ok) => { if (ok) { store.removeNote(del.dataset.delNote); rerender(); } });
       }
     };
     const onSubmit = (e) => {
