@@ -135,7 +135,7 @@ function adult(ctx) {
     <div class="grid3">
       ${QUICK.map((q) => `<a class="tile" href="#/configurar/${q.id}" style="color:inherit;text-decoration:none;border:1px solid var(--line)">
         <span style="display:block;width:8px;height:8px;border-radius:50%;background:${q.color};margin-bottom:8px"></span>
-        <span style="display:block;font-size:14px;font-weight:600">${q.label}</span>
+        <span style="display:block;font-size:clamp(12px, 3.8vw, 14px);font-weight:600">${q.label}</span>
         <span class="muted">${esc(byId(q.id).name)}</span></a>`).join('')}
     </div>
     <a class="tile row" href="#/consejos" style="color:inherit;text-decoration:none">${icon('sun', 20, 'style="color:var(--arena);flex:none"')}<span style="font-size:14px;line-height:1.45">${esc(tip)}</span></a>

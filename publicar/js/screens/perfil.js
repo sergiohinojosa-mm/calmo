@@ -65,7 +65,7 @@ export function familyCard(store, x) {
   const kid = x.kind !== 'adulto';
   const goals = GOAL_DEFS.map((d) => {
     const label = kid && d.key === 'bolt' ? 'Reto del aire' : d.label;
-    return `<div class="between" style="margin-top:10px;gap:10px"><span style="font-size:14px;min-width:0">${esc(label)}</span>${stepper(d, x.id, g[d.key], `${label} de ${x.name}`)}</div>`;
+    return `<div class="between" style="margin-top:10px;gap:10px;flex-wrap:wrap;row-gap:6px"><span style="font-size:14px;min-width:0">${esc(label)}</span>${stepper(d, x.id, g[d.key], `${label} de ${x.name}`)}</div>`;
   }).join('');
   const list = store.routines(x.id);
   return `<div class="card">
@@ -119,7 +119,7 @@ export default {
       const now = current[d.key];
       const left = target - now;
       return `<div class="card" style="padding:14px 16px">
-        <div class="between">
+        <div class="between" style="flex-wrap:wrap;row-gap:10px">
           <div style="min-width:0"><p class="h3" style="margin:0">${esc(kid ? d.kid : d.label)}</p>
             <p class="muted" style="margin:2px 0 0">${d.prefix}: ${now ? `${now}${d.unit}` : 'sin medir'} · ${left > 0 ? `te faltan ${left}${d.unit}` : '¡meta lograda!'}</p></div>
           ${kid

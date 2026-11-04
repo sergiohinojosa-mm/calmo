@@ -111,7 +111,7 @@ export default {
       </div>
       <button class="tapzone" id="tap" style="display:none" aria-label="Tocar"></button>
       <button id="startTap" style="display:none;position:fixed;inset:0;z-index:5;border:none;background:rgba(5,10,8,0.88);color:var(--text);font-family:var(--serif);font-size:28px" aria-label="Toca para empezar">
-        <span style="display:flex;flex-direction:column;align-items:center;gap:14px">${icon('play', 40)}<span>Toca para empezar</span><span style="font-family:var(--sans);font-size:14px;color:var(--text2)">Así se activan el sonido y la guía</span></span>
+        <span style="display:flex;flex-direction:column;align-items:center;gap:14px"><span style="width:104px;height:104px;border-radius:50%;background:var(--sage);color:#0F1A14;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 12px rgba(156,197,161,0.15)">${icon('play', 44)}</span><span>Empezar</span><span style="font-family:var(--sans);font-size:14px;color:var(--text2)">Así se activan el sonido y la guía</span></span>
       </button>
     </section>`;
   },

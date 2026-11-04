@@ -1,7 +1,7 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube VERSION y V (el mismo ?v= de index.html) cada vez que publiques cambios.
-const VERSION = 'calmo-v11';
-const V = '12';
+const VERSION = 'calmo-v12';
+const V = '13';
 
 const SCREENS = [
   'ajustes', 'bienvenida', 'bolt', 'calendario', 'cambiar', 'catalogo', 'configurar', 'consejos',

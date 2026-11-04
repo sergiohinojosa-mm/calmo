@@ -4,6 +4,18 @@ import { esc, icon, moment } from '../ui.js';
 import { heroSVG } from '../hero.js';
 import * as sync from '../sync.js';
 
+// Al entrar, este teléfono abre el perfil de quien inició sesión (por su nombre).
+// Si no hay uno con ese nombre, pregunta quién es en lugar de suponer al primer adulto.
+const norm = (s) => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+function openOwnProfile(ctx, usuario) {
+  const name = norm(usuario?.nombre);
+  const first = name.split(/\s+/)[0];
+  const adults = ctx.store.profiles().filter((p) => p.kind === 'adulto');
+  const me = adults.find((p) => norm(p.name) === name) || adults.find((p) => norm(p.name).split(/\s+/)[0] === first);
+  if (me) { ctx.store.setCurrent(me.id); ctx.go('inicio'); return; }
+  ctx.go(ctx.store.profiles().length ? 'cambiar' : 'inicio');
+}
+
 const field = (name, label, type = 'text', extra = '') =>
   `<label class="stack" style="gap:6px"><span class="muted">${label}</span><input class="field" name="${name}" type="${type}" ${extra}></label>`;
 
@@ -58,7 +70,7 @@ export default {
       const r = await sync.login(login.usuario.value, login.password.value);
       busy(login, false);
       if (!r.ok) { err.textContent = r.error; return; }
-      ctx.go('inicio');
+      openOwnProfile(ctx, r.usuario);
     });
 
     admin.addEventListener('submit', async (e) => {
@@ -71,7 +83,7 @@ export default {
       const r = await sync.createAdmin(admin.nombre.value, admin.usuario.value, admin.password.value);
       busy(admin, false);
       if (!r.ok) { err.textContent = r.error; return; }
-      ctx.go('inicio');
+      openOwnProfile(ctx, r.usuario);
     });
   },
 };

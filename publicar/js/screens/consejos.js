@@ -42,8 +42,8 @@ export default {
         <p class="sub">${esc(today.d)}</p>
       </div>
       <div class="pills" style="margin-top:16px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px" role="group" aria-label="Categorías">
-        <a class="pill" style="display:inline-flex;align-items:center;text-decoration:none;white-space:nowrap" href="#/consejos" aria-pressed="${c === 'todos'}">Todos</a>
-        ${CATS.map(([k, label]) => `<a class="pill" style="display:inline-flex;align-items:center;text-decoration:none;white-space:nowrap" href="#/consejos?c=${k}" aria-pressed="${c === k}">${esc(label)}</a>`).join('')}
+        <a class="pill" style="display:inline-flex;align-items:center;flex:none;text-decoration:none;white-space:nowrap" href="#/consejos" aria-pressed="${c === 'todos'}">Todos</a>
+        ${CATS.map(([k, label]) => `<a class="pill" style="display:inline-flex;align-items:center;flex:none;text-decoration:none;white-space:nowrap" href="#/consejos?c=${k}" aria-pressed="${c === k}">${esc(label)}</a>`).join('')}
       </div>
       <div class="stack" style="margin-top:14px">
         ${shown.map((t) => `<div class="tile">

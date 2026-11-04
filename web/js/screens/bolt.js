@@ -96,7 +96,10 @@ export default {
             <div class="stack" style="margin-top:10px">${(kid ? STEPS.kid : STEPS.adulto).map(([ic, txt], i) => `<div class="tile row">
               <span style="width:40px;height:40px;flex:none;border-radius:50%;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(ic, 20)}</span>
               <span style="font-size:15px">${i + 1}. ${esc(txt)}</span></div>`).join('')}</div>
-            <p class="serif" style="margin-top:auto;text-align:center;font-size:22px;padding:24px 0">Toca en cualquier parte para empezar</p>
+            <div style="margin-top:auto;padding:20px 0 8px;text-align:center">
+              <span class="btn primary block" aria-hidden="true" style="min-height:64px;font-size:19px">${icon('play', 20)} Empezar</span>
+              <p class="muted" style="margin:10px 0 0">También puedes tocar en cualquier parte</p>
+            </div>
           </div>`;
         box.querySelector('#tap').addEventListener('click', start);
       } else if (st.phase === 'running') {
@@ -108,6 +111,7 @@ export default {
             </div>
             <p class="serif" style="font-size:22px;margin-top:24px">${kid ? 'Toca cuando quieras respirar' : 'Toca al primer deseo de respirar'}</p>
             <p class="sub">${kid ? 'Luego respira suavecito por la nariz.' : 'No esperes al máximo. Luego respira calmado por la nariz.'}</p>
+            <span class="btn primary" aria-hidden="true" style="margin-top:18px;min-height:64px;min-width:240px;font-size:19px">${icon('pause', 20)} ${kid ? 'Ya quiero respirar' : 'Detener'}</span>
           </div>`;
         box.querySelector('#tap').addEventListener('click', stop);
       } else if (st.phase === 'oops') {

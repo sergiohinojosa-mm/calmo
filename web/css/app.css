@@ -71,6 +71,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 .chip.sage { background: rgba(156,197,161,0.16); color: var(--hoja); }
 .chip.brasa { background: rgba(233,178,125,0.16); color: var(--brasa); }
 .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.pills > .pill { flex: none; }
 .pill { min-height: 44px; min-width: 56px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line2); background: var(--low); color: var(--text); font-size: 15px; }
 .pill[aria-pressed="true"], .pill[aria-current="page"] { background: var(--sage); color: var(--on-sage); border-color: var(--sage); font-weight: 600; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--low); }

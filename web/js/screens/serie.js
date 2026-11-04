@@ -21,7 +21,7 @@ export default {
     const moderate = kid || !lb || lb.seconds < 20;
     const box = root.querySelector('#serie');
     // recT0: cuándo empezó la recuperación. La cuenta sale de ahí, así no se reinicia con cada toque.
-    const st = { phase: 'safety', ok: false, tried: false, holds: [], holdT0: 0, holdSecs: 0, cur: 0, recT0: 0, left: RECOVERY };
+    const st = { phase: 'safety', holds: [], holdT0: 0, holdSecs: 0, cur: null, recT0: 0, left: RECOVERY };
     let timer = 0;
     const roundWord = kid ? 'Vuelta' : 'Retención';
     const one = kid ? 'vuelta' : 'retención';
@@ -71,8 +71,8 @@ export default {
         timer = setInterval(() => { secs.textContent = String(Math.floor((performance.now() - st.holdT0) / 1000)); }, 200);
         box.querySelector('#done').addEventListener('click', () => {
           st.holdSecs = Math.round((performance.now() - st.holdT0) / 1000);
-          // Se parte de la vuelta anterior o de tu récord de pasos.
-          st.cur = st.holds.at(-1)?.steps ?? (store.bestSteps(p.id) || 20);
+          // Los pasos los escribe quien camina; no se adivinan.
+          st.cur = null;
           st.recT0 = Date.now();
           st.left = RECOVERY;
           st.phase = 'recover';
@@ -92,16 +92,11 @@ export default {
             </svg>
           </div>
           <p class="sub" id="hint" style="text-align:center;margin:0">Respira normal por la nariz y camina tranquilo.</p>
-          <div class="tile between">
-            <span style="font-size:14px">¿Cuántos pasos diste?</span>
-            <div class="row" style="gap:6px">
-              <button class="icon-btn" style="background:var(--card)" data-d="-5" aria-label="Restar 5">−5</button>
-              <button class="icon-btn" style="background:var(--card)" data-d="-1" aria-label="Restar 1">−1</button>
-              <span class="num" id="cur" aria-live="polite" style="min-width:48px;text-align:center;font-size:28px">${st.cur}</span>
-              <button class="icon-btn" style="background:var(--card)" data-d="1" aria-label="Sumar 1">+1</button>
-              <button class="icon-btn" style="background:var(--card)" data-d="5" aria-label="Sumar 5">+5</button>
-            </div>
-          </div>
+          <label class="tile stack" style="gap:8px">
+            <span style="font-size:15px;font-weight:600">¿Cuántos pasos diste?</span>
+            <input class="field num" id="cur" type="number" inputmode="numeric" pattern="[0-9]*" min="1" max="400" value="${st.cur ?? ''}" placeholder="${st.holds.length ? `La vez pasada: ${st.holds.at(-1).steps}` : 'Escribe el número'}" aria-label="Pasos que diste" style="min-height:56px;font-size:26px;text-align:center">
+            <span id="curErr" role="alert" style="color:var(--brasa);font-size:13px;min-height:16px"></span>
+          </label>
           <div id="chart">${chart()}</div>
           <div class="row" style="margin-top:auto">
             <button class="btn" id="end" style="flex:1">Terminar serie</button>
@@ -110,12 +105,13 @@ export default {
         </div>`;
         const cur = box.querySelector('#cur');
         const chartBox = box.querySelector('#chart');
-        // Sumar o restar pasos solo cambia el número y la barra: la cuenta de recuperación sigue igual.
-        box.querySelectorAll('[data-d]').forEach((b) => b.addEventListener('click', () => {
-          st.cur = Math.max(0, st.cur + Number(b.dataset.d));
-          cur.textContent = String(st.cur);
+        // Escribir los pasos solo cambia el número y la barra: la cuenta de recuperación sigue igual.
+        cur.addEventListener('input', () => {
+          const v = parseInt(cur.value, 10);
+          st.cur = Number.isFinite(v) && v > 0 ? Math.min(400, v) : null;
+          box.querySelector('#curErr').textContent = '';
           chartBox.innerHTML = chart();
-        }));
+        });
         box.querySelector('#end').addEventListener('click', finish);
         const next = box.querySelector('#next');
         const ring = box.querySelector('#ring');
@@ -143,6 +139,7 @@ export default {
         timer = setInterval(paint, 250);
         next.addEventListener('click', () => {
           if (leftNow() > 0) return;
+          if (!askSteps()) return;
           st.holds.push({ steps: st.cur, secs: st.holdSecs });
           if (st.holds.length >= MAX) { save(); return; }
           startHold();
@@ -156,8 +153,20 @@ export default {
       draw();
     }
 
+    // Antes de seguir o terminar, la vuelta necesita sus pasos.
+    function askSteps() {
+      if (st.cur) return true;
+      const err = box.querySelector('#curErr');
+      if (err) err.textContent = 'Escribe cuántos pasos diste.';
+      box.querySelector('#cur')?.focus();
+      return false;
+    }
+
     function finish() {
-      if (st.phase === 'recover') st.holds.push({ steps: st.cur, secs: st.holdSecs });
+      if (st.phase === 'recover') {
+        if (!askSteps()) return;
+        st.holds.push({ steps: st.cur, secs: st.holdSecs });
+      }
       save();
     }
 

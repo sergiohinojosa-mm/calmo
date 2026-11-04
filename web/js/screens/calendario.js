@@ -20,14 +20,11 @@ const STATUS = {
 };
 
 // Qué significa cada color, con los mismos íconos de las tarjetas.
-const LEGEND = `<div class="tile" style="margin-top:10px;padding:12px 14px">
-  <div class="row" style="gap:6px 14px;flex-wrap:wrap;font-size:12px;color:var(--text2)">
-    <span class="row" style="gap:5px;color:var(--sage)"><span style="width:11px;height:11px;border-radius:50%;border:1.5px solid var(--sage)"></span>Pendiente</span>
-    <span class="row" style="gap:4px;color:var(--hoja)">${icon('check', 14)}Hecha</span>
-    <span class="row" style="gap:5px;color:var(--muted)"><span style="width:11px;height:11px;border-radius:50%;border:1.5px solid #6B7A70"></span>No realizada</span>
-    <span class="row" style="gap:4px;color:var(--brasa)">${icon('check', 14)}Extra: no estaba planeada</span>
-  </div>
-  <p class="muted" style="margin:6px 0 0;font-size:12px"><span style="color:var(--arena)">Rutina</span> es lo que tienes planeado; <span style="color:var(--brasa)">Extra</span>, lo que hiciste de más.</p>
+const LEGEND = `<div class="tile row" style="margin-top:10px;padding:10px 14px;gap:6px 14px;flex-wrap:wrap;font-size:12px">
+  <span class="row" style="gap:5px;color:var(--sage)"><span style="width:11px;height:11px;border-radius:50%;border:1.5px solid var(--sage)"></span>Pendiente</span>
+  <span class="row" style="gap:4px;color:var(--hoja)">${icon('check', 14)}Hecha</span>
+  <span class="row" style="gap:5px;color:var(--muted)"><span style="width:11px;height:11px;border-radius:50%;border:1.5px solid #6B7A70"></span>No realizada</span>
+  <span class="row" style="gap:4px;color:var(--brasa)">${icon('check', 14)}Extra</span>
 </div>`;
 
 // Enlaces del calendario que conservan de quién es (?p=<id>).
