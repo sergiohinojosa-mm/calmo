@@ -7,7 +7,8 @@ const TIPS = [
   'Exhalar más largo que inhalar le dice a tu cuerpo que todo está bien.',
   'Mide tu BOLT al despertar, siempre en las mismas condiciones.',
   'Practica mejor con el estómago vacío, unas 2 horas después de comer.',
-  'Evita los suspiros y bostezos grandes: respira ligero.',
+  'En el día, evita los suspiros y bostezos grandes: respira ligero.',
+  'Respira con el diafragma y deja los hombros relajados.',
   'Antes de una junta, 3 minutos de respiración cuadrada te enfocan.',
   'En la cama, la 4-7-8 ayuda a conciliar el sueño.',
 ];
@@ -23,6 +24,46 @@ function nextPractice(store, p) {
   const past = open.filter((i) => toMin(i.time) < now - 30).sort((a, b) => toMin(b.time) - toMin(a.time));
   const pending = upcoming[0] || past[0];
   return { pending, done: items.filter((i) => i.status === 'hecha').length, total: items.length };
+}
+
+// Las rutinas de hoy (sesiones y BOLT) en orden, y cuál toca ahora.
+function todayPlan(store, p) {
+  const items = store.agenda(p.id, new Date()).filter((i) => i.type === 'plan');
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const open = items.filter((i) => i.status === 'pendiente');
+  const upcoming = open.filter((i) => toMin(i.time) >= now - 30).sort((a, b) => toMin(a.time) - toMin(b.time));
+  const past = open.filter((i) => toMin(i.time) < now - 30).sort((a, b) => toMin(b.time) - toMin(a.time));
+  const current = upcoming[0] || past[0];
+  return { items, start: current ? items.indexOf(current) : 0, done: items.filter((i) => i.status === 'hecha').length };
+}
+
+// Una tarjeta por rutina de hoy. Se desliza a la izquierda o a la derecha.
+function planCarousel(store, p, kind) {
+  const { items, start, done } = todayPlan(store, p);
+  if (!items.length) return '';
+  const kid = kind !== 'adulto';
+  const slides = items.map((it, i) => {
+    const isBolt = it.routine.kind === 'bolt';
+    const ex = it.exercise;
+    const min = it.minutes || (ex && ex.defaultMin) || 5;
+    // Las niñas van directo a la sesión; los adultos pasan por la pantalla de ajustes.
+    const href = isBolt ? `#/bolt?rutina=${it.routine.id}` : `#/${kid ? 'sesion' : 'configurar'}/${ex.id}?min=${min}&rutina=${it.routine.id}`;
+    const name = isBolt ? (kid ? 'Reto del aire' : 'Medir BOLT') : nameFor(ex, kind);
+    const detail = isBolt ? (kid ? 'Aguanta tranquila y cuenta tus segundos' : 'Al despertar es el más confiable') : `${min} min · ${esc(kid ? (ex.kidPattern || ex.pattern) : ex.pattern)} · por la nariz${kid ? ` · +${min + 5} hojas` : ''}`;
+    const isDone = it.status === 'hecha';
+    return `<div class="card slide" role="group" aria-roledescription="rutina" aria-label="${i + 1} de ${items.length}: ${esc(it.title)} ${esc(it.time)}">
+      <div class="between">
+        <span class="chip arena">${icon(isBolt ? 'timer' : 'repeat', 14)} ${esc(it.title)} · ${esc(it.time)}</span>
+        ${isDone ? `<span class="row" style="gap:4px;color:var(--hoja);font-size:13px">${icon('check', 15)} Hecha</span>` : `<span class="muted">${i + 1} de ${items.length}</span>`}
+      </div>
+      <h2 class="h2" style="margin-top:14px">${esc(name)}</h2>
+      <p class="sub">${detail}</p>
+      <a class="btn ${isDone ? '' : 'primary'} block" ${isBolt ? '' : 'data-audio'} style="margin-top:16px${kid && !isDone ? ';min-height:60px;font-size:19px' : ''}" href="${href}">${icon(isDone ? 'repeat' : 'play', 18)} ${isDone ? 'Hacer otra vez' : 'Empezar'}</a>
+    </div>`;
+  }).join('');
+  const dots = items.length > 1 ? `<div class="car-dots" role="tablist" aria-label="Rutinas de hoy">${items.map((it, i) => `<button type="button" role="tab" data-slide="${i}" aria-label="Ver ${esc(it.title)} ${esc(it.time)}" ${i === start ? 'aria-selected="true"' : 'aria-selected="false"'}><i></i></button>`).join('')}</div>` : '';
+  return `<div><div class="carousel" id="plan" data-start="${start}">${slides}</div>
+    ${dots}<p class="muted" style="margin:4px 0 0;text-align:center">${done} de ${items.length} hechas hoy${items.length > 1 ? ' · desliza para ver las demás' : ''}</p></div>`;
 }
 
 // En iPhone, invitar a agregar Calmo a la pantalla de inicio (no se pierden datos y abre en pantalla completa).
@@ -64,7 +105,7 @@ function hero(p, kidLine = '') {
 function adult(ctx) {
   const { store } = ctx;
   const p = ctx.profile;
-  const { pending, done, total } = nextPractice(store, p);
+  const { pending } = nextPractice(store, p);
   const ex = pending ? pending.exercise : byId('coherente');
   const min = pending ? pending.minutes : 10;
   const g = store.goals(p.id);
@@ -73,20 +114,18 @@ function adult(ctx) {
   const tip = TIPS[new Date().getDate() % TIPS.length];
   const href = `#/configurar/${ex.id}?min=${min}${pending ? `&rutina=${pending.routine.id}` : ''}`;
   const asks = store.pendingRedemptions().length;
-  return `${hero(p)}
-  <div class="after-hero stack">
-    ${installCard()}
-    ${asks ? `<a class="card row" href="#/premiosadmin" style="color:inherit;text-decoration:none;border:1px solid rgba(226,204,148,0.35)">${icon('gift', 22, 'style="color:var(--arena);flex:none"')}
-      <span style="flex:1;font-weight:600">${asks === 1 ? '1 premio por aprobar' : `${asks} premios por aprobar`}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>` : ''}
-    <div class="card">
-      <div class="between">
-        ${pending ? `<span class="chip arena">${icon('repeat', 14)} ${esc(pending.title)} · ${esc(pending.time)}</span>` : '<span class="chip sage">Sugerida para hoy</span>'}
-        ${total ? `<span class="muted">${done} de ${total} hoy</span>` : ''}
-      </div>
+  const suggested = `<div class="card">
+      <span class="chip sage">Sugerida para hoy</span>
       <h2 class="h2" style="margin-top:14px">${esc(ex.name)}</h2>
       <p class="sub">${min} min · ${esc(ex.pattern)} · por la nariz</p>
       <a class="btn primary block" style="margin-top:16px" href="${href}">${icon('play', 18)} Empezar</a>
-    </div>
+    </div>`;
+  return `${hero(p)}
+  <div class="after-hero stack">
+    ${installCard()}
+    ${planCarousel(store, p, 'adulto') || suggested}
+    ${asks ? `<a class="card row" href="#/premiosadmin" style="color:inherit;text-decoration:none;border:1px solid rgba(226,204,148,0.35)">${icon('gift', 22, 'style="color:var(--arena);flex:none"')}
+      <span style="flex:1;font-weight:600">${asks === 1 ? '1 premio por aprobar' : `${asks} premios por aprobar`}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>` : ''}
     <div class="grid3">
       <div class="tile">${icon('flame', 18, 'style="color:var(--brasa)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${store.streak(p.id)} <span style="font-family:var(--sans);font-size:13px;color:var(--text2)">${store.streak(p.id) === 1 ? "día" : "días"}</span></p><p class="muted" style="margin:2px 0 0">Días seguidos</p></div>
       <a class="tile" href="#/bolt" style="color:inherit;text-decoration:none">${icon('timer', 18, 'style="color:var(--sage)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${lb ? lb.seconds : '—'} <span style="font-family:var(--sans);font-size:13px;color:var(--text2)">s</span></p><div style="margin-top:6px">${bar(lb ? (lb.seconds / g.bolt) * 100 : 0)}</div><p class="muted" style="margin:6px 0 0">BOLT · meta ${g.bolt}</p></a>
@@ -117,12 +156,12 @@ function junior(ctx) {
   return `${hero(p, levelLine)}
   <div class="after-hero stack">
     ${installCard()}
-    <div class="card">
-      ${pending ? `<span class="chip arena">${icon('repeat', 14)} ${esc(pending.title)} · ${esc(pending.time)}</span>` : '<span class="chip sage">Para hoy</span>'}
+    ${planCarousel(store, p, 'junior') || `<div class="card">
+      <span class="chip sage">Para hoy</span>
       <h2 class="h2" style="margin-top:14px">${esc(nameFor(ex, 'junior'))}</h2>
-      <p class="sub">${min} minutos · por la nariz · +${min + (pending ? 5 : 0)} hojas</p>
+      <p class="sub">${min} minutos · por la nariz · +${min} hojas</p>
       <a class="btn primary block" data-audio style="margin-top:16px;min-height:60px;font-size:19px" href="#/sesion/${ex.id}?min=${min}">${icon('play', 20)} Empezar</a>
-    </div>
+    </div>`}
     <div class="grid3">
       <div class="tile">${icon('flame', 18, 'style="color:var(--brasa)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${store.streak(p.id)}</p><p class="muted" style="margin:2px 0 0">Días seguidos</p></div>
       <div class="tile">${icon('leaf', 18, 'style="color:var(--hoja)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${lv.points}</p><p class="muted" style="margin:2px 0 0">Hojas</p></div>
@@ -188,6 +227,22 @@ export default {
     return adult(ctx);
   },
   mount(root) {
+    const car = root.querySelector('#plan');
+    if (car) {
+      const slides = [...car.children];
+      const dots = [...root.querySelectorAll('[data-slide]')];
+      const at = (i) => slides[i].offsetLeft - slides[0].offsetLeft;
+      car.scrollLeft = at(Number(car.dataset.start) || 0);
+      let raf = 0;
+      car.addEventListener('scroll', () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          const i = slides.reduce((best, _, k) => (Math.abs(at(k) - car.scrollLeft) < Math.abs(at(best) - car.scrollLeft) ? k : best), 0);
+          dots.forEach((d, k) => d.setAttribute('aria-selected', String(k === i)));
+        });
+      }, { passive: true });
+      dots.forEach((d) => d.addEventListener('click', () => car.scrollTo({ left: at(Number(d.dataset.slide)), behavior: 'smooth' })));
+    }
     root.querySelector('[data-install-close]')?.addEventListener('click', () => {
       try { localStorage.setItem(INSTALL_KEY, '1'); } catch (e) { /* sin almacenamiento */ }
       root.querySelector('#install')?.remove();

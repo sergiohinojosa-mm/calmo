@@ -173,6 +173,7 @@ function minutesOfDay(hhmm) {
 }
 
 // Una sesión cuenta como planeada si se hace hasta 3 horas antes o después de la rutina.
+// El BOLT cuenta para la rutina del día a cualquier hora, se mida desde donde se mida.
 const MATCH_WINDOW = 180;
 
 function matchRoutine(id, kind, exerciseId, when, preferId = null) {
@@ -184,7 +185,7 @@ function matchRoutine(id, kind, exerciseId, when, preferId = null) {
     if (chosen) return chosen.id;
   }
   const now = when.getHours() * 60 + when.getMinutes();
-  const candidates = open.filter((r) => (kind === 'bolt' || r.exerciseId === exerciseId) && Math.abs(minutesOfDay(r.time) - now) <= MATCH_WINDOW);
+  const candidates = open.filter((r) => (kind === 'bolt' || (r.exerciseId === exerciseId && Math.abs(minutesOfDay(r.time) - now) <= MATCH_WINDOW)));
   candidates.sort((a, b) => Math.abs(minutesOfDay(a.time) - now) - Math.abs(minutesOfDay(b.time) - now));
   return candidates[0]?.id || null;
 }
@@ -355,8 +356,10 @@ export function agenda(id, date) {
   const dayBolt = bolt(id).filter((m) => m.day === key);
   const plans = routinesOn(id, date);
   const planIds = new Set(plans.map((r) => r.id));
+  // Un BOLT de ese día que no quedó ligado a una rutina (versiones anteriores) cuenta para la primera rutina de BOLT abierta.
+  const looseBolt = dayBolt.filter((m) => !m.routineId || !planIds.has(m.routineId));
   const items = plans.map((r) => {
-    const done = r.kind === 'bolt' ? dayBolt.find((m) => m.routineId === r.id) : daySessions.find((s) => s.routineId === r.id);
+    const done = r.kind === 'bolt' ? (dayBolt.find((m) => m.routineId === r.id) || looseBolt.shift()) : daySessions.find((s) => s.routineId === r.id);
     let status = 'pendiente';
     if (done) status = 'hecha';
     else if (key < today) status = 'no';

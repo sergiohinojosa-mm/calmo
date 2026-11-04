@@ -41,27 +41,30 @@ function stepper(d, who, target, label) {
 }
 
 // Fila de una rutina. Los niños la ven sin interruptor ni botón de borrar.
-function routineRow(r, owner, manage) {
+function routineRow(r, owner, manage, from = 'perfil') {
   const kid = owner.kind !== 'adulto';
   const ex = r.exerciseId ? byId(r.exerciseId) : null;
   const what = r.kind === 'bolt' ? (kid ? 'Reto del aire' : 'Medir BOLT') : `${ex ? nameFor(ex, owner.kind) : 'Sesión'} · ${r.minutes} min`;
-  const info = `<span style="width:40px;height:40px;flex:none;border-radius:14px;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(r.kind === 'bolt' ? 'timer' : 'repeat', 18)}</span>
+  // Dentro de la tarjeta de cada persona (Familia) no cabe el ícono: el texto tiene prioridad.
+  const badge = from === 'familia' ? '' : `<span style="width:40px;height:40px;flex:none;border-radius:14px;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(r.kind === 'bolt' ? 'timer' : 'repeat', 18)}</span>`;
+  const info = `${badge}
     <span style="flex:1;min-width:0"><span style="display:block;font-size:14px;font-weight:600">${esc(r.name)} · ${esc(r.time)}</span>
       <span class="muted">${esc(freqLabel(r))} · ${esc(what)}${r.active === false ? ' · En pausa' : ''}</span></span>`;
   if (!manage) return `<div class="tile row" style="padding:12px 14px">${info}</div>`;
   return `<div class="tile row" style="padding:12px 14px">
-    <a href="#/planear?editar=${encodeURIComponent(r.id)}&de=perfil" class="row" style="flex:1;min-width:0;color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(r.name)} ${esc(r.time)}">${info}</a>
+    <a href="#/planear?editar=${encodeURIComponent(r.id)}&de=${from}" class="row" style="flex:1;min-width:0;color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(r.name)} ${esc(r.time)}">${info}</a>
     <button class="switch" role="switch" aria-checked="${r.active !== false}" aria-label="Rutina ${esc(r.name)} ${esc(r.time)}" data-rt-toggle="${esc(r.id)}" data-who="${esc(owner.id)}"><span></span></button>
     <button class="icon-btn" style="width:40px;height:40px;background:transparent;color:var(--muted)" data-rt-del="${esc(r.id)}" data-who="${esc(owner.id)}" aria-label="Borrar rutina ${esc(r.name)}">${icon('trash', 18)}</button>
   </div>`;
 }
 
-// Para el administrador: metas y rutinas de cada persona de la familia.
-function familyCard(store, x) {
+// Para el administrador (en la pestaña Familia): metas y rutinas de cada persona.
+// Las etiquetas son para el adulto que las ajusta, no las de la niña.
+export function familyCard(store, x) {
   const g = store.goals(x.id);
   const kid = x.kind !== 'adulto';
   const goals = GOAL_DEFS.map((d) => {
-    const label = kid ? d.kid : d.label;
+    const label = kid && d.key === 'bolt' ? 'Reto del aire' : d.label;
     return `<div class="between" style="margin-top:10px;gap:10px"><span style="font-size:14px;min-width:0">${esc(label)}</span>${stepper(d, x.id, g[d.key], `${label} de ${x.name}`)}</div>`;
   }).join('');
   const list = store.routines(x.id);
@@ -71,8 +74,8 @@ function familyCard(store, x) {
       <a href="#/calendario?p=${encodeURIComponent(x.id)}" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Calendario</a></div>
     ${goals}
     <div class="between" style="margin-top:14px"><span class="muted">Rutinas</span>
-      <a href="#/planear?p=${encodeURIComponent(x.id)}&de=perfil" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a></div>
-    <div class="stack" style="gap:8px">${list.length ? list.map((r) => routineRow(r, x, true)).join('') : '<p class="muted" style="margin:0">Sin rutinas todavía.</p>'}</div>
+      <a href="#/planear?p=${encodeURIComponent(x.id)}&de=familia" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a></div>
+    <div class="stack" style="gap:8px">${list.length ? list.map((r) => routineRow(r, x, true, 'familia')).join('') : '<p class="muted" style="margin:0">Sin rutinas todavía.</p>'}</div>
   </div>`;
 }
 
@@ -110,7 +113,6 @@ export default {
     const current = { bolt: lb ? lb.seconds : 0, steps: best, weekly: Math.round(store.last7(p.id)) };
     const routines = store.routines(p.id);
     const lv = store.level(p.id);
-    const family = p.kind === 'adulto' && p.admin ? store.profiles().filter((x) => x.id !== p.id) : [];
 
     const goals = GOAL_DEFS.map((d) => {
       const target = g[d.key];
@@ -154,10 +156,7 @@ export default {
           <div class="row" style="align-items:baseline;gap:10px"><p class="num" style="margin:2px 0 0;font-size:44px;line-height:1.05">${best || '—'}</p><span class="muted">${best ? 'tu mejor marca' : 'sin medir todavía'}</span></div>
           <div style="margin-top:10px">${bar(best ? (best / g.steps) * 100 : 0, 'var(--hoja)')}</div>
           <p class="muted" style="margin:6px 0 14px">Meta ${g.steps} pasos${best ? ` · te faltan ${Math.max(0, g.steps - best)}` : ''}</p>
-          <div class="grid2">
-            <a class="btn small" href="#/pasos" style="border-color:rgba(156,197,161,0.5);color:var(--hoja)">${kid ? 'Mi récord' : 'Prueba de máximo'}</a>
-            <a class="btn small" href="#/serie" style="border-color:rgba(156,197,161,0.5);color:var(--hoja)">${kid ? 'Vueltas caminando' : 'Serie caminando'}</a>
-          </div>
+          <a class="btn primary block" href="#/serie">${icon('steps', 18)} ${kid ? 'Vueltas caminando' : 'Serie caminando'}</a>
         </div>
       </div>
 
@@ -173,8 +172,6 @@ export default {
       <div class="between" style="margin-top:22px"><p class="h3" style="margin:0">Mis rutinas</p>
         ${kid ? '' : '<a href="#/planear" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a>'}</div>
       <div class="stack" style="margin-top:6px">${routineRows}</div>
-      ${family.length ? `<div class="between" style="margin-top:22px"><p class="h3" style="margin:0">Familia</p><span class="muted">Metas y rutinas de cada quien</span></div>
-      <div class="stack" style="margin-top:10px">${family.map((x) => familyCard(store, x)).join('')}</div>` : ''}
 
       <p class="h3" style="margin:22px 0 4px">Más</p>
       <div>
@@ -185,42 +182,47 @@ export default {
       </div>`;
   },
   mount(root, ctx) {
-    const { store, rerender } = ctx;
-    const p = ctx.profile;
-    const onClick = (e) => {
-      // Cada botón dice de quién es (data-who); los niños no cambian metas ni rutinas.
-      const whoOf = (el) => {
-        const who = el.dataset.who || p.id;
-        return p.kind === 'adulto' && store.canManage(p.id, who) ? who : null;
-      };
-      const goal = e.target.closest('[data-goal]');
-      if (goal) {
-        const who = whoOf(goal);
-        if (!who) return;
-        const d = GOAL_DEFS.find((x) => x.key === goal.dataset.goal);
-        const v = store.goals(who)[d.key] + Number(goal.dataset.delta);
-        store.setGoal(who, d.key, Math.min(d.max, Math.max(d.min, v)));
-        rerender();
-        return;
-      }
-      const tog = e.target.closest('[data-rt-toggle]');
-      if (tog) {
-        const who = whoOf(tog);
-        const r = who && store.routines(who).find((x) => x.id === tog.dataset.rtToggle);
-        if (r) store.updateRoutine(r.id, { active: r.active === false });
-        rerender();
-        return;
-      }
-      const del = e.target.closest('[data-rt-del]');
-      if (del) {
-        const who = whoOf(del);
-        const r = who && store.routines(who).find((x) => x.id === del.dataset.rtDel);
-        if (r) askConfirm(`¿Borrar la rutina «${r.name} · ${r.time}»? Los días pasados conservan lo que se hizo.`, { ok: 'Borrar' }).then((ok) => {
-          if (ok) { store.removeRoutine(r.id); rerender(); }
-        });
-      }
-    };
-    root.addEventListener('click', onClick);
-    return () => root.removeEventListener('click', onClick);
+    return manageGoals(root, ctx);
   },
 };
+
+// Botones de metas (− +), pausar y borrar rutinas: en Mi perfil y en Familia.
+export function manageGoals(root, ctx) {
+  const { store, rerender } = ctx;
+  const p = ctx.profile;
+  const onClick = (e) => {
+    // Cada botón dice de quién es (data-who); los niños no cambian metas ni rutinas.
+    const whoOf = (el) => {
+      const who = el.dataset.who || p.id;
+      return p.kind === 'adulto' && store.canManage(p.id, who) ? who : null;
+    };
+    const goal = e.target.closest('[data-goal]');
+    if (goal) {
+      const who = whoOf(goal);
+      if (!who) return;
+      const d = GOAL_DEFS.find((x) => x.key === goal.dataset.goal);
+      const v = store.goals(who)[d.key] + Number(goal.dataset.delta);
+      store.setGoal(who, d.key, Math.min(d.max, Math.max(d.min, v)));
+      rerender();
+      return;
+    }
+    const tog = e.target.closest('[data-rt-toggle]');
+    if (tog) {
+      const who = whoOf(tog);
+      const r = who && store.routines(who).find((x) => x.id === tog.dataset.rtToggle);
+      if (r) store.updateRoutine(r.id, { active: r.active === false });
+      rerender();
+      return;
+    }
+    const del = e.target.closest('[data-rt-del]');
+    if (del) {
+      const who = whoOf(del);
+      const r = who && store.routines(who).find((x) => x.id === del.dataset.rtDel);
+      if (r) askConfirm(`¿Borrar la rutina «${r.name} · ${r.time}»? Los días pasados conservan lo que se hizo.`, { ok: 'Borrar' }).then((ok) => {
+        if (ok) { store.removeRoutine(r.id); rerender(); }
+      });
+    }
+  };
+  root.addEventListener('click', onClick);
+  return () => root.removeEventListener('click', onClick);
+}

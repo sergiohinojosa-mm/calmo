@@ -13,8 +13,8 @@ export default {
     return `<section class="hero" style="height:200px">${heroSVG(moment())}</section>
     <div style="padding:0 20px calc(var(--safe-b) + 32px);margin-top:-12px;position:relative">
       <h1 class="h1" style="font-size:38px">Calmo</h1>
-      <p class="sub" id="lead">Entra con tu usuario y contraseña.</p>
-      <form id="login" class="stack" style="margin-top:20px" novalidate>
+      <p class="sub" id="lead">Conectando…</p>
+      <form id="login" class="stack" style="margin-top:20px;display:none" novalidate>
         ${field('usuario', 'Usuario', 'text', 'autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required')}
         ${field('password', 'Contraseña', 'password', 'autocomplete="current-password" required')}
         <p class="err" role="alert" style="margin:0;color:var(--brasa);font-size:14px;min-height:20px"></p>
@@ -38,10 +38,13 @@ export default {
     const busy = (form, on) => form.querySelector('[type="submit"]').setAttribute('aria-disabled', String(on));
 
     sync.hasUsers().then((has) => {
+      const lead = root.querySelector('#lead');
       if (has === false) {
-        login.style.display = 'none';
         admin.style.display = '';
-        root.querySelector('#lead').textContent = 'Bienvenido. Configuremos tu familia.';
+        lead.textContent = 'Bienvenido. Configuremos tu familia.';
+      } else {
+        login.style.display = '';
+        lead.textContent = has === null ? 'Sin conexión con el servidor. Revisa tu internet e intenta entrar.' : 'Entra con tu usuario y contraseña.';
       }
     });
 

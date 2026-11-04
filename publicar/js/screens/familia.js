@@ -1,4 +1,5 @@
 import { esc, icon, bar, avatar } from '../ui.js';
+import { familyCard, manageGoals } from './perfil.js';
 
 const KIND = { adulto: 'Adulto', junior: 'Junior', peque: 'Peque' };
 
@@ -60,11 +61,16 @@ export default {
         <p class="muted" style="margin:10px 0 0;text-align:center">${kidView ? 'Cada quien contra su propia meta' : 'Últimos 7 días · cada quien contra su propia meta'}</p>` : reto}
       <p class="label">Quién respira en casa</p>
       <div class="stack">${cards}</div>
-      ${!kidView && me.admin ? `<div class="row" style="margin-top:12px">
-        <a class="btn primary" href="#/perfiles?nuevo=1" style="flex:1">${icon('plus', 18)} Agregar persona</a>
-        <a class="btn" href="#/perfiles" style="flex:1">${icon('user', 18)} Editar familia</a></div>` : ''}
+      ${!kidView && me.admin ? `<div class="stack" style="margin-top:12px;gap:10px">
+        <a class="btn primary block" href="#/perfiles?nuevo=1">${icon('plus', 18)} Agregar persona</a>
+        <a class="btn block" href="#/perfiles">${icon('user', 18)} Editar familia</a></div>` : ''}
+      ${!kidView && me.admin && store.profiles().length > 1 ? `<div class="between" style="margin-top:24px"><p class="h3" style="margin:0">Metas y rutinas</p><span class="muted">De cada quien</span></div>
+      <div class="stack" style="margin-top:10px">${store.profiles().filter((x) => x.id !== me.id).map((x) => familyCard(store, x)).join('')}</div>` : ''}
       <a class="card row" href="${kidView ? '#/premios' : '#/premiosadmin'}" style="margin-top:14px;color:inherit;text-decoration:none">${icon('gift', 22, 'style="color:var(--arena);flex:none"')}
         <span style="flex:1"><span style="display:block;font-weight:600">${kidView ? 'Mis premios' : 'Premios de la familia'}</span>${!kidView && store.pendingRedemptions().length ? `<span class="muted">${store.pendingRedemptions().length} por aprobar</span>` : ''}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
       ${kidView ? '' : `<div class="tile row" style="margin-top:14px">${icon('users', 20, 'style="color:var(--arena);flex:none"')}<span class="sub" style="margin:0">Pronto: tu maestra de respiración podrá ver el avance y asignar prácticas.</span></div>`}`;
+  },
+  mount(root, ctx) {
+    return ctx.profile.kind === 'adulto' ? manageGoals(root, ctx) : null;
   },
 };

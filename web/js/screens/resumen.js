@@ -6,7 +6,7 @@ function last() {
 }
 
 function medal(size = 120) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true" class="pop">
+  return `<svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true" class="pop" style="margin:0 auto">
     <circle cx="60" cy="60" r="56" fill="#2A4033"/><circle cx="60" cy="60" r="46" fill="none" stroke="#E2CC94" stroke-width="3"/>
     <path d="M40 74c0-22 13-36 40-36 0 26-16 38-38 38" fill="#9CC5A1"/><path d="M40 74 60 56" stroke="#0F1A14" stroke-width="3" stroke-linecap="round"/></svg>`;
 }

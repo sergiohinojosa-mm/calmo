@@ -92,7 +92,7 @@ function presetCards(store, profileId, meId) {
 
 // A dónde regresar: al perfil si se abrió desde ahí; si no, al calendario de esa persona.
 const calendarOf = (ctx, id) => (id && id !== ctx.profile.id ? `calendario?p=${encodeURIComponent(id)}` : 'calendario');
-const backTo = (ctx) => (ctx.query.get('de') === 'perfil' ? 'perfil' : calendarOf(ctx, ctx.query.get('p')));
+const backTo = (ctx) => (['perfil', 'familia'].includes(ctx.query.get('de')) ? ctx.query.get('de') : calendarOf(ctx, ctx.query.get('p')));
 
 export default {
   tab: 'calendario',

@@ -17,6 +17,7 @@ const P = {
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
   back: '<path d="M15 6l-6 6 6 6"/>',
   chev: '<path d="M9 6l6 6-6 6"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
   minus: '<path d="M5 12h14"/>',
   leaf: '<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19 13 11"/>',

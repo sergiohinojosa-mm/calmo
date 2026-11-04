@@ -52,17 +52,11 @@ export default {
             <li class="row" style="align-items:flex-start">${icon('wave', 22, 'style="color:var(--arena);flex:none"')}<span>Nunca en el agua ni manejando. Camina en un lugar plano y seguro, lejos de escaleras y calles.</span></li>
             <li class="row" style="align-items:flex-start">${icon('repeat', 22, 'style="color:var(--arena);flex:none"')}<span>Haz de ${MIN} a ${MAX} ${many}. Entre cada ${one} recuperas ${RECOVERY} segundos respirando normal por la nariz. La siguiente no empieza antes.</span></li>
             <li class="row" style="align-items:flex-start">${icon('timer', 22, 'style="color:var(--arena);flex:none"')}<span>${moderate ? 'Versión moderada: detente con una falta de aire leve a moderada.' : 'Tu BOLT de 20 s o más permite llegar a una falta de aire fuerte, sin forzar.'}</span></li>
-            ${kid ? '' : `<li class="row" style="align-items:flex-start">${icon('sun', 22, 'style="color:var(--arena);flex:none"')}<span>Consulta a tu médico si hay embarazo, hipertensión o epilepsia.</span></li>`}
+            ${kid ? '' : `<li class="row" style="align-items:flex-start">${icon('sun', 22, 'style="color:var(--arena);flex:none"')}<span>Consulta a tu médico si hay embarazo, presión alta, problemas del corazón, diabetes, epilepsia o ataques de pánico.</span></li>`}
           </ul>
-          <label class="tile row" style="min-height:52px;cursor:pointer"><input type="checkbox" id="ok" ${st.ok ? 'checked' : ''} style="width:22px;height:22px;accent-color:var(--sage)"> Entiendo y quiero continuar</label>
-          ${st.tried && !st.ok ? '<p role="alert" style="margin:0;color:var(--brasa);font-size:13px">Marca la casilla para continuar.</p>' : ''}
-          <button class="btn primary block" id="go" aria-disabled="${!st.ok}" style="margin-top:auto">${icon('play', 18)} Empezar la serie</button>
+          <button class="btn primary block" id="go" style="margin-top:auto">${icon('play', 18)} Empezar la serie</button>
         </div>`;
-        box.querySelector('#ok').addEventListener('change', (e) => { st.ok = e.target.checked; st.tried = false; draw(); });
-        box.querySelector('#go').addEventListener('click', () => {
-          if (!st.ok) { st.tried = true; draw(); return; }
-          startHold();
-        });
+        box.querySelector('#go').addEventListener('click', startHold);
       } else if (st.phase === 'hold') {
         const n = st.holds.length + 1;
         box.innerHTML = `<div class="stack" style="flex:1;text-align:center">${header}

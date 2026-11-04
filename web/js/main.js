@@ -117,5 +117,19 @@ const LIVE = new Set(['sesion', 'bolt', 'pasos', 'serie', 'planear', 'perfiles',
 store.onRemote(() => { if (!LIVE.has(parse().name)) render(); });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  // Cuando llega una versión nueva, la app se recarga sola una vez para usarla,
+  // pero nunca a la mitad de una sesión de respiración: espera a que termine.
+  const hadController = !!navigator.serviceWorker.controller;
+  let pendingReload = false;
+  const reloadNow = () => { if (pendingReload && document.body.dataset.session !== 'on') { pendingReload = false; location.reload(); } };
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) return;
+    pendingReload = true;
+    reloadNow();
+  });
+  window.addEventListener('hashchange', reloadNow);
+  navigator.serviceWorker.register('sw.js').then((reg) => {
+    // Al volver a la app, revisar si hay versión nueva.
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+  }).catch(() => {});
 }

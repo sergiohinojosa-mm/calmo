@@ -37,8 +37,12 @@ export default {
       </div>
       <p class="sub" style="margin-top:14px">${esc(t.desc)}</p>
       ${lb ? `<div class="tile" style="margin-top:14px;color:var(--brasa)">${esc(lowMsg)}</div>` : ''}
-      ${t.steps ? `<details class="tile" style="margin-top:14px"><summary style="min-height:28px;cursor:pointer;font-weight:600">Cómo se hace</summary>
-        <ol style="margin:10px 0 0;padding-left:20px;color:var(--text2);line-height:1.6">${t.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}
+      ${t.steps ? `<details class="howto" style="margin-top:14px"><summary>
+          <span class="howto-ic">${icon('list', 20)}</span>
+          <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:16px">Cómo se hace</span>
+            <span class="muted"><span class="when-closed">${t.steps.length} pasos · toca para verlos</span><span class="when-open">Toca para cerrar</span></span></span>
+          <span class="howto-chev">${icon('chev', 20)}</span></summary>
+        <ol>${t.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}
       ${isSerie || fixed ? '' : `<p class="label">Duración</p>
       <div class="pills" role="group" aria-label="Duración">${durs.map((d) => `<a class="pill" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="${qs({ min: d })}" ${d === min && !other ? 'aria-current="page"' : ''}>${d} min</a>`).join('')}
         <label class="pill" id="otherPill" aria-pressed="${other}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">Otra

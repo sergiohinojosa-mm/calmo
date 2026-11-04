@@ -158,3 +158,24 @@ input[type=range] { accent-color: var(--sage); width: 100%; }
 
 /* iOS acerca la pantalla en campos de menos de 16 px. */
 input:not([type=range]):not([type=checkbox]):not([type=radio]), select, textarea, #otherMin { font-size: 16px; }
+
+/* «Cómo se hace»: tarjeta que se abre con un toque. */
+.howto { background: var(--card); border: 1px solid rgba(156,197,161,0.4); border-radius: 20px; overflow: hidden; }
+.howto > summary { list-style: none; display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 12px 16px; cursor: pointer; }
+.howto > summary::-webkit-details-marker { display: none; }
+.howto-ic { width: 42px; height: 42px; flex: none; border-radius: 50%; background: rgba(156,197,161,0.16); color: var(--sage); display: flex; align-items: center; justify-content: center; }
+.howto-chev { flex: none; color: var(--sage); transition: transform .2s ease; }
+.howto[open] .howto-chev { transform: rotate(90deg); }
+.howto .when-open, .howto[open] .when-closed { display: none; }
+.howto[open] .when-open { display: inline; }
+.howto ol { margin: 0; padding: 0 18px 16px 40px; color: var(--text2); line-height: 1.6; }
+
+/* Rutinas de hoy en Inicio: se deslizan de lado, con una orilla de la siguiente a la vista. */
+.carousel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -20px; padding: 0 20px; scroll-padding: 0 20px; overscroll-behavior-x: contain; }
+.carousel::-webkit-scrollbar { display: none; }
+.carousel > .slide { flex: 0 0 calc(100% - 22px); scroll-snap-align: start; }
+.carousel > .slide:only-child { flex-basis: 100%; }
+.car-dots { display: flex; justify-content: center; gap: 2px; margin-top: 6px; }
+.car-dots button { width: 28px; height: 28px; border: none; background: none; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.car-dots i { width: 8px; height: 8px; border-radius: 4px; background: rgba(238,243,236,0.22); transition: width .2s ease, background .2s ease; }
+.car-dots [aria-selected="true"] i { width: 20px; background: var(--sage); }

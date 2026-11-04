@@ -11,9 +11,10 @@ const CATS = [
 ];
 
 const TIPS = [
-  { c: 'oa', t: 'Nariz día y noche', d: 'Respira por la nariz al caminar, al trabajar y al dormir. La nariz filtra, calienta y frena el aire.' },
+  { c: 'oa', t: 'Nariz día y noche', d: 'Respira por la nariz al caminar, al trabajar y al dormir. La nariz filtra, calienta y humedece el aire.' },
   { c: 'oa', t: 'Respira ligero', d: 'Respirar un poco menos de lo que pide el cuerpo, sin tensarte, sube tu tolerancia al CO₂.', p: 'ligero' },
-  { c: 'oa', t: 'Evita suspiros y bostezos grandes', d: 'Cada suspiro grande te saca de ritmo. Si llega uno, trágalo y respira suave por la nariz.' },
+  { c: 'oa', t: 'Respira con el diafragma', d: 'El diafragma hace el trabajo; los hombros y la cara se quedan relajados. Respira suave, lento y por la nariz.' },
+  { c: 'oa', t: 'En el día, evita suspiros y bostezos grandes', d: 'Fuera de los ejercicios, cada suspiro grande te saca de ritmo. Si llega uno, trágalo y respira suave por la nariz.' },
   { c: 'habitos', t: 'Practica a la misma hora', d: 'Atar la práctica a algo diario, como despertar o acostarte, la vuelve automática.' },
   { c: 'habitos', t: 'Estómago vacío', d: 'Practica mejor unas 2 horas después de comer: la respiración es más ligera.' },
   { c: 'cuando', t: 'Antes de una junta', d: 'Tres minutos de respiración cuadrada te ayudan a enfocarte.', p: 'cuadrada' },
@@ -22,10 +23,10 @@ const TIPS = [
   { c: 'bolt', t: 'Mide al despertar', d: 'El BOLT de la mañana, antes de cualquier actividad, es el más confiable para comparar.' },
   { c: 'bolt', t: 'Cada 5 segundos cuenta', d: 'Subir tu BOLT 5 segundos ya se nota en tu energía y tu sueño.' },
   { c: 'dormir', t: '4-7-8 en la cama', d: 'Hazla acostado, con la luz baja. Si te mareas, vuelve a respirar normal.', p: '478' },
-  { c: 'dormir', t: 'Cinta en la boca, con precaución', d: 'Una tira pequeña ayuda a dormir con la boca cerrada. Pruébala de día primero, nunca con la nariz tapada y nunca en niñas pequeñas.' },
+  { c: 'dormir', t: 'Cinta en la boca, con precaución', d: 'Una tira pequeña ayuda a dormir con la boca cerrada. Pruébala de día primero y nunca con la nariz tapada. En niñas y niños, solo con la guía de tu maestra o tu médico.' },
   { c: 'ejercicio', t: 'Haz ejercicio con la boca cerrada', d: 'Baja la intensidad hasta poder respirar solo por la nariz. El cuerpo se adapta en pocas semanas.' },
   { c: 'seguridad', t: 'Retenciones solo en lugar seguro', d: 'Nunca en el agua ni manejando. Recupera siempre 60 segundos entre retenciones.' },
-  { c: 'seguridad', t: 'Escucha a tu cuerpo', d: 'Si te mareas o sientes ansiedad, detente y respira normal por la nariz. Consulta a tu médico ante cualquier condición de salud.' },
+  { c: 'seguridad', t: 'Escucha a tu cuerpo', d: 'Si te mareas o sientes ansiedad, detente y respira normal por la nariz. Antes de hacer retenciones largas, consulta a tu médico si hay embarazo, presión alta, problemas del corazón, diabetes, epilepsia o ataques de pánico.' },
 ];
 
 export default {

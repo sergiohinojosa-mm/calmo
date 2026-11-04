@@ -64,7 +64,7 @@ Según el método de Patrick McKeown, respirar bien es respirar **ligero, lento 
 | Respirar siempre por la nariz | **Todo se respira por la nariz, sin excepciones**, también en los ejercicios propios. Los textos dicen "Inhala suave por la nariz" |
 | Respirar menos, no más (*Breathe Light*) | Hay dos ejercicios de respiración reducida (HU-2.6 y HU-2.7). Los textos nunca piden "respira profundo" ni "respira grande" |
 | Respirar lento (unas 6 por minuto) | La respiración coherente (5.5·5.5) es la práctica recomendada por defecto |
-| Profundo significa usar el diafragma, no meter más aire | La indicación es "deja que se mueva el abdomen, no el pecho" |
+| Profundo significa usar el diafragma, no meter más aire | La indicación es "respira con el diafragma, sin levantar los hombros". Nunca se habla de abdomen ni de pecho |
 | El BOLT como métrica central | Se mide al crear el perfil. La pantalla de inicio muestra el BOLT actual y la meta de 40 segundos. Las recomendaciones dependen del BOLT |
 | Progresar según el BOLT | Cada rango de BOLT tiene su práctica recomendada (HU-2.4). Las retenciones caminando fuertes piden un BOLT de 20 s o más |
 | Tolerancia al CO₂ | Las retenciones caminando (simulación de altitud) se conectan con el registro de pasos |
@@ -193,12 +193,12 @@ La respiración reducida es un tipo más del catálogo, con dos ejercicios propi
 
 **HU-2.6 (M): Respira ligero en reposo**
 Como usuario, quiero que la app me guíe para respirar menos aire de forma suave, para subir mi BOLT y calmarme.
-- **Preparación** de 30 segundos: sentado y erguido, una mano en el pecho y otra en el abdomen, boca cerrada.
+- **Preparación** de 30 segundos: sentado y erguido, hombros relajados, boca cerrada.
 - **Guía sin conteo rígido.** Un círculo de movimiento mínimo marca un ritmo lento y suave: inhala unos 3 segundos y exhala unos 4, que la persona puede ajustar.
 - **Indicaciones rotativas** cada 30 o 45 segundos:
   - "Respira un poco menos de lo que tu cuerpo pide."
   - "Suaviza la respiración hasta que casi no se note."
-  - "Relaja los hombros y el abdomen."
+  - "Relaja los hombros y la mandíbula."
   - "Si la falta de aire se vuelve fuerte, respira normal 15 segundos y retoma."
 - **Estructura por bloques**: 4 minutos de respiración ligera y luego 1 minuto de respiración normal. La duración total la elijo yo, con 10 minutos por defecto, 2 veces al día.
 - **Botón "Necesito aire"**: pausa el bloque y da 15 segundos de respiración normal sin cortar la sesión.
