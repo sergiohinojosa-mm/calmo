@@ -84,6 +84,17 @@ g.document = { body: elemento(), documentElement: elemento(), createElement: ele
 export const persistencia = { pedidas: 0 };
 g.navigator = { userAgent: 'jsc-pruebas', language: 'es-MX', onLine: true, storage: { persist: () => { persistencia.pedidas++; return Promise.resolve(true); } } };
 
+// jsc no trae URLSearchParams: lo mínimo que usan las pantallas.
+g.URLSearchParams ||= class {
+  constructor(init = '') {
+    this.m = new Map(typeof init === 'string' ? init.replace(/^\?/, '').split('&').filter(Boolean).map((kv) => kv.split('=').map(decodeURIComponent)) : Object.entries(init));
+  }
+  get(k) { return this.m.has(k) ? this.m.get(k) : null; }
+  set(k, v) { this.m.set(k, String(v)); }
+  has(k) { return this.m.has(k); }
+  toString() { return [...this.m].map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&'); }
+};
+
 // jsc no trae console.
 if (typeof g.console === 'undefined') {
   const out = (...a) => print(a.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' '));

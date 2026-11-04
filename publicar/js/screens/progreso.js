@@ -1,6 +1,8 @@
 import { esc, icon, bar, dayKey, addDays, dow, DIAS_L, DIAS_C, MESES, minutesLabel, pad2 } from '../ui.js';
 import { byId, nameFor, GOALS } from '../catalog.js';
 import { medallion } from './logros.js';
+import { boltLevel } from './perfil.js';
+import { shortDay, boltPoints, stepPoints, trendChart, mountTrends } from '../trend.js';
 
 const MES_C = (i) => MESES[i].slice(0, 3);
 
@@ -43,6 +45,44 @@ const hour = (s) => new Date(s.startedAt).getHours();
 
 // Minutos siempre hacia abajo, igual en totales, barras e historial.
 const minText = (m) => (m > 0 && m < 1 ? '&lt;1 min' : minutesLabel(Math.floor(m)));
+
+// BOLT y pasos de un adulto en el periodo: la última marca, su línea y el botón para medir.
+function measureCards(store, prof, per, p) {
+  const g = store.goals(prof.id);
+  const a = dayKey(per.from), b = dayKey(per.to);
+  const inPeriod = (list) => list.filter((m) => m.day >= a && m.day <= b).sort((x, y) => x.takenAt.localeCompare(y.takenAt));
+  const when = (iso) => { const d = new Date(iso); return p === 'dia' ? `${pad2(d.getHours())}:${pad2(d.getMinutes())}` : shortDay(d); };
+  const list = (items, fmt) => (items.length ? `<p class="muted" style="margin:10px 0 0">${items.slice(-5).reverse().map(fmt).join(' · ')}</p>` : '');
+  const empty = (txt) => `<p class="muted" style="margin:14px 0 0">${txt}</p>`;
+  const summary = (vals, unit) => (vals.length > 1 ? `<p class="muted" style="margin:10px 0 0">Promedio ${Math.round(vals.reduce((s, v) => s + v, 0) / vals.length)}${unit} · mejor ${Math.max(...vals)}${unit}</p>` : '');
+
+  const lb = store.lastBolt(prof.id);
+  const bolts = inPeriod(store.bolt(prof.id));
+  const boltCard = `<div class="card">
+    <div class="between" style="align-items:flex-start">
+      <div><p class="muted" style="margin:0;font-size:13px;color:var(--text2)">BOLT score</p>
+        <p class="num" style="margin:2px 0 0;font-size:44px;line-height:1.05">${lb ? lb.seconds : '—'} <span style="font-family:var(--sans);font-size:15px;color:var(--text2)">s</span></p></div>
+      ${lb ? `<span class="chip sage">Nivel ${boltLevel(lb.seconds).toLowerCase()}</span>` : ''}
+    </div>
+    <p class="muted" style="margin:4px 0 0">${lb ? `Tu última medición · meta ${g.bolt} s · ${lb.seconds >= g.bolt ? '¡meta lograda!' : `te faltan ${g.bolt - lb.seconds} s`}` : `Meta ${g.bolt} s · mídelo al despertar`}</p>
+    ${bolts.length ? trendChart(boltPoints(bolts), { per, p, goal: g.bolt, color: 'var(--sage)', what: 'BOLT', unit: ' s' }) : empty('Sin mediciones en este periodo.')}
+    ${summary(bolts.map((m) => m.seconds), ' s')}
+    ${list(bolts, (m) => `${when(m.takenAt)}: ${m.seconds} s`)}
+    <a class="btn primary block" href="#/bolt" style="margin-top:16px">${icon('timer', 18)} Medir BOLT</a>
+  </div>`;
+
+  const best = store.bestSteps(prof.id);
+  const steps = inPeriod(store.steps(prof.id));
+  const stepsCard = `<div class="card">
+    <p class="muted" style="margin:0;font-size:13px;color:var(--text2)">Pasos sin respirar</p>
+    <div class="row" style="align-items:baseline;gap:10px"><p class="num" style="margin:2px 0 0;font-size:44px;line-height:1.05">${best || '—'}</p><span class="muted">${best ? 'tu mejor marca' : 'sin medir todavía'}</span></div>
+    <p class="muted" style="margin:4px 0 0">Meta ${g.steps} pasos${best ? ` · ${best >= g.steps ? '¡meta lograda!' : `te faltan ${g.steps - best}`}` : ''}</p>
+    ${steps.length ? trendChart(stepPoints(steps), { per, p, goal: g.steps, color: 'var(--hoja)', what: 'Pasos', unit: ' pasos' }) : empty('Sin series en este periodo.')}
+    ${list(steps, (m) => `${when(m.takenAt)}: ${(m.series && m.series.length ? m.series : [m.steps]).join(' · ')} pasos`)}
+    <a class="btn primary block" href="#/serie" style="margin-top:16px">${icon('steps', 18)} Serie caminando</a>
+  </div>`;
+  return `<div class="stack" style="margin-top:12px">${boltCard}${stepsCard}</div>`;
+}
 
 export default {
   tab: 'progreso',
@@ -120,6 +160,7 @@ export default {
       ${game}
       ${seg}
       ${nav}
+      ${kind === 'adulto' ? measureCards(store, prof, per, p) : ''}
       <div class="card" style="margin-top:12px">
         <p class="muted" style="margin:0">Tiempo respirando</p>
         <p class="num" style="margin:4px 0 0;font-size:34px">${minText(total)}</p>
@@ -128,5 +169,8 @@ export default {
       </div>
       ${list.length ? `<p class="label">Por tipo de ejercicio</p><div class="stack">${typesHtml}</div>
         <p class="label">Historial</p><div>${history}</div>` : empty}`;
+  },
+  mount(root) {
+    return mountTrends(root);
   },
 };

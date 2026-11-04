@@ -17,6 +17,8 @@ export default {
     const { store, go } = ctx;
     const p = ctx.profile;
     const kid = p.kind !== 'adulto';
+    // Al terminar o salir: los adultos ven sus pasos en Progreso; las niñas, en Mi perfil.
+    const home = kid ? 'perfil' : 'progreso';
     const lb = store.lastBolt(p.id);
     const moderate = kid || !lb || lb.seconds < 20;
     const gentle = !kid && (!lb || lb.seconds < 12);
@@ -161,7 +163,7 @@ export default {
 
     // La X no pierde lo hecho: con vueltas hechas o en la recuperación, pregunta antes de salir.
     async function quit() {
-      if (!st.holds.length && st.phase !== 'recover') { clearInterval(timer); go('perfil'); return; }
+      if (!st.holds.length && st.phase !== 'recover') { clearInterval(timer); go(home); return; }
       const ok = await askConfirm(kid ? '¿Ya terminaste? Guardamos tus vueltas.' : '¿Salir de la serie? Se guardan las retenciones que hiciste.', { ok: 'Guardar y salir', cancel: 'Seguir' });
       if (ok) finish();
     }
@@ -187,14 +189,14 @@ export default {
       clearInterval(timer);
       if (saved) return;
       saved = true;
-      if (!st.holds.length) { go('perfil'); return; }
+      if (!st.holds.length) { go(home); return; }
       const series = st.holds.map((h) => h.steps);
       const res = store.addSteps({ steps: Math.max(...series), seconds: st.holds.reduce((a, h) => a + h.secs, 0), type: 'serie', series });
       const pts = typeof store.awardPoints === 'function' ? store.awardPoints(p.id, POINTS, 'serie') : 0;
       toast(`${kid ? '¡Muy bien!' : 'Serie guardada'} · ${plural(series.length, one, many)}${pts ? ` · +${plural(pts, 'hoja', 'hojas')}` : ''}`);
       if (kid) confetti();
       if (res.newBadges.length) setTimeout(() => toast(`¡Nueva insignia: ${res.newBadges[0].name}!`), 2700);
-      go('perfil');
+      go(home);
     }
 
     draw();

@@ -50,7 +50,9 @@ export default {
     let timer = 0;
     let saved = false; // evita guardar dos veces con un doble toque
     const title = kid ? 'Reto del aire' : 'BOLT score';
-    const close = `<a href="#/perfil" class="icon-btn pe" aria-label="Cerrar" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('x', 18)}</a>`;
+    // Al terminar o cerrar: los adultos ven su BOLT en Progreso; las niñas, en Mi perfil.
+    const home = kid ? 'perfil' : 'progreso';
+    const close = `<a href="#/${home}" class="icon-btn pe" aria-label="Cerrar" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('x', 18)}</a>`;
     const canDelete = typeof store.removeBolt === 'function';
 
     // Últimas 10 mediciones, la más reciente primero.
@@ -194,7 +196,7 @@ export default {
       const res = store.addBolt({ seconds: st.secs, morning: kid ? true : st.morning, note: st.note, routineId: ctx.query.get('rutina') || undefined });
       toast(`${kid ? '¡Reto guardado!' : 'BOLT guardado'}${award()}`);
       if (res.newBadges.length) setTimeout(() => toast(`¡Nueva insignia: ${res.newBadges[0].name}!`), 2700);
-      go('perfil');
+      go(home);
     }
 
     // Versión Peque: la guía un adulto con un solo botón enorme.

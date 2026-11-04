@@ -1,7 +1,7 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube VERSION y V (el mismo ?v= de index.html) cada vez que publiques cambios.
-const VERSION = 'calmo-v19';
-const V = '20';
+const VERSION = 'calmo-v20';
+const V = '21';
 
 const SCREENS = [
   'alumno', 'alumnos', 'asignar', 'ajustes', 'bienvenida', 'bolt', 'calendario', 'cambiar', 'catalogo', 'configurar', 'consejos',
@@ -13,7 +13,7 @@ const SCREENS = [
 const PRECACHE = [
   './', 'index.html', 'manifest.webmanifest',
   `css/app.css?v=${V}`, `js/main.js?v=${V}`,
-  'js/audio.js', 'js/catalog.js', 'js/config.js', 'js/hero.js', 'js/main.js', 'js/store.js', 'js/sync.js', 'js/ui.js',
+  'js/audio.js', 'js/catalog.js', 'js/config.js', 'js/hero.js', 'js/main.js', 'js/store.js', 'js/sync.js', 'js/trend.js', 'js/ui.js',
   ...SCREENS.map((s) => `js/screens/${s}.js`),
   'icons/icon.svg', 'icons/apple-touch-icon.png', 'icons/icon-192.png', 'icons/icon-512.png',
 ];

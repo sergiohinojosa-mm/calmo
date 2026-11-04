@@ -3,7 +3,8 @@
 
 import { esc, icon, avatar, toast, askConfirm, addDays, MESES } from '../ui.js';
 import { nameFor, byId } from '../catalog.js';
-import { kindLabel, sparkline, familyCard, manageGoals } from './perfil.js';
+import { kindLabel, familyCard, manageGoals } from './perfil.js';
+import { boltPoints, stepPoints, recentSpan, trendChart, mountTrends } from '../trend.js';
 import { constancy, lightDot } from './alumnos.js';
 import { bubbles } from './mensajes.js';
 
@@ -39,8 +40,13 @@ export default {
     if (!p) return `<div class="top"><a class="icon-btn" href="#/alumnos" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Alumno</h1></div><p class="sub">No encontramos a esa persona.</p>`;
     const c = constancy(store, p.id);
     const plan = planned(store, p.id);
-    const bolts = store.bolt(p.id);
-    const steps = store.steps(p.id).slice(-5).reverse();
+    const byTime = (list) => list.slice().sort((a, b) => a.takenAt.localeCompare(b.takenAt));
+    const bolts = byTime(store.bolt(p.id));
+    const allSteps = byTime(store.steps(p.id));
+    const steps = allSteps.slice(-5).reverse();
+    const g = store.goals(p.id);
+    // Las últimas 10 mediciones en una línea que se toca para ver fecha y valor.
+    const line = (list, points, opts) => (list.length ? trendChart(points(list.slice(-10)), { per: recentSpan(list.slice(-10)), p: 'ultimas', scope: 'en sus últimas mediciones', ...opts }) : '');
     const sessions = store.sessions(p.id).slice().sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 10);
     // Los últimos mensajes; los que el alumno escribió y ella no ha visto llevan «Nuevo».
     const notes = store.thread(p.id).slice(-8);
@@ -58,13 +64,14 @@ export default {
     </div>`;
 
     const boltHtml = `<div class="card">
-      <div class="between"><h2 class="h3" style="margin:0">${boltWord}</h2><span class="muted">${bolts.length ? `${bolts.at(-1).seconds} s · meta ${store.goals(p.id).bolt} s` : 'Sin medir'}</span></div>
-      ${bolts.length > 1 ? `<div style="margin-top:8px">${sparkline(bolts.slice(-10).map((m) => m.seconds), '#9CC5A1', 300, 44).replace('width="300"', 'width="100%"')}</div>` : ''}
+      <div class="between"><h2 class="h3" style="margin:0">${boltWord}</h2><span class="muted">${bolts.length ? `${bolts.at(-1).seconds} s · meta ${g.bolt} s` : 'Sin medir'}</span></div>
+      ${line(bolts, boltPoints, { goal: g.bolt, color: 'var(--sage)', what: boltWord, unit: ' s' })}
       ${bolts.length ? `<p class="muted" style="margin:8px 0 0">${bolts.slice(-5).reverse().map((m) => `${shortDate(m.takenAt)}: ${m.seconds} s`).join(' · ')}</p>` : ''}
     </div>`;
 
     const stepsHtml = p.kind === 'peque' ? '' : `<div class="card">
       <div class="between"><h2 class="h3" style="margin:0">Pasos sin respirar</h2><span class="muted">Récord ${store.bestSteps(p.id) || '—'}</span></div>
+      ${line(allSteps, stepPoints, { goal: g.steps, color: 'var(--hoja)', what: 'Pasos', unit: ' pasos' })}
       ${steps.length ? `<div class="stack" style="margin-top:8px;gap:4px">${steps.map((m) => `<p class="muted" style="margin:0">${shortDate(m.takenAt)}: ${m.series ? m.series.join(' · ') : m.steps} pasos</p>`).join('')}</div>` : '<p class="muted" style="margin:8px 0 0">Todavía no hace la serie caminando.</p>'}
     </div>`;
 
@@ -96,6 +103,7 @@ export default {
     const { store, rerender } = ctx;
     const id = ctx.params[0];
     const stop = manageGoals(root, ctx);
+    const stopTrends = mountTrends(root);
     // Abrir el detalle deja leído lo que el alumno le escribió.
     store.markThreadRead(id);
     const box = root.querySelector('#noteForm [name="text"]');
@@ -122,6 +130,6 @@ export default {
     };
     root.addEventListener('click', onClick);
     root.addEventListener('submit', onSubmit);
-    return () => { root.removeEventListener('click', onClick); root.removeEventListener('submit', onSubmit); if (stop) stop(); };
+    return () => { root.removeEventListener('click', onClick); root.removeEventListener('submit', onSubmit); if (stop) stop(); stopTrends(); };
   },
 };

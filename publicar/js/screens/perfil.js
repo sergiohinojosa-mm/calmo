@@ -1,18 +1,9 @@
 import { esc, icon, bar, avatar, DIAS_C, dayKey, addDays, askConfirm } from '../ui.js';
 import { byId, nameFor } from '../catalog.js';
 import * as store from '../store.js';
+import { boltPoints, recentSpan, trendChart, mountTrends } from '../trend.js';
 
 export const boltLevel = (s) => (s < 10 ? 'Inicio' : s < 20 ? 'Base' : s < 30 ? 'Intermedio' : s < 40 ? 'Avanzado' : 'Meta');
-
-export function sparkline(values, color = '#9CC5A1', w = 120, h = 36) {
-  if (values.length < 2) return '';
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const span = max - min || 1;
-  const pts = values.map((v, i) => [(i / (values.length - 1)) * (w - 6) + 3, h - 3 - ((v - min) / span) * (h - 6)]);
-  const [lx, ly] = pts.at(-1);
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts.map((p) => p.map((n) => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="3" fill="${color}"/></svg>`;
-}
 
 export function kindLabel(p) {
   if (p.role === 'maestra') return 'Maestra';
@@ -130,7 +121,7 @@ export default {
     const g = store.goals(p.id);
     const lb = store.lastBolt(p.id);
     const best = store.bestSteps(p.id);
-    const bolts = store.bolt(p.id).slice(-8).map((m) => m.seconds);
+    const bolts = store.bolt(p.id).slice().sort((a, b) => a.takenAt.localeCompare(b.takenAt)).slice(-10);
     const current = { bolt: lb ? lb.seconds : 0, steps: best, weekly: Math.round(store.last7(p.id)) };
     const routines = store.routines(p.id);
     const lv = store.level(p.id);
@@ -160,27 +151,33 @@ export default {
       <a href="#/cambiar" class="btn small" style="margin-top:8px">${icon('users', 18)} Cambiar de perfil</a>
       ${messagesCard(store, p)}
 
-      <p class="label">${kid ? 'Mis retos' : 'Medir'}</p>
+      ${kid ? `
+      <p class="label">Mis retos</p>
       <div class="stack">
         <div class="card">
           <div class="between" style="align-items:flex-start">
-            <div><p class="muted" style="margin:0;font-size:13px;color:var(--text2)">${kid ? 'Reto del aire' : 'BOLT score'}</p>
+            <div><p class="muted" style="margin:0;font-size:13px;color:var(--text2)">Reto del aire</p>
               <p class="num" style="margin:2px 0 0;font-size:44px;line-height:1.05">${lb ? lb.seconds : '—'} <span style="font-family:var(--sans);font-size:15px;color:var(--text2)">s</span></p></div>
-            ${lb ? `<span class="chip sage">${kid ? `Meta ${g.bolt} s` : `Nivel ${boltLevel(lb.seconds).toLowerCase()}`}</span>` : ''}
+            ${lb ? `<span class="chip sage">Meta ${g.bolt} s</span>` : ''}
           </div>
-          ${sparkline(bolts) ? `<div style="margin-top:8px">${sparkline(bolts, '#9CC5A1', 300, 44).replace('width="300"', 'width="100%"')}</div>` : ''}
+          ${bolts.length ? trendChart(boltPoints(bolts), { per: recentSpan(bolts), p: 'ultimas', goal: g.bolt, color: 'var(--sage)', what: 'Reto del aire', unit: ' s', scope: 'en tus últimos retos' }) : ''}
           <div style="margin-top:10px">${bar(lb ? (lb.seconds / g.bolt) * 100 : 0)}</div>
-          <p class="muted" style="margin:6px 0 14px">${kid ? 'Los segundos hasta que tu cuerpo te pide aire' : `Meta ${g.bolt} s${lb ? ` · te faltan ${Math.max(0, g.bolt - lb.seconds)} s` : ' · mídelo al despertar'}`}</p>
-          <a class="btn primary block" href="#/bolt">${icon('timer', 18)} ${kid ? 'Hacer el reto' : 'Medir BOLT'}</a>
+          <p class="muted" style="margin:6px 0 14px">Los segundos hasta que tu cuerpo te pide aire</p>
+          <a class="btn primary block" href="#/bolt">${icon('timer', 18)} Hacer el reto</a>
         </div>
         <div class="card">
-          <p class="muted" style="margin:0;font-size:13px;color:var(--text2)">${kid ? 'Mi récord de pasos' : 'Pasos sin respirar'}</p>
+          <p class="muted" style="margin:0;font-size:13px;color:var(--text2)">Mi récord de pasos</p>
           <div class="row" style="align-items:baseline;gap:10px"><p class="num" style="margin:2px 0 0;font-size:44px;line-height:1.05">${best || '—'}</p><span class="muted">${best ? 'tu mejor marca' : 'sin medir todavía'}</span></div>
           <div style="margin-top:10px">${bar(best ? (best / g.steps) * 100 : 0, 'var(--hoja)')}</div>
           <p class="muted" style="margin:6px 0 14px">Meta ${g.steps} pasos${best ? ` · te faltan ${Math.max(0, g.steps - best)}` : ''}</p>
-          <a class="btn primary block" href="#/serie">${icon('steps', 18)} ${kid ? 'Vueltas caminando' : 'Serie caminando'}</a>
+          <a class="btn primary block" href="#/serie">${icon('steps', 18)} Vueltas caminando</a>
         </div>
       </div>
+      ` : `<a class="card row" href="#/progreso" style="margin-top:12px;color:inherit;text-decoration:none">
+        <span style="width:44px;height:44px;flex:none;border-radius:50%;background:rgba(156,197,161,0.14);color:var(--sage);display:flex;align-items:center;justify-content:center">${icon('chart', 22)}</span>
+        <span style="flex:1;min-width:0"><span style="display:block;font-size:15px;font-weight:600">BOLT y pasos</span><span class="muted">Mídelos y ve cómo van en Progreso</span></span>
+        ${icon('chev', 18, 'style="color:var(--muted)"')}
+      </a>`}
 
       <a class="card row" href="#/logros" style="margin-top:12px;color:inherit;text-decoration:none">
         <span style="width:44px;height:44px;flex:none;border-radius:50%;background:rgba(185,222,195,0.14);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon('leaf', 22)}</span>
@@ -204,7 +201,9 @@ export default {
       </div>`;
   },
   mount(root, ctx) {
-    return manageGoals(root, ctx);
+    const stopGoals = manageGoals(root, ctx);
+    const stopTrends = mountTrends(root);
+    return () => { if (stopGoals) stopGoals(); stopTrends(); };
   },
 };
 

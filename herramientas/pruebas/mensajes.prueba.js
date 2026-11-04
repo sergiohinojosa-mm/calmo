@@ -4,17 +4,6 @@ import { reloj } from './lib/entorno.js';
 import { grupo, prueba, fin, verdad, falso, igual, parecido, incluye, noIncluye } from './lib/prueba.js';
 import { store, nuevaFamilia, como, clon } from './lib/ayudas.js';
 
-// JavaScriptCore no trae URLSearchParams: lo mínimo que usan las pantallas.
-globalThis.URLSearchParams ||= class {
-  constructor(init = '') {
-    this.m = new Map(typeof init === 'string' ? init.replace(/^\?/, '').split('&').filter(Boolean).map((kv) => kv.split('=').map(decodeURIComponent)) : Object.entries(init));
-  }
-  get(k) { return this.m.has(k) ? this.m.get(k) : null; }
-  set(k, v) { this.m.set(k, String(v)); }
-  has(k) { return this.m.has(k); }
-  toString() { return [...this.m].map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&'); }
-};
-
 const inicio = (await import('../../web/js/screens/inicio.js')).default;
 const perfil = (await import('../../web/js/screens/perfil.js')).default;
 const calendario = (await import('../../web/js/screens/calendario.js')).default;
