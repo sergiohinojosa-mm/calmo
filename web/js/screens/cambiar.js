@@ -10,7 +10,8 @@ import { kindLabel } from './perfil.js';
 const isAdult = (p) => p.kind === 'adulto';
 
 // Adultos que ya tienen PIN.
-const adultsWithPin = (store) => store.profiles().filter((a) => isAdult(a) && store.hasPin(a.id));
+// El perfil de la maestra no es de la familia: no aparece aquí ni cuenta para los PIN.
+const adultsWithPin = (store) => store.familyMembers().filter((a) => isAdult(a) && store.hasPin(a.id));
 
 // ¿Qué pide entrar al perfil p estando en cur? 'none' | 'own' (su PIN) | 'any' (el de un adulto) | 'create' (crear el PIN de cur).
 function gate(store, cur, p) {
@@ -26,7 +27,7 @@ function gate(store, cur, p) {
 
 // Texto de abajo: dice lo que de verdad va a pasar con este perfil y estos PIN.
 function note(store, cur) {
-  const all = store.profiles();
+  const all = store.familyMembers();
   const kids = all.filter((p) => !isAdult(p));
   const withPin = adultsWithPin(store);
   if (isAdult(cur)) {
@@ -50,7 +51,7 @@ export default {
       <h1 class="h1">¿Quién va a respirar?</h1>
       <p class="sub">Perfiles en este teléfono</p>
       <div class="grid2" style="margin-top:18px" id="grid">
-        ${store.profiles().map((p) => {
+        ${store.familyMembers().map((p) => {
           const g = gate(store, cur, p);
           return `<button class="tile" data-id="${esc(p.id)}" aria-pressed="${p.id === cur.id}" style="text-align:center;padding:18px 8px;color:var(--text);border:1px solid ${p.id === cur.id ? 'var(--sage)' : 'var(--line)'};background:${p.id === cur.id ? 'rgba(156,197,161,0.14)' : 'var(--low)'}">
           <span style="display:flex;justify-content:center">${avatar(p, 72)}</span>

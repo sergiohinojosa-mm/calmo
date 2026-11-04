@@ -120,7 +120,7 @@ export default {
         if (dup) { form.querySelector('.err').textContent = takenMsg(dup); return; }
         const current = store.profile(id);
         const kind = kindOf(form, current.kind);
-        const adults = store.profiles().filter((p) => p.kind === 'adulto');
+        const adults = store.profiles().filter((p) => p.kind === 'adulto' && p.role !== 'maestra');
         if (current.kind === 'adulto' && kind !== 'adulto' && adults.length <= 1) {
           form.querySelector('.err').textContent = 'Tiene que quedar al menos un adulto.';
           return;

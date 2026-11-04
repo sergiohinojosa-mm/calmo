@@ -15,6 +15,7 @@ export function sparkline(values, color = '#9CC5A1', w = 120, h = 36) {
 }
 
 export function kindLabel(p) {
+  if (p.role === 'maestra') return 'Maestra';
   if (p.kind === 'adulto') return p.admin ? 'Adulto · Administrador' : 'Adulto';
   return `${p.kind === 'junior' ? 'Junior' : 'Peque'}${p.age ? ` · ${p.age} años` : ''}`;
 }
