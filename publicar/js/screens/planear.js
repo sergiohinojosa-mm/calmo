@@ -63,8 +63,10 @@ function initial(ctx, r) {
   const kind = store.profile(profile).kind;
   const first = exercisesFor(kind).find((e) => e.mode !== 'serie' && !e.puntual);
   if (!r) {
-    const min = nearest(durationsFor(kind, first), defaultMin(kind, first));
-    return { profile, kind: 'sesion', exerciseId: first?.id, min, time: '05:30', freq: 'daily', days: [], date: dayKey(), name: '' };
+    // Desde «Tu plan» llegan el ejercicio y los minutos sugeridos (?ex=&min=).
+    const wanted = exercisesFor(kind).find((e) => e.id === query.get('ex') && e.mode !== 'serie' && !e.puntual) || first;
+    const min = nearest(durationsFor(kind, wanted), Number(query.get('min')) || defaultMin(kind, wanted));
+    return { profile, kind: 'sesion', exerciseId: wanted?.id, min, time: '05:30', freq: 'daily', days: [], date: dayKey(), name: '' };
   }
   const ex = byId(r.exerciseId) || first;
   return { profile, kind: r.kind, exerciseId: ex?.id, min: r.minutes || nearest(durationsFor(kind, ex), defaultMin(kind, ex)), time: r.time, freq: r.freq, days: [...(r.days || [])], date: r.date || dayKey(), name: r.name || '' };
@@ -96,7 +98,7 @@ const calendarOf = (ctx, id) => (id && id !== ctx.profile.id ? `calendario?p=${e
 const backTo = (ctx) => {
   const de = ctx.query.get('de');
   if (de === 'alumno' && ctx.query.get('p')) return `alumno/${encodeURIComponent(ctx.query.get('p'))}`;
-  return ['perfil', 'familia'].includes(de) ? de : calendarOf(ctx, ctx.query.get('p'));
+  return ['perfil', 'familia', 'progreso'].includes(de) ? de : calendarOf(ctx, ctx.query.get('p'));
 };
 
 export default {
@@ -229,7 +231,8 @@ export default {
     form.addEventListener('input', () => { form.querySelector('#err').textContent = ''; });
 
     form.querySelector('#del')?.addEventListener('click', () => {
-      askConfirm(`¿Borrar la rutina «${r.name}»? Los días pasados conservan lo que se hizo.`, { ok: 'Borrar' }).then((ok) => {
+      const asked = !ctx.profile.role && store.assignedBy(r);
+      askConfirm(asked ? `${asked} pidió «${r.name} · ${r.time}». Si la quitas, le avisamos por Mensajes.` : `¿Borrar la rutina «${r.name}»? Los días pasados conservan lo que se hizo.`, { ok: asked ? 'Quitar y avisar' : 'Borrar' }).then((ok) => {
         if (!ok) return;
         store.removeRoutine(r.id);
         toast('Rutina borrada');

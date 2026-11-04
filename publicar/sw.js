@@ -1,12 +1,12 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube VERSION y V (el mismo ?v= de index.html) cada vez que publiques cambios.
-const VERSION = 'calmo-v20';
-const V = '21';
+const VERSION = 'calmo-v21';
+const V = '22';
 
 const SCREENS = [
   'alumno', 'alumnos', 'asignar', 'ajustes', 'bienvenida', 'bolt', 'calendario', 'cambiar', 'catalogo', 'configurar', 'consejos',
   'familia', 'ingresar', 'inicio', 'logros', 'mensajes', 'perfil', 'perfiles', 'planear', 'premios', 'premiosadmin', 'progreso',
-  'resumen', 'serie', 'sesion', 'usuarios',
+  'resumen', 'semana', 'serie', 'sesion', 'usuarios',
 ];
 
 // Las mismas direcciones que pide index.html, más cada módulo y cada pantalla.

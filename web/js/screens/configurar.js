@@ -31,8 +31,14 @@ export default {
     const lb = lowBoltOf(store, ex, ctx.profile.id);
     const isSerie = ex.mode === 'serie';
     const fixed = ex.mode === 'pausas' || ex.mode === 'destapar';
-    const qs = (o) => `#/configurar/${ex.id}?min=${o.min ?? min}&amb=${o.amb ?? amb}${rutina ? `&rutina=${rutina}` : ''}`;
-    const start = isSerie ? '#/serie' : `#/sesion/${ex.id}?min=${min}&amb=${amb}${rutina ? `&rutina=${rutina}` : ''}`;
+    // Si falta más de 3 horas para la rutina, cuenta para ella solo si así se elige
+    // (las niñas no eligen: cuenta como extra).
+    const routine = rutina ? store.routines(ctx.profile.id).find((r) => r.id === rutina) : null;
+    const early = store.tooEarlyFor(routine);
+    const cuenta = query.get('cuenta') === '1' ? '1' : '0';
+    const counts = !!rutina && (!early || (!kid && cuenta === '1'));
+    const qs = (o) => `#/configurar/${ex.id}?min=${o.min ?? min}&amb=${o.amb ?? amb}${rutina ? `&rutina=${rutina}` : ''}${early ? `&cuenta=${o.cuenta ?? cuenta}` : ''}`;
+    const start = isSerie ? '#/serie' : `#/sesion/${ex.id}?min=${min}&amb=${amb}${counts ? `&rutina=${rutina}` : ''}`;
     const lowMsg = kid
       ? `Este es para cuando tu reto del aire llegue a ${ex.minBolt} s. ¡Ya casi! Hazlo suave y con un adulto cerca.`
       : `Tu BOLT (${lb?.seconds} s) está por debajo de ${ex.minBolt} s. Puedes hacerlo, pero empieza suave.`;
@@ -43,6 +49,13 @@ export default {
       </div>
       <p class="sub" style="margin-top:14px">${esc(t.desc)}</p>
       ${lb ? `<div class="tile" style="margin-top:14px;color:var(--brasa)">${esc(lowMsg)}</div>` : ''}
+      ${early && !kid ? `<div class="tile stack" style="margin-top:14px;gap:10px">
+        <p style="margin:0;font-size:15px;line-height:1.45">Tu rutina «${esc(routine.name)}» es a las ${esc(routine.time)}. ¿Esta sesión cuenta para esa rutina?</p>
+        <div class="seg" role="group" aria-label="¿Cuenta para la rutina?">
+          <a href="${qs({ cuenta: '1' })}" ${cuenta === '1' ? 'aria-current="page"' : ''}>Sí, cuenta</a>
+          <a href="${qs({ cuenta: '0' })}" ${cuenta === '0' ? 'aria-current="page"' : ''}>No, es extra</a>
+        </div>
+      </div>` : ''}
       ${t.steps ? `<details class="howto" style="margin-top:14px"><summary>
           <span class="howto-ic">${icon('list', 20)}</span>
           <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:16px">Cómo se hace</span>

@@ -85,7 +85,7 @@ let navigated = false;
 // Pantallas que puede abrir un perfil Peque; cualquier otra dirección la regresa a su inicio.
 const PEQUE_SCREENS = new Set(['inicio', 'sesion', 'resumen', 'bolt', 'premios', 'perfil', 'cambiar', 'logros']);
 // La maestra no cambia de perfil, no administra la familia ni los premios.
-const TEACHER_SCREENS = new Set(['alumnos', 'alumno', 'asignar', 'planear', 'calendario', 'inicio', 'catalogo', 'configurar', 'sesion', 'resumen', 'bolt', 'serie', 'progreso', 'logros', 'consejos', 'ajustes', 'usuarios', 'perfil']);
+const TEACHER_SCREENS = new Set(['alumnos', 'alumno', 'asignar', 'semana', 'planear', 'calendario', 'inicio', 'catalogo', 'configurar', 'sesion', 'resumen', 'bolt', 'serie', 'progreso', 'logros', 'consejos', 'ajustes', 'usuarios', 'perfil']);
 
 async function render() {
   const token = ++renderToken;
@@ -100,7 +100,7 @@ async function render() {
     if (!TEACHER_SCREENS.has(name)) name = 'alumnos';
   } else if (!store.profiles().length) name = 'bienvenida';
   // El tablero de la maestra es solo suyo.
-  else if (['alumnos', 'alumno', 'asignar'].includes(name)) name = 'inicio';
+  else if (['alumnos', 'alumno', 'asignar', 'semana'].includes(name)) name = 'inicio';
   else if (store.profile()?.kind === 'peque' && !PEQUE_SCREENS.has(name)) name = 'inicio';
   let mod;
   try {

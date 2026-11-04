@@ -37,7 +37,7 @@ function stepper(d, who, target, label) {
 function fromTeacher(r) {
   const asked = store.assignedBy(r);
   if (!asked) return '';
-  return `<span class="chip" style="margin-top:6px;min-height:24px;font-size:12px;background:rgba(185,222,195,0.14);color:var(--hoja)">${icon('leaf', 12)} ${esc(asked)} lo pidió</span>`;
+  return `<span class="chip" style="margin-top:6px;min-height:24px;font-size:12px;background:rgba(185,222,195,0.14);color:var(--hoja)">${icon('leaf', 12)} ${esc(asked)} lo pidió${r.week ? ` · semana ${r.week} de ${r.weeks}` : ''}</span>`;
 }
 
 // Fila de una rutina. Los niños la ven sin interruptor ni botón de borrar.
@@ -68,10 +68,15 @@ export function familyCard(store, x, from = 'familia') {
     return `<div class="between" style="margin-top:10px;gap:10px;flex-wrap:wrap;row-gap:6px"><span style="font-size:14px;min-width:0">${esc(label)}</span>${stepper(d, x.id, g[d.key], `${label} de ${x.name}`)}</div>`;
   }).join('');
   const list = store.routines(x.id);
+  // Papá o mamá ven lo que su hija Junior y la maestra se escriben.
+  const t = from !== 'alumno' && x.kind === 'junior' ? store.teacher() : null;
+  const talk = t ? store.thread(x.id).length : 0;
   return `<div class="card">
     <div class="row" style="gap:12px">${avatar(x, 44)}
       <div style="flex:1;min-width:0"><h2 class="h3" style="margin:0">${esc(x.name)}</h2><p class="muted" style="margin:2px 0 0">${esc(kindLabel(x))}</p></div>
       <a href="#/calendario?p=${encodeURIComponent(x.id)}" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Calendario</a></div>
+    ${t ? `<a class="row" href="#/mensajes?p=${encodeURIComponent(x.id)}" style="gap:8px;margin-top:6px;min-height:44px;color:inherit;text-decoration:none;font-size:14px">${icon('msg', 18, 'style="color:var(--hoja);flex:none"')}
+      <span style="flex:1;min-width:0">Mensajes con ${esc(t.name)}</span><span class="muted">${talk ? `${talk} ${talk === 1 ? 'mensaje' : 'mensajes'}` : 'Sin mensajes'}</span>${icon('chev', 16, 'style="color:var(--muted)"')}</a>` : ''}
     ${goals}
     <div class="between" style="margin-top:14px"><span class="muted">Rutinas</span>
       <a href="#/planear?p=${encodeURIComponent(x.id)}&de=${from}" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a></div>
@@ -79,10 +84,10 @@ export function familyCard(store, x, from = 'familia') {
   </div>`;
 }
 
-// Conversación con la maestra (solo adultos): sus notas y tus dudas.
+// Conversación con la maestra (adultos y Junior): sus notas y lo que le escribes.
 function messagesCard(store, p) {
   const t = store.teacher();
-  if (p.kind !== 'adulto' || !t) return '';
+  if (p.kind === 'peque' || !t) return '';
   const unread = store.unreadNotes(p.id).length;
   return `<a class="card row" href="#/mensajes" style="margin-top:14px;color:inherit;text-decoration:none">
     <span style="width:44px;height:44px;flex:none;border-radius:50%;background:rgba(185,222,195,0.14);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon('msg', 22)}</span>
@@ -239,7 +244,8 @@ export function manageGoals(root, ctx) {
     if (del) {
       const who = whoOf(del);
       const r = who && store.routines(who).find((x) => x.id === del.dataset.rtDel);
-      if (r) askConfirm(`¿Borrar la rutina «${r.name} · ${r.time}»? Los días pasados conservan lo que se hizo.`, { ok: 'Borrar' }).then((ok) => {
+      const asked = r && !ctx.profile.role && store.assignedBy(r);
+      if (r) askConfirm(asked ? `${asked} pidió «${r.name} · ${r.time}». Si la quitas, le avisamos por Mensajes.` : `¿Borrar la rutina «${r.name} · ${r.time}»? Los días pasados conservan lo que se hizo.`, { ok: asked ? 'Quitar y avisar' : 'Borrar' }).then((ok) => {
         if (ok) { store.removeRoutine(r.id); rerender(); }
       });
     }

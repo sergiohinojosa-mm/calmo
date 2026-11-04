@@ -1,6 +1,6 @@
 import { esc, icon, longDate, moment, bar, avatar, minutesLabel, toast } from '../ui.js';
 import { heroSVG, theme } from '../hero.js';
-import { byId, nameFor, QUICK, exercisesFor } from '../catalog.js';
+import { byId, nameFor, QUICK, exercisesFor, boltPlan } from '../catalog.js';
 
 const TIPS = [
   'Respira por la nariz también al caminar: tu BOLT lo agradece.',
@@ -28,7 +28,7 @@ function nextPractice(store, p) {
 }
 
 // Notas de la maestra sin leer: las del perfil y, para un adulto, las de Peque (que no lee).
-// Al marcarla como leída se quita de Inicio; el adulto la sigue viendo en Mensajes.
+// Al marcarla como leída se quita de Inicio; se sigue viendo en Mensajes.
 function teacherNotes(store, p) {
   const adult = p.kind === 'adulto';
   const mine = store.unreadNotes(p.id).map((n) => ({ n, who: null }));
@@ -41,7 +41,7 @@ function teacherNotes(store, p) {
       <p style="margin:10px 0 0;font-size:16px;line-height:1.45">${esc(n.text)}</p>
       <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap">
         <button class="btn small" data-note-read="${esc(n.id)}">${icon('check', 16)} ${adult ? 'Marcar como leída' : 'Ya la leí'}</button>
-        ${adult && !who ? `<a class="btn small" href="#/mensajes?responder=1">${icon('msg', 16)} Responder</a>` : ''}
+        ${!who ? `<a class="btn small" href="#/mensajes?responder=1">${icon('msg', 16)} Responder</a>` : ''}
       </div>
     </div>`).join('');
 }
@@ -67,7 +67,9 @@ function planCarousel(store, p, kind) {
     const ex = it.exercise;
     const min = it.minutes || (ex && ex.defaultMin) || 5;
     // Las niñas van directo a la sesión; los adultos pasan por la pantalla de ajustes.
-    const href = isBolt ? `#/bolt?rutina=${it.routine.id}` : `#/${kid ? 'sesion' : 'configurar'}/${ex.id}?min=${min}&rutina=${it.routine.id}`;
+    // Las niñas no eligen: si falta mucho para su hora, la sesión cuenta como extra.
+    const counts = !(kid && store.tooEarlyFor(it.routine));
+    const href = isBolt ? `#/bolt?rutina=${it.routine.id}` : `#/${kid ? 'sesion' : 'configurar'}/${ex.id}?min=${min}${counts ? `&rutina=${it.routine.id}` : ''}`;
     const name = isBolt ? (kid ? 'Reto del aire' : 'Medir BOLT') : nameFor(ex, kind);
     const detail = isBolt ? (kid ? 'Toca en cuanto sientas ganas de respirar' : 'Al despertar es el más confiable') : `${min} min · ${esc(kid ? (ex.kidPattern || ex.pattern) : ex.pattern)} · por la nariz${kid ? ` · +${min + 5} hojas` : ''}`;
     const isDone = it.status === 'hecha';
@@ -77,7 +79,7 @@ function planCarousel(store, p, kind) {
         <span class="chip ${asked ? 'sage' : 'arena'}">${icon(isBolt ? 'timer' : 'repeat', 14)} ${esc(it.title)} · ${esc(it.time)}</span>
         ${isDone ? `<span class="row" style="gap:4px;color:var(--hoja);font-size:13px">${icon('check', 15)} Hecha</span>` : `<span class="muted">${i + 1} de ${items.length}</span>`}
       </div>
-      ${asked ? `<p class="row" style="gap:6px;margin:12px 0 0;color:var(--hoja);font-size:14px;font-weight:600">${icon('leaf', 15)} ${esc(asked)} lo pidió</p>` : ''}
+      ${asked ? `<p class="row" style="gap:6px;margin:12px 0 0;color:var(--hoja);font-size:14px;font-weight:600">${icon('leaf', 15)} ${esc(asked)} lo pidió${it.routine.week ? ` · semana ${it.routine.week} de ${it.routine.weeks}` : ''}</p>` : ''}
       <h2 class="h2" style="margin-top:${asked ? 6 : 14}px">${esc(name)}</h2>
       <p class="sub">${detail}</p>
       <a class="btn ${isDone ? '' : 'primary'} block" ${isBolt ? '' : 'data-audio'} style="margin-top:16px${kid && !isDone ? ';min-height:60px;font-size:19px' : ''}" href="${href}">${icon(isDone ? 'repeat' : 'play', 18)} ${isDone ? 'Hacer otra vez' : 'Empezar'}</a>
@@ -86,6 +88,18 @@ function planCarousel(store, p, kind) {
   const dots = items.length > 1 ? `<div class="car-dots" role="group" aria-label="Rutinas de hoy">${items.map((it, i) => `<button type="button" data-slide="${i}" aria-label="Ver ${esc(it.title)} ${esc(it.time)}" aria-current="${i === start}"><i></i></button>`).join('')}</div>` : '';
   return `<div><div class="carousel" id="plan" data-start="${start}">${slides}</div>
     ${dots}<p class="muted" style="margin:4px 0 0;text-align:center">${done} de ${items.length} hechas hoy${items.length > 1 ? ' · desliza para ver las demás' : ''}</p></div>`;
+}
+
+// Atajo a «Tu plan» (en Progreso): qué conviene practicar según el BOLT de la mañana.
+function planRow(store, p) {
+  const b = store.planBolt(p.id);
+  if (!b) return '';
+  const plan = boltPlan(b.seconds);
+  return `<a class="tile row" href="#/progreso?plan=1" style="color:inherit;text-decoration:none;border:1px solid rgba(185,222,195,0.25)">
+    ${icon('leaf', 20, 'style="color:var(--hoja);flex:none"')}
+    <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:14px">Tu plan: ${esc(plan.title)}</span>
+      <span class="muted">${esc(plan.items.map((it) => nameFor(byId(it.id), 'adulto')).join(' · '))}</span></span>
+    ${icon('chev', 18, 'style="color:var(--muted)"')}</a>`;
 }
 
 // En iPhone, invitar a agregar Calmo a la pantalla de inicio (no se pierden datos y abre en pantalla completa).
@@ -147,6 +161,7 @@ function adult(ctx) {
     ${installCard()}
     ${teacherNotes(store, p)}
     ${planCarousel(store, p, 'adulto') || suggested}
+    ${planRow(store, p)}
     ${asks ? `<a class="card row" href="#/premiosadmin" style="color:inherit;text-decoration:none;border:1px solid rgba(226,204,148,0.35)">${icon('gift', 22, 'style="color:var(--arena);flex:none"')}
       <span style="flex:1;font-weight:600">${asks === 1 ? '1 premio por aprobar' : `${asks} premios por aprobar`}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>` : ''}
     <div class="grid3">
@@ -257,7 +272,7 @@ export default {
       if (read) {
         const own = ctx.store.notes(ctx.profile.id).some((n) => n.id === read.dataset.noteRead);
         ctx.store.markNoteRead(read.dataset.noteRead);
-        if (own && ctx.profile.kind === 'adulto') toast('Listo. La encuentras en Mi perfil → Mensajes');
+        if (own) toast(ctx.profile.kind === 'adulto' ? 'Listo. La encuentras en Mi perfil → Mensajes' : '¡Listo! La encuentras en Mi perfil → Mensajes');
         ctx.rerender();
       }
     };

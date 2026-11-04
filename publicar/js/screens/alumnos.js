@@ -55,6 +55,10 @@ export default {
       </a>`;
     }).join('');
     return `${top}
+      <a class="card row" href="#/semana" style="color:inherit;text-decoration:none;margin-bottom:14px">
+        <span style="width:44px;height:44px;flex:none;border-radius:50%;background:rgba(185,222,195,0.14);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon('chart', 22)}</span>
+        <span style="flex:1;min-width:0"><span style="display:block;font-weight:600">Resumen de la semana</span><span class="muted">BOLT, prácticas y quién pide tu atención</span></span>
+        ${icon('chev', 18, 'style="color:var(--muted)"')}</a>
       <p class="sub" style="margin-top:0">Constancia de los últimos 7 días. Toca a alguien para ver su detalle.</p>
       <div class="row muted" style="gap:6px 14px;font-size:12px;margin:10px 0 14px;flex-wrap:wrap">
         ${Object.entries(LIGHTS).map(([k, [, label]]) => `<span class="row" style="gap:5px">${lightDot(k, 10)}${label}</span>`).join('')}

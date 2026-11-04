@@ -1,5 +1,5 @@
 import { esc, icon, bar, dayKey, addDays, dow, DIAS_L, DIAS_C, MESES, minutesLabel, pad2 } from '../ui.js';
-import { byId, nameFor, GOALS } from '../catalog.js';
+import { byId, nameFor, GOALS, boltPlan } from '../catalog.js';
 import { medallion } from './logros.js';
 import { boltLevel } from './perfil.js';
 import { shortDay, boltPoints, stepPoints, trendChart, mountTrends } from '../trend.js';
@@ -81,7 +81,52 @@ function measureCards(store, prof, per, p) {
     ${list(steps, (m) => `${when(m.takenAt)}: ${(m.series && m.series.length ? m.series : [m.steps]).join(' · ')} pasos`)}
     <a class="btn primary block" href="#/serie" style="margin-top:16px">${icon('steps', 18)} Serie caminando</a>
   </div>`;
-  return `<div class="stack" style="margin-top:12px">${boltCard}${stepsCard}</div>`;
+  return `<div class="stack" style="margin-top:12px">${boltCard}${planCard(store, prof)}${stepsCard}</div>`;
+}
+
+// «Tu plan»: qué practicar según el BOLT de la mañana. Si la maestra asignó un programa,
+// se ve primero, porque lo que ella pide manda.
+function planCard(store, prof) {
+  const b = store.planBolt(prof.id);
+  const prog = store.currentProgram(prof.id);
+  const teacher = store.teacher();
+  const progEx = prog && byId(prog.exerciseId);
+  const starts = prog && prog.since > dayKey() ? ` · empieza el ${shortDay(new Date(`${prog.since}T00:00`))}` : '';
+  const progHtml = prog ? `<a class="tile row" href="#/calendario" style="margin-top:12px;color:inherit;text-decoration:none;border:1px solid rgba(185,222,195,0.3)">
+      ${icon('leaf', 20, 'style="color:var(--hoja);flex:none"')}
+      <span style="flex:1;min-width:0"><span style="display:block;font-weight:600;font-size:14px">${esc(store.teacherName(prog.by))} te asignó un programa</span>
+        <span class="muted">Semana ${prog.week} de ${prog.weeks}: ${esc(progEx ? nameFor(progEx, 'adulto') : 'Práctica')} · ${prog.minutes} min${starts}</span></span>
+      ${icon('chev', 18, 'style="color:var(--muted)"')}</a>` : '';
+  if (!b) {
+    return `<div class="card" id="plan"><span class="chip sage">${icon('leaf', 14)} Tu plan</span>
+      <p class="sub" style="margin-top:10px">Mide tu BOLT al despertar y aquí verás qué practicar para subirlo.</p>${progHtml}</div>`;
+  }
+  const plan = boltPlan(b.seconds);
+  const mine = store.routines(prof.id).filter((r) => r.active !== false);
+  const items = plan.items.map((it) => {
+    const ex = byId(it.id);
+    const amount = it.min ? `${it.min} min al día` : ex.mode === 'pausas' ? `${ex.pattern} al día` : '';
+    const has = mine.some((r) => r.exerciseId === ex.id);
+    const add = ex.mode === 'serie' ? ''
+      : has ? `<span class="row muted" style="gap:4px;min-height:44px">${icon('check', 15)} Ya está en tus rutinas</span>`
+        : `<a class="btn small" href="#/planear?ex=${ex.id}${it.min ? `&min=${it.min}` : ''}&de=progreso">${icon('plus', 14)} Agregar a mis rutinas</a>`;
+    return `<div class="tile">
+      <div class="between" style="gap:8px;align-items:flex-start"><span style="font-weight:600;font-size:15px;min-width:0">${esc(ex.name)}</span>${amount ? `<span class="muted" style="flex:none;text-align:right">${esc(amount)}</span>` : ''}</div>
+      <p class="muted" style="margin:4px 0 0">${esc(it.why)}</p>
+      <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+        <a class="btn small" href="#/configurar/${ex.id}${it.min ? `?min=${it.min}` : ''}">${icon('play', 14)} Probar</a>${add}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card" id="plan">
+    <span class="chip sage">${icon('leaf', 14)} Tu plan · BOLT ${b.morning ? 'de la mañana ' : ''}${b.seconds} s</span>
+    <h2 class="h2" style="margin-top:12px">${esc(plan.title)}</h2>
+    <p class="sub" style="margin-top:4px">${esc(plan.why)}</p>
+    ${progHtml}
+    <div class="stack" style="margin-top:12px;gap:10px">${items}</div>
+    <p class="row" style="gap:8px;margin:14px 0 0;font-size:14px;color:var(--text2);align-items:flex-start">${icon('sun', 16, 'style="color:var(--arena);flex:none;margin-top:2px"')}<span>${esc(plan.habit)}</span></p>
+    <p class="muted" style="margin:10px 0 0;font-size:12px">Basado en Oxygen Advantage.${teacher && !prof.role ? ` ${esc(teacher.name)} puede ajustarlo con un programa.` : ''}</p>
+  </div>`;
 }
 
 export default {
@@ -170,7 +215,9 @@ export default {
       ${list.length ? `<p class="label">Por tipo de ejercicio</p><div class="stack">${typesHtml}</div>
         <p class="label">Historial</p><div>${history}</div>` : empty}`;
   },
-  mount(root) {
+  mount(root, ctx) {
+    // Desde «Tu plan» en Inicio se llega directo a la tarjeta.
+    if (ctx.query.get('plan')) root.querySelector('#plan')?.scrollIntoView({ block: 'start' });
     return mountTrends(root);
   },
 };

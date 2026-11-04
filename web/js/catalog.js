@@ -199,3 +199,59 @@ export const AMBIENTS = [
 ];
 
 export const DURATIONS = [3, 5, 10, 15, 25];
+
+// Plan según el BOLT de la mañana (Oxygen Advantage): qué conviene practicar en cada etapa.
+// Los minutos son sugerencias diarias; la serie caminando no se agenda, se hace desde el ejercicio.
+// La falta de aire fuerte en la serie empieza en 20 s (decisión de la maestra).
+export const BOLT_PLAN = [
+  {
+    upTo: 10, title: 'Empieza suave',
+    why: 'Con menos de 10 s, lo primero es respirar por la nariz todo el día y respirar ligero, sin retenciones fuertes.',
+    items: [
+      { id: 'ligero', min: 5, why: 'Un poco menos de aire del que pide tu cuerpo, sin tensarte.' },
+      { id: 'exhalacion', min: 5, why: 'Para calmarte y bajar el ritmo.' },
+    ],
+    habit: 'Nariz día y noche, también al caminar y al dormir.',
+  },
+  {
+    upTo: 20, title: 'Sube tu BOLT',
+    why: 'De 10 a 20 s lo que más ayuda es la respiración reducida, todos los días.',
+    items: [
+      { id: 'ligero', min: 10, why: 'Un poco menos de aire del que pide tu cuerpo, sin tensarte.' },
+      { id: 'pausas', why: 'Ves cuánto mejora tu pausa de control en cada sesión.' },
+      { id: 'caminando', why: 'Unas 3 veces por semana, con falta de aire moderada.' },
+    ],
+    habit: 'Mide tu BOLT una vez, al despertar, antes de cualquier actividad.',
+  },
+  {
+    upTo: 30, title: 'Vas bien',
+    why: 'De 20 a 30 s ya puedes subir la intensidad de las retenciones.',
+    items: [
+      { id: 'pausas', why: 'Sigue siendo la base para subir tu BOLT.' },
+      { id: 'caminando', why: 'Ya puedes llegar a una falta de aire fuerte.' },
+      { id: 'coherente', min: 10, why: 'Para el equilibrio del día.' },
+    ],
+    habit: 'Haz ejercicio con la boca cerrada; si la necesitas abrir, baja la intensidad.',
+  },
+  {
+    upTo: 40, title: 'Cerca de la meta',
+    why: 'De 30 a 40 s, las retenciones caminando y el ejercicio por la nariz te llevan a los 40 s.',
+    items: [
+      { id: 'caminando', why: 'Con falta de aire fuerte, varias veces por semana.' },
+      { id: 'ligero', min: 10, why: 'Para mantener la respiración ligera en el día.' },
+      { id: 'coherente', min: 10, why: 'Para el equilibrio del día.' },
+    ],
+    habit: 'Haz ejercicio con la boca cerrada; si la necesitas abrir, baja la intensidad.',
+  },
+  {
+    upTo: Infinity, title: 'Meta lograda',
+    why: 'Con 40 s o más, la tarea es mantener lo logrado.',
+    items: [
+      { id: 'coherente', min: 10, why: 'Para el equilibrio del día.' },
+      { id: 'caminando', why: 'Un par de veces por semana para no perder tolerancia.' },
+    ],
+    habit: 'Nariz día y noche.',
+  },
+];
+
+export const boltPlan = (seconds) => BOLT_PLAN.find((b) => seconds < b.upTo);

@@ -151,6 +151,32 @@ export function removeNote(noteId) {
   save();
 }
 
+// Programa por semanas: cada semana es una rutina con su inicio y su fin (since / until),
+// así el calendario, Inicio y lo que cuenta como hecho funcionan igual que con cualquier rutina.
+export function assignProgram({ people, weeks, start = dayKey(), time, freq = 'daily', days = [], name, note }) {
+  const by = state.current;
+  const program = uid();
+  const shift = (n) => dayKey(addDays(fromKey(start), n));
+  const made = [];
+  people.filter((pid) => state.profiles.some((p) => p.id === pid)).forEach((pid) => {
+    weeks.forEach((w, i) => {
+      const r = routine(pid, name, w.exerciseId, w.minutes, time, { kind: 'sesion', freq, days, since: shift(i * 7), until: shift(i * 7 + 6), source: 'maestra', by, program, week: i + 1, weeks: weeks.length });
+      state.routines.push(r);
+      made.push(r);
+    });
+    if (note) state.notes = [...(state.notes || []), stamp({ id: uid(), profile: pid, by, text: String(note).trim().slice(0, 280), at: new Date().toISOString() })];
+  });
+  save();
+  return made;
+}
+
+// La semana del programa que toca hoy (o la próxima si todavía no empieza).
+export function currentProgram(id) {
+  const today = dayKey();
+  const weeks = state.routines.filter((r) => r.profile === id && r.program && !r.deletedAt && (!r.until || r.until >= today)).sort((a, b) => a.since.localeCompare(b.since));
+  return weeks[0] || null;
+}
+
 // Asignar una práctica a varios alumnos a la vez: una rutina por persona, marcada como de la maestra.
 export function assignPractice({ people, kind = 'sesion', name, exerciseId, minutes, time, freq = 'daily', days = [], date, note }) {
   const by = state.current;
@@ -188,8 +214,9 @@ export function setPref(key, value) {
 
 // ---------- Rutinas ----------
 
-// Rutinas vigentes del perfil. Las borradas se conservan solo para el historial.
-export const routines = (id = state.current) => state.routines.filter((r) => r.profile === id && !r.deletedAt);
+// Rutinas vigentes del perfil. Las borradas y las semanas ya terminadas de un programa
+// se conservan solo para el historial.
+export const routines = (id = state.current) => state.routines.filter((r) => r.profile === id && !r.deletedAt && !(r.until && r.until < dayKey()));
 const allRoutines = (id) => state.routines.filter((r) => r.profile === id);
 
 export function addRoutine(r) {
@@ -239,6 +266,11 @@ export function removeRoutine(id) {
   const today = dayKey();
   const r = state.routines.find((x) => x.id === id);
   if (!r) return;
+  const me = state.profiles.find((p) => p.id === state.current);
+  if (r.source === 'maestra' && me?.role !== 'maestra' && state.profiles.some((p) => p.id === r.profile)) {
+    const who = me && me.id !== r.profile ? `${me.name} quitó` : 'Quité';
+    state.notes = [...(state.notes || []), stamp({ id: uid(), profile: r.profile, by: r.profile, text: `${who} la práctica que pediste: «${r.name} · ${r.time}».`, at: new Date().toISOString() })];
+  }
   if ((!r.since || r.since >= today) && !hasHistory(id)) {
     state.routines = state.routines.filter((x) => x.id !== id);
     forget(id);
@@ -250,6 +282,7 @@ export function routineApplies(r, date) {
   const key = dayKey(date);
   if (r.since && key < r.since) return false;
   if (r.deletedAt && key >= r.deletedAt) return false;
+  if (r.until && key > r.until) return false;
   if (r.active === false && key >= (r.pausedFrom || dayKey())) return false;
   if (r.freq === 'once') return r.date === key;
   if (r.freq === 'daily') return true;
@@ -270,6 +303,13 @@ function minutesOfDay(hhmm) {
 // Una sesión cuenta como planeada si se hace hasta 3 horas antes o después de la rutina.
 // El BOLT cuenta para la rutina del día a cualquier hora, se mida desde donde se mida.
 const MATCH_WINDOW = 180;
+
+// ¿Falta más de 3 horas para la rutina? Empezarla así desde su tarjeta no la marca sola
+// (si no, la de la noche quedaría hecha en la tarde); hacerla tarde sí cuenta, para ponerse al día.
+export function tooEarlyFor(r, when = new Date()) {
+  if (!r || r.kind !== 'sesion') return false;
+  return minutesOfDay(r.time) - (when.getHours() * 60 + when.getMinutes()) > MATCH_WINDOW;
+}
 
 function matchRoutine(id, kind, exerciseId, when, preferId = null) {
   const key = dayKey(when);
@@ -317,6 +357,22 @@ export function addBolt({ seconds, morning, note, routineId: wanted = null }) {
   const newBadges = checkBadges(id, before);
   save();
   return { measure: m, prev, newBadges };
+}
+
+export const FEELS = ['tranquilo', 'bien', 'costo'];
+export function setSessionFeel(sessionId, feel) {
+  if (!FEELS.includes(feel)) return;
+  state.sessions = state.sessions.map((x) => (x.id === sessionId ? stamp({ ...x, feel }) : x));
+  save();
+}
+
+// El BOLT con el que se arma el plan: el último de la mañana de las últimas 2 semanas,
+// que es el comparable; si no hay, el último que haya.
+export function planBolt(id = state.current) {
+  const list = bolt(id).slice().sort((a, b) => a.takenAt.localeCompare(b.takenAt));
+  const since = new Date(); since.setDate(since.getDate() - 14);
+  const morning = list.filter((m) => m.morning && new Date(m.takenAt) >= since).at(-1);
+  return morning || list.at(-1) || null;
 }
 
 export function addSteps({ steps, seconds, type = 'max', series }) {
@@ -786,6 +842,8 @@ export function cleanState(raw) {
       days: list(r.days, (d) => (Number.isInteger(d) && d >= 0 && d <= 6 ? d + 1 : 0)).map((d) => d - 1),
       active: r.active !== false, since: day(r.since), deletedAt: day(r.deletedAt), pausedFrom: day(r.pausedFrom), date: day(r.date), updatedAt: num(r.updatedAt),
       source: r.source === 'maestra' ? 'maestra' : undefined, by: isId(r.by) ? r.by : undefined,
+      until: day(r.until), program: isId(r.program) ? r.program : undefined,
+      week: Number.isInteger(r.week) && r.week > 0 ? r.week : undefined, weeks: Number.isInteger(r.weeks) && r.weeks > 0 ? r.weeks : undefined,
     }) : null)),
     notes: list(raw.notes, (n) => (n && isId(n.id) && isId(n.profile) && iso(n.at) && str(n.text, 280).trim() ? opt({
       id: n.id, profile: n.profile, by: isId(n.by) ? n.by : undefined, text: str(n.text, 280), at: n.at, readAt: iso(n.readAt), updatedAt: num(n.updatedAt),
@@ -794,6 +852,7 @@ export function cleanState(raw) {
       id: s.id, profile: s.profile, exerciseId: s.exerciseId, startedAt: s.startedAt, day: day(s.day) || dayKey(new Date(s.startedAt)),
       durationSec: num(s.durationSec), routineId: isId(s.routineId) ? s.routineId : null,
       controlPauses: Array.isArray(s.controlPauses) ? list(s.controlPauses, (v) => (Number.isFinite(v) ? v + 1 : 0)).map((v) => v - 1) : undefined, updatedAt: num(s.updatedAt),
+      feel: FEELS.includes(s.feel) ? s.feel : undefined,
     }) : null)),
     bolt: list(raw.bolt, (m) => (m && isId(m.id) && isId(m.profile) && iso(m.takenAt) ? opt({
       id: m.id, profile: m.profile, takenAt: m.takenAt, day: day(m.day) || dayKey(new Date(m.takenAt)), seconds: num(m.seconds),
@@ -898,7 +957,8 @@ function dedupeRoutines(list, records, remoteIds, removed) {
   const groups = new Map();
   list.forEach((r) => {
     if (r.deletedAt) return;
-    const key = JSON.stringify([r.profile, r.kind, r.name, r.time, r.exerciseId || null, r.freq, r.days || [], r.date || null]);
+    // Las semanas de un programa se parecen (mismo ejercicio y hora) pero no son copias.
+    const key = JSON.stringify([r.profile, r.kind, r.name, r.time, r.exerciseId || null, r.freq, r.days || [], r.date || null, r.program || null, r.week || null]);
     groups.set(key, [...(groups.get(key) || []), r.id]);
   });
   const moved = {};

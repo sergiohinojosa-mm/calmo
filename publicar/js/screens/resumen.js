@@ -17,6 +17,21 @@ function leafRow(n) {
     <path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15z" fill="#9CC5A1"/><path d="M5 19 13 11" stroke="#0F1A14" stroke-width="1.6" stroke-linecap="round"/></svg>`).join('');
 }
 
+// «¿Cómo te sentiste?»: un solo toque, opcional. La maestra lo ve para ajustar la práctica.
+const FEEL_OPTIONS = [['tranquilo', 'En calma'], ['bien', 'Bien'], ['costo', 'Me costó']];
+function feelCard(store, p, r) {
+  const s = store.sessions(p.id).find((x) => x.id === r.sessionId);
+  if (!s) return '';
+  const t = store.teacher();
+  return `<div class="card" style="margin-top:18px" id="feel">
+    <p style="margin:0;font-weight:600">¿Cómo te sentiste?</p>
+    <div class="seg" role="group" aria-label="¿Cómo te sentiste?" style="margin-top:10px">
+      ${FEEL_OPTIONS.map(([k, label]) => `<button type="button" data-feel="${k}" aria-pressed="${s.feel === k}">${label}</button>`).join('')}
+    </div>
+    <p class="muted" id="feelNote" style="margin:8px 0 0;font-size:12px">${s.feel ? '¡Gracias!' : t ? `Opcional. ${esc(t.name)} lo ve para ajustar tu práctica.` : 'Opcional.'}</p>
+  </div>`;
+}
+
 export default {
   full: false,
   tab: false,
@@ -74,6 +89,7 @@ export default {
         ? `<p class="sub">${exName} · ${mins} min${r.routineName ? ` · ${esc(r.routineName)} cumplida` : ''}</p>`
         : `<p class="sub">${exName}</p><p style="margin:8px 0 0;font-size:17px;line-height:1.45">Hoy hiciste ${mins} min. ${nextTime}</p>`}
     </div>
+    ${feelCard(store, p, r)}
     ${earned.map((b) => `<div class="card" style="margin-top:18px;text-align:center;border-color:rgba(226,204,148,0.4)">
       <span class="chip arena">${icon('star', 14)} ¡Nueva insignia!</span>
       <p class="h2" style="margin-top:10px">${esc(b.name)}</p><p class="sub">${esc(kid ? (b.kidDesc || b.desc) : b.desc)}</p></div>`).join('')}
@@ -96,6 +112,13 @@ export default {
   },
   mount(root, ctx) {
     confetti();
+    root.querySelector('#feel')?.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-feel]');
+      if (!b) return;
+      ctx.store.setSessionFeel(last().sessionId, b.dataset.feel);
+      root.querySelectorAll('[data-feel]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      root.querySelector('#feelNote').textContent = '¡Gracias!';
+    });
     // Peque escucha la felicitación con la misma voz genérica de la sesión, una sola vez por sesión.
     const r = last();
     const p = ctx && ctx.profile;

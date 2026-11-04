@@ -10,6 +10,7 @@ const calendario = (await import('../../web/js/screens/calendario.js')).default;
 const mensajes = (await import('../../web/js/screens/mensajes.js')).default;
 const alumnos = (await import('../../web/js/screens/alumnos.js')).default;
 const alumno = (await import('../../web/js/screens/alumno.js')).default;
+const familia = (await import('../../web/js/screens/familia.js')).default;
 
 // Familia con maestra: la maestra entra con su usuario y la familia vuelve a su perfil.
 function escena() {
@@ -123,16 +124,29 @@ prueba('Inicio: la nota trae «Marcar como leída», «Responder» y la X; al le
   incluye(pantalla(mensajes), '¡Vas muy bien!', 'la nota leída debe seguir en Mensajes');
 });
 
-prueba('las niñas ven «Ya la leí» y no tienen Responder ni Mensajes', () => {
+prueba('las niñas ven «Ya la leí», pueden responder y tienen Mensajes', () => {
   const { Ana, t } = escena();
   como(t.id, () => store.addNote(Ana.id, '¡Muy bien, Ana!'));
   como(Ana.id, () => {
     const html = pantalla(inicio);
     incluye(html, 'Ya la leí');
-    noIncluye(html, 'Responder');
-    noIncluye(pantalla(perfil), '#/mensajes');
-    noIncluye(pantalla(mensajes), '<form');
+    incluye(html, 'Responder');
+    incluye(pantalla(perfil), '#/mensajes');
+    incluye(pantalla(mensajes), '<form', 'Ana debe poder escribirle a la maestra');
+    incluye(pantalla(mensajes), 'papá o mamá también lo ven');
   });
+});
+
+prueba('papá ve la conversación de su hija sin escribir ni marcarla como leída', () => {
+  const { Ana, t } = escena();
+  como(t.id, () => store.addNote(Ana.id, '¡Muy bien, Ana!'));
+  como(Ana.id, () => store.addNote(Ana.id, '¡Gracias!'));
+  const html = pantalla(mensajes, [], `p=${Ana.id}`);
+  incluye(html, 'Mensajes de Ana');
+  incluye(html, '¡Gracias!');
+  noIncluye(html, '<form');
+  igual(store.unreadNotes(Ana.id).length, 1, 'la nota de Ana sigue sin leer para ella');
+  incluye(pantalla(familia), `#/mensajes?p=${Ana.id}`, 'Familia debe llevar a la conversación de Ana');
 });
 
 prueba('Mi perfil lleva a Mensajes con el nombre de la maestra y cuenta lo nuevo', () => {

@@ -11,6 +11,7 @@ import { bubbles } from './mensajes.js';
 // Notas de un toque; también se puede escribir una propia.
 // Lo que se lleva escrito para cada alumno sigue ahí si la pantalla se vuelve a dibujar.
 const drafts = {};
+const FEEL = { tranquilo: 'En calma', bien: 'Bien', costo: 'Le costó' };
 const QUICK_NOTES = ['¡Vas muy bien!', 'Practica antes de dormir', 'Respira suave y por la nariz', 'Mantén la boca cerrada al caminar'];
 
 const shortDate = (iso) => {
@@ -80,7 +81,7 @@ export default {
       ${sessions.length ? sessions.map((s) => `<div class="between" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px">
         <span style="min-width:0"><span style="display:block;font-size:14px">${esc(byId(s.exerciseId) ? nameFor(byId(s.exerciseId), 'adulto') : 'Sesión')}</span>
         <span class="muted" style="font-size:12px">${shortDate(s.startedAt)} · ${clockOf(s.startedAt)}${s.controlPauses?.length ? ` · pausas ${s.controlPauses.join(' → ')} s` : ''}</span></span>
-        <span class="muted" style="flex:none">${Math.max(1, Math.floor(s.durationSec / 60))} min${s.routineId ? '' : ' · extra'}</span></div>`).join('') : '<p class="muted" style="margin:8px 0">Todavía no hay sesiones.</p>'}
+        <span class="muted" style="flex:none;text-align:right">${Math.max(1, Math.floor(s.durationSec / 60))} min${s.routineId ? '' : ' · extra'}${s.feel ? `<br>${FEEL[s.feel]}` : ''}</span></div>`).join('') : '<p class="muted" style="margin:8px 0">Todavía no hay sesiones.</p>'}
     </div>`;
 
     return `<div class="top"><a class="icon-btn" href="#/alumnos" aria-label="Volver">${icon('back', 20)}</a><span></span></div>

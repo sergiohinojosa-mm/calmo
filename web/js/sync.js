@@ -28,7 +28,9 @@ export async function api(action, payload = {}) {
   let res;
   try {
     // text/plain evita la verificación previa de CORS que Apps Script no responde.
-    res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, token: s?.token, ...payload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+    const body = JSON.stringify({ action, token: s?.token, ...payload });
+    // keepalive deja terminar el envío aunque se cierre la app (el navegador lo limita a 64 KB).
+    res = await fetch(API_URL, { method: 'POST', body, keepalive: body.length < 60000, headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
   } catch (e) {
     return { ok: false, offline: true, error: 'Sin conexión. Tus cambios se guardan en el teléfono.' };
   }
@@ -111,4 +113,9 @@ if (enabled()) {
   setInterval(() => { if (document.visibilityState === 'visible' && !sending) pull(); }, 45000);
   window.addEventListener('online', () => push(true));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(); });
+  // Al salir de la app (cambiar de app, bloquear el teléfono) se envía ya lo pendiente,
+  // sin esperar los 1.5 s: así no queda nada sin subir hasta la próxima vez que se abra.
+  const flush = () => { if (dirty && !sending) { clearTimeout(timer); send(); } };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+  window.addEventListener('pagehide', flush);
 }
