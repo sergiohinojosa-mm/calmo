@@ -99,6 +99,8 @@ async function render() {
     if (store.profile()?.role !== 'maestra') store.ensureTeacher(sync.session().usuario.nombre);
     if (!TEACHER_SCREENS.has(name)) name = 'alumnos';
   } else if (!store.profiles().length) name = 'bienvenida';
+  // El tablero de la maestra es solo suyo.
+  else if (['alumnos', 'alumno', 'asignar'].includes(name)) name = 'inicio';
   else if (store.profile()?.kind === 'peque' && !PEQUE_SCREENS.has(name)) name = 'inicio';
   let mod;
   try {
