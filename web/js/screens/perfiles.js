@@ -1,6 +1,7 @@
 // Administrar perfiles de la familia (solo adultos administradores).
 
 import { esc, icon, toast, avatar, askConfirm, askPin, nameKey } from '../ui.js';
+import * as sync from '../sync.js';
 
 const KINDS = [['adulto', 'Adulto'], ['junior', 'Junior'], ['peque', 'Peque']];
 
@@ -55,7 +56,9 @@ export default {
         <p class="muted" style="margin:0">Peque hasta 6 años · Junior de 7 a 15 · Adulto desde 16.</p>
         <p class="err" role="alert" style="margin:0;color:var(--brasa);font-size:13px;min-height:16px"></p>
         <button class="btn primary block" type="submit">${icon('plus', 18)} Agregar perfil</button>
-      </form>`;
+      </form>
+      ${sync.isAdmin() ? `<a class="card row" href="#/usuarios" style="margin-top:12px;color:inherit;text-decoration:none">${icon('users', 22, 'style="color:var(--arena);flex:none"')}
+        <span style="flex:1;min-width:0"><span style="display:block;font-weight:600">¿Es la maestra?</span><span class="muted">No se agrega aquí: créale su usuario con el rol Maestra</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>` : ''}`;
   },
   mount(root, ctx) {
     const { store, rerender } = ctx;

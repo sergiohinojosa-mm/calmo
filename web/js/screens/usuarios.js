@@ -32,11 +32,12 @@ export default {
       <form id="user" class="card stack" novalidate>
         <label class="stack" style="gap:6px"><span class="muted">Nombre</span><input class="field" name="nombre" maxlength="32" autocomplete="off"></label>
         <label class="stack" style="gap:6px"><span class="muted">Usuario (sin espacios)</span><input class="field" name="usuario" maxlength="32" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off"></label>
-        <div class="seg" role="group" aria-label="Rol">
+        <div class="stack" style="gap:6px"><span class="muted" id="rol-l">Rol</span>
+        <div class="seg" role="group" aria-labelledby="rol-l">
           <button type="button" data-rol="adulto" aria-pressed="true">Adulto</button>
           <button type="button" data-rol="admin" aria-pressed="false">Administrador</button>
           <button type="button" data-rol="maestra" aria-pressed="false">Maestra</button>
-        </div>
+        </div></div>
         <label class="stack" style="gap:6px"><span class="muted">Contraseña inicial (mínimo 6)</span><input class="field" name="password" type="password" autocomplete="new-password"></label>
         <p class="err" role="alert" style="margin:0;color:var(--brasa);font-size:14px;min-height:20px"></p>
         <button class="btn primary block" type="submit">${icon('plus', 18)} Guardar usuario</button>

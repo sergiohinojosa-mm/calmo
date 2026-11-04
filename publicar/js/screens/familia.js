@@ -1,5 +1,6 @@
 import { esc, icon, bar, avatar } from '../ui.js';
 import { familyCard, manageGoals } from './perfil.js';
+import * as sync from '../sync.js';
 
 const KIND = { adulto: 'Adulto', junior: 'Junior', peque: 'Peque' };
 
@@ -69,7 +70,10 @@ export default {
       <div class="stack" style="margin-top:10px">${store.familyMembers().filter((x) => x.id !== me.id).map((x) => familyCard(store, x)).join('')}</div>` : ''}
       <a class="card row" href="${kidView ? '#/premios' : '#/premiosadmin'}" style="margin-top:14px;color:inherit;text-decoration:none">${icon('gift', 22, 'style="color:var(--arena);flex:none"')}
         <span style="flex:1"><span style="display:block;font-weight:600">${kidView ? 'Mis premios' : 'Premios de la familia'}</span>${!kidView && store.pendingRedemptions().length ? `<span class="muted">${store.pendingRedemptions().length} por aprobar</span>` : ''}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
-      ${kidView ? '' : `<div class="tile row" style="margin-top:14px">${icon('users', 20, 'style="color:var(--arena);flex:none"')}<span class="sub" style="margin:0">Tu maestra de respiración ve el avance y asigna prácticas con su propia cuenta (Ajustes → Cuenta y usuarios, rol Maestra).</span></div>`}`;
+      ${kidView ? '' : sync.isAdmin()
+    ? `<a class="card row" href="#/usuarios" style="margin-top:14px;color:inherit;text-decoration:none">${icon('users', 22, 'style="color:var(--arena);flex:none"')}
+        <span style="flex:1;min-width:0"><span style="display:block;font-weight:600">Cuenta de la maestra</span><span class="muted">Créale su usuario con el rol Maestra</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>`
+    : `<div class="tile row" style="margin-top:14px">${icon('users', 20, 'style="color:var(--arena);flex:none"')}<span class="sub" style="margin:0">Tu maestra de respiración ve el avance y asigna prácticas con su propia cuenta (Ajustes → Cuenta y usuarios, rol Maestra).</span></div>`}`;
   },
   mount(root, ctx) {
     return ctx.profile.kind === 'adulto' ? manageGoals(root, ctx) : null;
