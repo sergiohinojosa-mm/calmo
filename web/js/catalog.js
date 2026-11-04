@@ -22,7 +22,7 @@ export const goalLabel = (goal, kind) => (kind === 'adulto' ? GOALS[goal].label 
 export const EXERCISES = [
   {
     id: 'coherente', name: 'Respiración coherente', kidName: 'Respira como las olas', goal: 'equilibrio', pattern: '5.5 · 5.5',
-    profiles: ['adulto', 'junior'], phases: [['in', 5.5], ['out', 5.5]], defaultMin: 10, juniorMin: 5,
+    profiles: ['adulto', 'junior'], phases: [['in', 5.5], ['out', 5.5]], juniorPhases: [['in', 4], ['out', 4]], defaultMin: 10, juniorMin: 5,
     desc: 'Entre 5 y 6 respiraciones por minuto, suaves y por la nariz. Equilibra tu ritmo y baja el estrés.',
     steps: ['Siéntate erguido y relaja los hombros.', 'Cierra la boca: todo es por la nariz.', 'Inhala suave 5.5 segundos.', 'Exhala sin prisa 5.5 segundos.', 'Respira con el diafragma, sin levantar los hombros.'],
     hints: ['Respira con el diafragma, sin levantar los hombros.', 'Inhala suave, sin llenar del todo.', 'Exhala sin prisa, como una brisa.', 'Hombros sueltos, mandíbula relajada.'],
@@ -88,11 +88,12 @@ export const EXERCISES = [
   },
   {
     id: 'suspiro', name: 'Suspiro cíclico', kidName: 'Dos sorbitos de aire', goal: 'calma', pattern: '2 + 1 · 6',
-    profiles: ['adulto', 'junior'], phases: [['in', 2], ['in', 1, 'Un poquito más'], ['out', 6]], defaultMin: 3, maxMin: 5, juniorMin: 2,
-    desc: 'Doble inhalación y una exhalación larga, todo por la nariz. Baja el estrés en pocos minutos.',
+    // Herramienta puntual para un momento de estrés: no se agenda como rutina.
+    profiles: ['adulto', 'junior'], phases: [['in', 2], ['in', 1, 'Un poquito más'], ['out', 6]], defaultMin: 3, maxMin: 5, juniorMin: 2, puntual: true,
+    desc: 'Doble inhalación y una exhalación larga, todo por la nariz. Para un momento de estrés; después vuelve a respirar ligero.',
     steps: ['Inhala por la nariz.', 'Toma un poquito más de aire.', 'Exhala largo por la nariz.'],
     hints: ['La segunda inhalación es pequeña.', 'Exhala hasta vaciar sin forzar.'],
-    kidDesc: 'Dos sorbitos de aire por la nariz y lo sueltas largo, también por la nariz. Para cuando sientes nervios o enojo.',
+    kidDesc: 'Dos sorbitos de aire por la nariz y lo sueltas largo, también por la nariz. Para un momento de nervios o enojo; después respira suavecito.',
     kidSteps: ['Toma aire por la nariz.', 'Toma un sorbito más.', 'Suéltalo largo por la nariz.'],
     kidHints: ['El segundo sorbito es chiquito.', 'Suéltalo largo, sin prisa.'],
     kidPattern: 'Dos sorbitos y suelta largo',

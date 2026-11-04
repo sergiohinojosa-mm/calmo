@@ -15,7 +15,8 @@ function presets(kind) {
   ];
 }
 
-const exOptions = (kind, selected) => exercisesFor(kind).filter((e) => e.mode !== 'serie')
+// Lo puntual (como el suspiro cíclico) no se agenda, salvo que la rutina ya lo tenga.
+const exOptions = (kind, selected) => exercisesFor(kind).filter((e) => e.mode !== 'serie' && (!e.puntual || e.id === selected))
   .map((e) => `<option value="${e.id}" ${e.id === selected ? 'selected' : ''}>${esc(nameFor(e, kind))}</option>`).join('');
 
 // Minutos que se ofrecen según la edad, sin pasar del máximo del ejercicio.
@@ -60,7 +61,7 @@ function initial(ctx, r) {
   const asked = query.get('p');
   const profile = r ? r.profile : (asked && store.canManage(me.id, asked) ? asked : me.id);
   const kind = store.profile(profile).kind;
-  const first = exercisesFor(kind).find((e) => e.mode !== 'serie');
+  const first = exercisesFor(kind).find((e) => e.mode !== 'serie' && !e.puntual);
   if (!r) {
     const min = nearest(durationsFor(kind, first), defaultMin(kind, first));
     return { profile, kind: 'sesion', exerciseId: first?.id, min, time: '05:30', freq: 'daily', days: [], date: dayKey(), name: '' };

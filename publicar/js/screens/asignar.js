@@ -20,8 +20,8 @@ export default {
     const { store, query } = ctx;
     const people = store.familyMembers();
     const pre = query.get('p');
-    // Ejercicios que sirven a adultos y Junior (Peque tiene los suyos).
-    const shared = exercisesFor('junior').filter((e) => e.mode !== 'serie');
+    // Ejercicios que sirven a adultos y Junior (Peque tiene los suyos). Lo puntual no se asigna.
+    const shared = exercisesFor('junior').filter((e) => e.mode !== 'serie' && !e.puntual);
     const peque = exercisesFor('peque');
     if (!people.length) return `<div class="top"><h1 class="h1">Asignar</h1></div><p class="sub">Todavía no hay alumnos.</p>`;
     return `<div class="top">${pre ? `<a class="icon-btn" href="#/alumno/${esc(pre)}" aria-label="Volver">${icon('back', 20)}</a>` : ''}<h1 class="h1">Asignar práctica</h1></div>

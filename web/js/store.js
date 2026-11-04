@@ -52,7 +52,7 @@ const listeners = new Set();
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...seed(), ...JSON.parse(raw) };
+    if (raw) return stepsGoal60({ ...seed(), ...JSON.parse(raw) });
   } catch (e) { /* almacenamiento no disponible */ }
   return seed();
 }
@@ -145,7 +145,7 @@ export function setCurrent(id) {
 }
 
 export function goals(id = state.current) {
-  return { bolt: 40, steps: 80, weekly: 150, ...(state.goals[id] || {}) };
+  return { bolt: 40, steps: 60, weekly: 150, ...(state.goals[id] || {}) };
 }
 
 export function setGoal(id, key, value) {
@@ -538,8 +538,21 @@ export function clearPin(id) {
 
 // ---------- Administrar perfiles ----------
 
+// La meta de pasos de los adultos bajó de 80 a 60 (la serie guarda pasos con falta de aire moderada).
+// Solo cambia a quien sigue con el 80 de fábrica: si alguien la ajustó a mano, se respeta.
+// La fecha fija hace que todos los teléfonos lleguen al mismo resultado al juntar metas.
+// Va dentro de la función porque load() la usa antes de que se lea el resto del módulo.
+function stepsGoal60(st) {
+  const STEPS_60_AT = Date.UTC(2026, 10, 3);
+  (st.profiles || []).forEach((p) => {
+    const g = st.goals?.[p.id];
+    if (p.kind === 'adulto' && g && g.steps === 80 && !g.at?.steps) st.goals[p.id] = { ...g, steps: 60, at: { ...(g.at || {}), steps: STEPS_60_AT } };
+  });
+  return st;
+}
+
 const DEFAULT_GOALS = {
-  adulto: { bolt: 40, steps: 80, weekly: 150 },
+  adulto: { bolt: 40, steps: 60, weekly: 150 },
   junior: { bolt: 20, steps: 40, weekly: 40 },
   peque: { bolt: 10, steps: 20, weekly: 10 },
 };
@@ -728,7 +741,7 @@ export function cleanState(raw) {
   if (!raw || typeof raw !== 'object') return null;
   // Un ejercicio que esta versión no conoce (de una versión más nueva) se conserva.
   const exercise = (v) => (isId(v) ? v : null);
-  return {
+  return stepsGoal60({
     ...seed(),
     v: 1,
     familyName: str(raw.familyName, 40),
@@ -739,7 +752,7 @@ export function cleanState(raw) {
       admin: !!p.admin, role: p.role === 'maestra' ? 'maestra' : undefined, updatedAt: num(p.updatedAt),
     }) : null)),
     goals: idMap(raw.goals, (g) => (g && typeof g === 'object' ? opt({
-      bolt: num(g.bolt, 40), steps: num(g.steps, 80), weekly: num(g.weekly, 150), updatedAt: num(g.updatedAt),
+      bolt: num(g.bolt, 40), steps: num(g.steps, 60), weekly: num(g.weekly, 150), updatedAt: num(g.updatedAt),
       at: g.at && typeof g.at === 'object' ? Object.fromEntries(['bolt', 'steps', 'weekly'].filter((k) => Number.isFinite(g.at[k])).map((k) => [k, g.at[k]])) : undefined,
     }) : undefined)),
     routines: list(raw.routines, (r) => (r && isId(r.id) && isId(r.profile) ? opt({
@@ -786,7 +799,7 @@ export function cleanState(raw) {
       };
     })(),
     updatedAt: num(raw.updatedAt),
-  };
+  });
 }
 
 // Lo borrado (perfiles y rutinas sin historia) se recuerda para que otro teléfono no lo reviva.
