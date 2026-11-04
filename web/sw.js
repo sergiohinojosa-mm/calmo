@@ -1,11 +1,11 @@
 // Guarda la app en el teléfono para que funcione sin internet.
 // Sube VERSION y V (el mismo ?v= de index.html) cada vez que publiques cambios.
-const VERSION = 'calmo-v12';
-const V = '13';
+const VERSION = 'calmo-v13';
+const V = '14';
 
 const SCREENS = [
-  'ajustes', 'bienvenida', 'bolt', 'calendario', 'cambiar', 'catalogo', 'configurar', 'consejos',
-  'familia', 'ingresar', 'inicio', 'logros', 'pasos', 'perfil', 'perfiles', 'planear', 'premios', 'premiosadmin', 'progreso',
+  'alumno', 'alumnos', 'asignar', 'ajustes', 'bienvenida', 'bolt', 'calendario', 'cambiar', 'catalogo', 'configurar', 'consejos',
+  'familia', 'ingresar', 'inicio', 'logros', 'perfil', 'perfiles', 'planear', 'premios', 'premiosadmin', 'progreso',
   'resumen', 'serie', 'sesion', 'usuarios',
 ];
 
@@ -27,7 +27,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys()
-    .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+    .then((keys) => Promise.all(keys.filter((k) => k !== VERSION && k !== 'calmo-fuentes').map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -47,11 +47,13 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // Abrir la app: red primero, sin esperar más de 3 s; si no, la copia guardada.
+  // Abrir la app: red primero, sin esperar más de 3 s; si no responde o responde con error
+  // (por ejemplo, a la mitad de una publicación), la copia guardada.
   if (req.mode === 'navigate') {
+    const saved = () => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match('index.html'));
     e.respondWith(
-      Promise.race([fetch(req).then((res) => keep(req, res)), timeout(3000)])
-        .catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match('index.html'))),
+      Promise.race([fetch(req).then((res) => (res.ok ? keep(req, res) : saved().then((r) => r || res))), timeout(3000)])
+        .catch(saved),
     );
     return;
   }
@@ -68,6 +70,16 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Fuentes y otros sitios: red y, si falla, lo guardado si existe.
+  // Fuentes de Google: se guardan la primera vez para usarlas sin internet.
+  if (url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com') {
+    e.respondWith(caches.open('calmo-fuentes').then((c) => c.match(req).then((hit) => hit || fetch(req).then((res) => {
+      // La hoja de estilos de las fuentes llega opaca (sin CORS); también se guarda.
+      if (res.ok || res.type === 'opaque') c.put(req, res.clone()).catch(() => {});
+      return res;
+    }))));
+    return;
+  }
+
+  // Otros sitios: red y, si falla, lo guardado si existe.
   e.respondWith(fetch(req).catch(() => caches.match(req).then((r) => r || Response.error())));
 });

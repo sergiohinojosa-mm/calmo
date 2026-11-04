@@ -4,9 +4,9 @@
 
 export const PHASE = {
   in: { label: 'Inhala', kid: 'Toma aire', color: '#B9DEC3', freq: 523.25 },
-  hold: { label: 'Retén', kid: 'Aguanta', color: '#E2CC94', freq: 440 },
+  hold: { label: 'Retén', kid: 'Guarda el aire', color: '#E2CC94', freq: 440 },
   out: { label: 'Exhala', kid: 'Suelta el aire', color: '#6FA58A', freq: 349.23 },
-  wait: { label: 'Espera', kid: 'Descansa', color: '#7C8F84', freq: 293.66 },
+  wait: { label: 'Espera', kid: 'Espera sin aire', color: '#7C8F84', freq: 293.66 },
 };
 
 export const GOALS = {
@@ -40,7 +40,7 @@ export const EXERCISES = [
     kidDesc: 'Suelta el aire más lento de lo que lo tomas. Te ayuda a calmarte.',
     kidSteps: ['Toma aire por la nariz contando 4.', 'Suéltalo por la nariz contando 6, muy despacito.'],
     kidHints: ['Suelta el aire despacito, como una pluma.', 'Afloja los hombros.'],
-    kidPattern: '4 · 6',
+    kidPattern: 'Toma 4, suelta 6',
   },
   {
     id: 'triangulo', name: 'Triángulo', kidName: 'El triángulo', goal: 'enfoque', pattern: '4 · 4 · 4',
@@ -51,6 +51,7 @@ export const EXERCISES = [
     kidDesc: 'Tres pasos iguales: tomas aire, lo guardas y lo sueltas. Te ayuda a concentrarte.',
     kidSteps: ['Toma aire por la nariz contando 4.', 'Guárdalo contando 4.', 'Suéltalo por la nariz contando 4.'],
     kidHints: ['Imagina que dibujas un triángulo.', 'Todo por la nariz.'],
+    kidPattern: 'Toma 4, guarda 4, suelta 4',
   },
   {
     id: 'cuadrada', name: 'Respiración cuadrada', kidName: 'La caja', goal: 'enfoque', pattern: '4 · 4 · 4 · 4', minBolt: 10,
@@ -59,8 +60,9 @@ export const EXERCISES = [
     steps: ['Inhala por la nariz 4 segundos.', 'Retén 4.', 'Exhala por la nariz 4 segundos.', 'Espera 4 sin tomar aire.'],
     hints: ['Imagina que dibujas un cuadrado.', 'Cada lado dura lo mismo.'],
     kidDesc: 'Cuatro pasos iguales, como los lados de una caja. Ayuda antes de un examen.',
-    kidSteps: ['Toma aire por la nariz contando 4.', 'Guárdalo contando 4.', 'Suéltalo por la nariz contando 4.', 'Descansa contando 4.'],
+    kidSteps: ['Toma aire por la nariz contando 4.', 'Guárdalo contando 4.', 'Suéltalo por la nariz contando 4.', 'Espera sin tomar aire contando 4.'],
     kidHints: ['Dibuja una caja con tu respiración.', 'Cada lado dura lo mismo.'],
+    kidPattern: 'Toma 4, guarda 4, suelta 4, espera 4',
   },
   {
     id: 'alterna', name: 'Respiración alterna', kidName: 'Un lado y el otro', goal: 'equilibrio', pattern: '4 · 4 · 4', alternate: true,
@@ -71,16 +73,18 @@ export const EXERCISES = [
     kidDesc: 'Respiras por un lado de la nariz y luego por el otro.',
     kidSteps: ['Tapa un lado de la nariz con el dedo y toma aire por el otro.', 'Tapa los dos lados y guarda el aire.', 'Destapa el otro lado y suelta el aire.', 'La pantalla te dice qué lado sigue.'],
     kidHints: ['Solo se mueven tus dedos.'],
+    kidPattern: 'Toma 4, guarda 4, suelta 4',
   },
   {
     id: '478', name: '4-7-8', kidName: 'Respira para dormir', goal: 'dormir', pattern: '4 · 7 · 8', minBolt: 10,
-    profiles: ['adulto', 'junior'], phases: [['in', 4], ['hold', 7], ['out', 8]], defaultMin: 5, juniorMin: 3,
-    desc: 'Para conciliar el sueño. Al inicio puede marear un poco: hazlo acostado.',
+    profiles: ['adulto', 'junior'], phases: [['in', 4], ['hold', 7], ['out', 8]], defaultMin: 1, maxMin: 3, juniorMin: 1,
+    desc: 'Para conciliar el sueño. Empieza con 4 ciclos (más o menos 1 minuto); después de un mes puedes llegar a 8. Al inicio puede marear un poco: hazlo acostado.',
     steps: ['Inhala 4 por la nariz.', 'Retén 7.', 'Exhala 8 por la nariz, muy despacio.'],
     hints: ['Afloja la cara y la mandíbula.', 'Deja que el cuerpo pese.'],
     kidDesc: 'Para dormir. Hazlo en la cama, con la luz apagada.',
     kidSteps: ['Toma aire por la nariz contando 4.', 'Guárdalo contando 7.', 'Suéltalo por la nariz contando 8, muy despacito.'],
     kidHints: ['Deja que tu cuerpo pese.', 'Afloja la cara.'],
+    kidPattern: 'Toma 4, guarda 7, suelta 8',
   },
   {
     id: 'suspiro', name: 'Suspiro cíclico', kidName: 'Dos sorbitos de aire', goal: 'calma', pattern: '2 + 1 · 6',
@@ -105,13 +109,13 @@ export const EXERCISES = [
   {
     id: 'ligero', name: 'Respira ligero en reposo', kidName: 'Respira suavecito', goal: 'bolt', pattern: 'Bloques de 4 + 1 min', mode: 'ligero', reduced: true,
     profiles: ['adulto', 'junior'], phases: [['in', 3], ['out', 4]], defaultMin: 10, juniorMin: 5, blockOn: 240, blockOff: 60, juniorBlockOn: 120,
-    desc: 'Respiración reducida (Oxygen Advantage): respira menos aire, suave y lento, hasta sentir una falta de aire leve y tolerable.',
-    steps: ['Siéntate erguido, con los hombros relajados.', 'Respira con el diafragma, un poco menos de lo que tu cuerpo pide.', 'Suaviza la respiración hasta que casi no se note.', 'Si la falta de aire es fuerte, respira normal 15 segundos.'],
+    desc: 'Respiración reducida (Oxygen Advantage): respira por la nariz menos aire, suave y lento, hasta sentir una falta de aire leve y tolerable.',
+    steps: ['Siéntate erguido, con los hombros relajados.', 'Respira por la nariz con el diafragma, un poco menos de lo que tu cuerpo pide.', 'Suaviza la respiración hasta que casi no se note.', 'Si la falta de aire es fuerte, respira normal 15 segundos.'],
     hints: ['Respira un poco menos de lo que tu cuerpo pide.', 'Suaviza la respiración hasta que casi no se note.', 'Relaja los hombros y la mandíbula.', 'Si la falta de aire se vuelve fuerte, toca «Necesito aire».'],
     kidDesc: 'Respira suavecito por la nariz, tan bajito que casi no se oiga.',
     kidSteps: ['Siéntate con la espalda recta y cierra la boca.', 'Respira por la nariz, muy suavecito.', 'Tan bajito que casi no se oiga.', 'Si te falta el aire, toca «Necesito aire» y respira normal.'],
     kidHints: ['Suavecito, como un ratón.', 'Tan bajito que casi no se oiga.', 'Afloja los hombros.', 'Si te falta el aire, toca «Necesito aire».'],
-    kidPattern: 'Bloques de 2 + 1 min',
+    kidPattern: '2 min suavecito y 1 de descanso',
   },
   {
     id: 'pausas', name: 'Respiración reducida con pausas de control', kidName: 'Respira suave y mide', goal: 'bolt', pattern: '3 rondas', mode: 'pausas', reduced: true, minBolt: 10,
@@ -119,10 +123,10 @@ export const EXERCISES = [
     desc: 'Respiración reducida (Buteyko): mides tu pausa de control, respiras reducido y vuelves a medir para ver cuánto mejoras.',
     steps: ['Mide tu pausa de control: exhala, tapa la nariz y toca al primer deseo de respirar.', 'Recupera 15 segundos.', 'Respira reducido 3 minutos.', 'Mide otra vez. Se repite 3 rondas.'],
     hints: ['Respira un poco menos de lo que tu cuerpo pide.', 'Suave y lento, por la nariz.'],
-    kidDesc: 'Mides cuánto aguantas, respiras suavecito un rato y vuelves a medir para ver cuánto mejoras.',
+    kidDesc: 'Mides cuándo te pide aire tu cuerpo, respiras suavecito un rato y vuelves a medir para ver cuánto mejoras.',
     kidSteps: ['Suelta el aire normal y tápate la nariz. Toca cuando quieras respirar.', 'Descansa un poquito.', 'Respira suavecito por la nariz 2 minutos.', 'Vuelve a medir.'],
     kidHints: ['Suavecito, por la nariz.', 'Tan bajito que casi no se oiga.'],
-    kidPattern: '2 rondas',
+    kidPattern: '3 retos del aire',
   },
   {
     id: 'caminando', name: 'Retenciones caminando', kidName: 'Camina sin respirar', goal: 'bolt', pattern: '6 a 10 · 60 s de recuperación', mode: 'serie',
@@ -131,7 +135,7 @@ export const EXERCISES = [
     steps: ['Exhala normal y tápate la nariz.', 'Camina contando pasos hasta una falta de aire moderada.', 'Suelta y recupera 60 segundos por la nariz.', 'Repite de 6 a 10 veces.'],
     kidDesc: 'Caminas sin respirar y cuentas tus pasos. Luego descansas 60 segundos.',
     kidSteps: ['Suelta el aire normal y tápate la nariz.', 'Camina y cuenta tus pasos.', 'Cuando quieras respirar, suelta y respira por la nariz.', 'Descansa 60 segundos y repite.'],
-    kidPattern: '6 a 10 vueltas · 60 s de descanso',
+    kidPattern: '6 a 10 vueltas y 1 min de descanso',
   },
   {
     id: 'flor', name: 'Huele la flor', goal: 'calma', pattern: '1 minuto', profiles: ['peque'],
@@ -140,12 +144,12 @@ export const EXERCISES = [
   },
   {
     id: 'vela', name: 'La vela tranquila', goal: 'calma', pattern: '2 minutos', profiles: ['peque'],
-    phases: [['in', 3, 'Toma aire por la nariz'], ['out', 4, 'Suelta el aire por la nariz, que la llama no se apague']], defaultMin: 2, kidVisual: 'vela',
+    phases: [['in', 3, 'Toma aire por la nariz'], ['out', 4, 'Suelta por la nariz, despacito']], defaultMin: 2, kidVisual: 'vela',
     desc: 'Suelta el aire por la nariz tan suave que la llama no se apague.',
   },
   {
     id: 'raton', name: 'Respira como ratón', goal: 'calma', pattern: '3 minutos', profiles: ['peque'],
-    phases: [['in', 2, 'Suavecito por la nariz'], ['out', 2, 'Suavecito por la nariz']], defaultMin: 3, kidVisual: 'raton',
+    phases: [['in', 2, 'Huele suavecito por la nariz'], ['out', 2, 'Suelta suavecito por la nariz']], defaultMin: 3, kidVisual: 'raton',
     desc: 'Respiraciones pequeñitas y suaves por la nariz, como un ratón.',
   },
 ];

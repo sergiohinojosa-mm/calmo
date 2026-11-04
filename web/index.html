@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <title>Calmo</title>
   <meta name="theme-color" content="#101A15">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,16 +16,14 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Las fuentes cargan sin frenar la página: si algo las bloquea, se usa la del sistema. -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&display=swap"></noscript>
-  <link rel="stylesheet" href="css/app.css?v=13">
+  <!-- Las fuentes las agrega main.js sin frenar la página: si algo las bloquea, se usa la del sistema. -->
+  <link rel="stylesheet" href="css/app.css?v=14">
 </head>
 <body>
   <div id="app" class="app">
     <main id="view" class="view"></main>
     <nav id="tabs" class="tabs" aria-label="Navegación principal"></nav>
   </div>
-  <script type="module" src="js/main.js?v=13"></script>
+  <script type="module" src="js/main.js?v=14"></script>
 </body>
 </html>

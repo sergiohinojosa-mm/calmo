@@ -17,7 +17,8 @@ const toMin = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return h *
 
 // La rutina pendiente que toca ahora: la próxima por venir o, si ya pasaron todas, la más reciente.
 function nextPractice(store, p) {
-  const items = store.agenda(p.id, new Date()).filter((i) => i.type === 'plan' && i.routine.kind === 'sesion');
+  // Una rutina con un ejercicio que esta versión no conoce no se ofrece.
+  const items = store.agenda(p.id, new Date()).filter((i) => i.type === 'plan' && i.routine.kind === 'sesion' && i.exercise);
   const now = new Date().getHours() * 60 + new Date().getMinutes();
   const open = items.filter((i) => i.status === 'pendiente');
   const upcoming = open.filter((i) => toMin(i.time) >= now - 30).sort((a, b) => toMin(a.time) - toMin(b.time));
@@ -26,9 +27,23 @@ function nextPractice(store, p) {
   return { pending, done: items.filter((i) => i.status === 'hecha').length, total: items.length };
 }
 
+// Notas de la maestra sin leer: las del perfil y, para un adulto, las de Peque (que no lee).
+function teacherNotes(store, p) {
+  const mine = store.unreadNotes(p.id).map((n) => ({ n, who: null }));
+  const peque = p.kind === 'adulto' ? store.familyMembers().filter((x) => x.kind === 'peque').flatMap((x) => store.unreadNotes(x.id).map((n) => ({ n, who: x }))) : [];
+  return [...mine, ...peque].slice(0, 3).map(({ n, who }) => {
+    const t = store.profiles().find((x) => x.id === n.by && x.role === 'maestra');
+    return `<div class="card" style="border-color:rgba(185,222,195,0.35)">
+      <span class="chip sage">${icon('leaf', 14)} ${who ? `Nota para ${esc(who.name)}` : `${esc(t ? t.name : 'Tu maestra')} te dejó una nota`}</span>
+      <p style="margin:10px 0 0;font-size:16px;line-height:1.45">${esc(n.text)}</p>
+      <button class="btn small" data-note-read="${esc(n.id)}" style="margin-top:12px">${icon('check', 16)} Leída</button>
+    </div>`;
+  }).join('');
+}
+
 // Las rutinas de hoy (sesiones y BOLT) en orden, y cuál toca ahora.
 function todayPlan(store, p) {
-  const items = store.agenda(p.id, new Date()).filter((i) => i.type === 'plan');
+  const items = store.agenda(p.id, new Date()).filter((i) => i.type === 'plan' && (i.routine.kind === 'bolt' || i.exercise));
   const now = new Date().getHours() * 60 + new Date().getMinutes();
   const open = items.filter((i) => i.status === 'pendiente');
   const upcoming = open.filter((i) => toMin(i.time) >= now - 30).sort((a, b) => toMin(a.time) - toMin(b.time));
@@ -49,11 +64,11 @@ function planCarousel(store, p, kind) {
     // Las niñas van directo a la sesión; los adultos pasan por la pantalla de ajustes.
     const href = isBolt ? `#/bolt?rutina=${it.routine.id}` : `#/${kid ? 'sesion' : 'configurar'}/${ex.id}?min=${min}&rutina=${it.routine.id}`;
     const name = isBolt ? (kid ? 'Reto del aire' : 'Medir BOLT') : nameFor(ex, kind);
-    const detail = isBolt ? (kid ? 'Aguanta tranquila y cuenta tus segundos' : 'Al despertar es el más confiable') : `${min} min · ${esc(kid ? (ex.kidPattern || ex.pattern) : ex.pattern)} · por la nariz${kid ? ` · +${min + 5} hojas` : ''}`;
+    const detail = isBolt ? (kid ? 'Toca en cuanto sientas ganas de respirar' : 'Al despertar es el más confiable') : `${min} min · ${esc(kid ? (ex.kidPattern || ex.pattern) : ex.pattern)} · por la nariz${kid ? ` · +${min + 5} hojas` : ''}`;
     const isDone = it.status === 'hecha';
     return `<div class="card slide" role="group" aria-roledescription="rutina" aria-label="${i + 1} de ${items.length}: ${esc(it.title)} ${esc(it.time)}">
       <div class="between">
-        <span class="chip arena">${icon(isBolt ? 'timer' : 'repeat', 14)} ${esc(it.title)} · ${esc(it.time)}</span>
+        <span class="chip ${it.routine.source === 'maestra' ? 'sage' : 'arena'}">${icon(isBolt ? 'timer' : 'repeat', 14)} ${esc(it.title)} · ${esc(it.time)}</span>
         ${isDone ? `<span class="row" style="gap:4px;color:var(--hoja);font-size:13px">${icon('check', 15)} Hecha</span>` : `<span class="muted">${i + 1} de ${items.length}</span>`}
       </div>
       <h2 class="h2" style="margin-top:14px">${esc(name)}</h2>
@@ -61,7 +76,7 @@ function planCarousel(store, p, kind) {
       <a class="btn ${isDone ? '' : 'primary'} block" ${isBolt ? '' : 'data-audio'} style="margin-top:16px${kid && !isDone ? ';min-height:60px;font-size:19px' : ''}" href="${href}">${icon(isDone ? 'repeat' : 'play', 18)} ${isDone ? 'Hacer otra vez' : 'Empezar'}</a>
     </div>`;
   }).join('');
-  const dots = items.length > 1 ? `<div class="car-dots" role="tablist" aria-label="Rutinas de hoy">${items.map((it, i) => `<button type="button" role="tab" data-slide="${i}" aria-label="Ver ${esc(it.title)} ${esc(it.time)}" ${i === start ? 'aria-selected="true"' : 'aria-selected="false"'}><i></i></button>`).join('')}</div>` : '';
+  const dots = items.length > 1 ? `<div class="car-dots" role="group" aria-label="Rutinas de hoy">${items.map((it, i) => `<button type="button" data-slide="${i}" aria-label="Ver ${esc(it.title)} ${esc(it.time)}" aria-current="${i === start}"><i></i></button>`).join('')}</div>` : '';
   return `<div><div class="carousel" id="plan" data-start="${start}">${slides}</div>
     ${dots}<p class="muted" style="margin:4px 0 0;text-align:center">${done} de ${items.length} hechas hoy${items.length > 1 ? ' · desliza para ver las demás' : ''}</p></div>`;
 }
@@ -75,7 +90,7 @@ function installCard() {
   try { hidden = localStorage.getItem(INSTALL_KEY) === '1'; } catch (e) { /* sin almacenamiento */ }
   if (!ios || standalone || hidden || window.claude?.use) return '';
   return `<div class="card" id="install" style="border-color:rgba(226,204,148,0.35)">
-    <div class="between"><p class="h3" style="margin:0">Agrega Calmo a tu inicio</p>
+    <div class="between"><h2 class="h3" style="margin:0">Agrega Calmo a tu inicio</h2>
       <button class="icon-btn" data-install-close aria-label="Ocultar este aviso" style="background:transparent">${icon('x', 18)}</button></div>
     <p class="sub" style="margin-top:6px">Así abre en pantalla completa y tus datos no se borran.</p>
     <ol style="margin:10px 0 0;padding-left:20px;color:var(--text2);line-height:1.7;font-size:15px">
@@ -123,6 +138,7 @@ function adult(ctx) {
   return `${hero(p)}
   <div class="after-hero stack">
     ${installCard()}
+    ${teacherNotes(store, p)}
     ${planCarousel(store, p, 'adulto') || suggested}
     ${asks ? `<a class="card row" href="#/premiosadmin" style="color:inherit;text-decoration:none;border:1px solid rgba(226,204,148,0.35)">${icon('gift', 22, 'style="color:var(--arena);flex:none"')}
       <span style="flex:1;font-weight:600">${asks === 1 ? '1 premio por aprobar' : `${asks} premios por aprobar`}</span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>` : ''}
@@ -156,6 +172,7 @@ function junior(ctx) {
   return `${hero(p, levelLine)}
   <div class="after-hero stack">
     ${installCard()}
+    ${teacherNotes(store, p)}
     ${planCarousel(store, p, 'junior') || `<div class="card">
       <span class="chip sage">Para hoy</span>
       <h2 class="h2" style="margin-top:14px">${esc(nameFor(ex, 'junior'))}</h2>
@@ -164,7 +181,7 @@ function junior(ctx) {
     </div>`}
     <div class="grid3">
       <div class="tile">${icon('flame', 18, 'style="color:var(--brasa)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${store.streak(p.id)}</p><p class="muted" style="margin:2px 0 0">Días seguidos</p></div>
-      <div class="tile">${icon('leaf', 18, 'style="color:var(--hoja)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${lv.points}</p><p class="muted" style="margin:2px 0 0">Hojas</p></div>
+      <div class="tile">${icon('leaf', 18, 'style="color:var(--hoja)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${lv.points}</p><p class="muted" style="margin:2px 0 0">Hojas ganadas</p></div>
       <a class="tile" href="#/logros" style="color:inherit;text-decoration:none">${icon('star', 18, 'style="color:var(--arena)"')}<p class="num" style="margin:6px 0 0;font-size:24px">${earned}</p><p class="muted" style="margin:2px 0 0">Insignias</p></a>
     </div>
     ${next ? `<a class="card row" href="#/logros" style="color:inherit;text-decoration:none">
@@ -196,10 +213,10 @@ function peque(ctx) {
   return `<div style="padding-top:8px">
     <div class="between">
       <h1 class="h1" style="font-size:36px">Hola, ${esc(p.name)}</h1>
-      <svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><path d="M14 52 C 14 24, 36 10, 64 10 C 64 40, 48 62, 22 62 Z" fill="#9CC5A1"/><circle cx="34" cy="36" r="3" fill="#0F1A14"/><circle cx="48" cy="30" r="3" fill="#0F1A14"/><path d="M36 46 q7 5 13 -3" stroke="#0F1A14" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="28" cy="44" r="4" fill="#E9B27D" opacity=".7"/><circle cx="56" cy="38" r="4" fill="#E9B27D" opacity=".7"/></svg>
+      <a href="#/perfil" aria-label="Mi perfil" style="display:block;border-radius:50%"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><path d="M14 52 C 14 24, 36 10, 64 10 C 64 40, 48 62, 22 62 Z" fill="#9CC5A1"/><circle cx="34" cy="36" r="3" fill="#0F1A14"/><circle cx="48" cy="30" r="3" fill="#0F1A14"/><path d="M36 46 q7 5 13 -3" stroke="#0F1A14" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="28" cy="44" r="4" fill="#E9B27D" opacity=".7"/><circle cx="56" cy="38" r="4" fill="#E9B27D" opacity=".7"/></svg></a>
     </div>
     <p class="label" style="margin-top:14px">Tus estrellas de la semana · ${got}</p>
-    <div class="row" style="gap:6px">${stars.map((s) => `<svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z" fill="${s ? '#E2CC94' : 'none'}" stroke="${s ? '#E2CC94' : '#5E6E63'}" stroke-width="1.5"/></svg>`).join('')}</div>
+    <div class="row" style="gap:4px;justify-content:space-between">${stars.map((s, i) => `<span role="img" aria-label="${['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'][i]}: ${s ? 'con estrella' : 'sin estrella'}" style="display:flex;flex-direction:column;align-items:center;gap:2px"><svg width="38" height="38" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z" fill="${s ? '#E2CC94' : 'none'}" stroke="${s ? '#E2CC94' : '#5E6E63'}" stroke-width="1.5"/></svg><span class="muted" style="font-size:12px">${'LMXJVSD'[i]}</span></span>`).join('')}</div>
     <div class="stack" style="margin-top:22px">
       ${exercisesFor('peque').map((e) => `<a data-audio href="#/sesion/${e.id}?min=${e.defaultMin}" class="card row" style="min-height:110px;color:inherit;text-decoration:none;gap:16px">
         <svg width="72" height="72" viewBox="0 0 70 70" aria-hidden="true">${PEQUE_ART[e.kidVisual]}</svg>
@@ -226,7 +243,13 @@ export default {
     if (kind === 'junior') return junior(ctx);
     return adult(ctx);
   },
-  mount(root) {
+  mount(root, ctx) {
+    // «Leída» en una nota de la maestra.
+    const onClick = (e) => {
+      const read = e.target.closest('[data-note-read]');
+      if (read) { ctx.store.markNoteRead(read.dataset.noteRead); ctx.rerender(); }
+    };
+    root.addEventListener('click', onClick);
     const car = root.querySelector('#plan');
     if (car) {
       const slides = [...car.children];
@@ -238,7 +261,7 @@ export default {
         cancelAnimationFrame(raf);
         raf = requestAnimationFrame(() => {
           const i = slides.reduce((best, _, k) => (Math.abs(at(k) - car.scrollLeft) < Math.abs(at(best) - car.scrollLeft) ? k : best), 0);
-          dots.forEach((d, k) => d.setAttribute('aria-selected', String(k === i)));
+          dots.forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
         });
       }, { passive: true });
       dots.forEach((d) => d.addEventListener('click', () => car.scrollTo({ left: at(Number(d.dataset.slide)), behavior: 'smooth' })));
@@ -247,6 +270,7 @@ export default {
       try { localStorage.setItem(INSTALL_KEY, '1'); } catch (e) { /* sin almacenamiento */ }
       root.querySelector('#install')?.remove();
     });
+    return () => root.removeEventListener('click', onClick);
   },
 };
 

@@ -1,4 +1,4 @@
-import { esc, icon, toast, askConfirm, dayKey } from '../ui.js';
+import { esc, icon, toast, askConfirm, askPin, dayKey } from '../ui.js';
 import { AMBIENTS } from '../catalog.js';
 import * as sync from '../sync.js';
 
@@ -9,7 +9,9 @@ export default {
     const p = ctx.profile;
     const pr = store.prefs();
     const adult = p.kind === 'adulto';
-    return `<div class="top"><a class="icon-btn" href="#/perfil" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Ajustes</h1></div>
+    // La maestra solo ve sonido y su cuenta: nada de PIN, perfiles ni datos de la familia.
+    const teacher = sync.isTeacher();
+    return `<div class="top">${teacher ? '' : `<a class="icon-btn" href="#/perfil" aria-label="Volver">${icon('back', 20)}</a>`}<h1 class="h1">${teacher ? 'Cuenta' : 'Ajustes'}</h1></div>
 
       <p class="label">Durante la sesión</p>
       <div class="card" style="padding:6px 16px">
@@ -23,14 +25,15 @@ export default {
       <div class="grid2">${AMBIENTS.map((a) => `<button class="tile" data-amb="${a.id}" aria-pressed="${pr.ambient === a.id}" style="text-align:left;color:var(--text);border:1px solid ${pr.ambient === a.id ? 'var(--sage)' : 'var(--line)'};background:${pr.ambient === a.id ? 'rgba(156,197,161,0.14)' : 'var(--low)'}">
         ${icon(a.icon, 20)}<span style="display:block;margin-top:8px;font-weight:600;font-size:14px">${esc(a.label)}</span></button>`).join('')}</div>
 
-      ${adult ? `<p class="label">PIN de ${esc(p.name)}</p>
+      ${adult && !teacher ? `<p class="label">PIN de ${esc(p.name)}</p>
       <div class="card" id="pinCard">
-        <p class="sub" style="margin:0">${store.hasPin(p.id) ? 'Tu perfil está protegido con PIN.' : 'Sin PIN: cualquiera puede volver a tu perfil.'} El PIN se pide al regresar de un perfil de niña.</p>
+        <p class="sub" style="margin:0">${store.hasPin(p.id)
+          ? 'Tu perfil está protegido con PIN. Se pide al volver de un perfil de niña y al aprobar premios.'
+          : 'Todavía no tienes PIN. Te pediremos crearlo antes de pasarle el teléfono a una niña o de aprobar un premio.'}</p>
         <div class="row" style="margin-top:12px">
           <button class="btn small" id="pinSet">${icon('lock', 16)} ${store.hasPin(p.id) ? 'Cambiar PIN' : 'Crear PIN'}</button>
           ${store.hasPin(p.id) ? '<button class="btn small" id="pinClear">Quitar PIN</button>' : ''}
         </div>
-        <div id="pinPad"></div>
       </div>` : ''}
 
       ${adult && sync.enabled() ? `<p class="label">Cuenta</p>
@@ -38,18 +41,19 @@ export default {
         <a class="list-row" href="#/usuarios">${icon('lock', 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1"><span style="display:block">Cuenta y usuarios</span><span class="muted">Contraseña, quién puede entrar y cerrar sesión</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
       </div>` : ''}
 
-      ${adult && p.admin ? `<p class="label">Familia</p>
+      ${adult && p.admin && !teacher ? `<p class="label">Familia</p>
       <div class="card" style="padding:6px 16px">
         <a class="list-row" href="#/perfiles?de=ajustes">${icon('users', 20, 'style="color:var(--text2);flex:none"')}<span style="flex:1"><span style="display:block">Perfiles de la familia</span><span class="muted">Agregar, renombrar o quitar</span></span>${icon('chev', 18, 'style="color:var(--muted)"')}</a>
       </div>
 
-      <p class="label">Datos</p>
+      ${teacher ? '' : `<p class="label">Datos</p>
       <div class="card" style="padding:6px 16px">
-        <button class="list-row" id="export" style="width:100%;background:none;border:none;border-bottom:1px solid var(--line);text-align:left">${icon('download', 20, 'style="color:var(--text2)"')}<span style="flex:1"><span style="display:block">Exportar respaldo</span><span class="muted">Guarda un archivo con todo, por si cambias de teléfono</span></span></button>
+        <button class="list-row" id="export" style="width:100%;padding:0;background:none;border:none;border-bottom:1px solid var(--line);text-align:left">${icon('download', 20, 'style="color:var(--text2)"')}<span style="flex:1"><span style="display:block">Exportar respaldo</span><span class="muted">Guarda un archivo con todo, por si cambias de teléfono</span></span></button>
         <label class="list-row" style="width:100%;border-bottom:1px solid var(--line);cursor:pointer">${icon('upload', 20, 'style="color:var(--text2)"')}<span style="flex:1"><span style="display:block">Importar respaldo</span><span class="muted">Recupera un archivo calmo-AAAA-MM-DD.json</span></span>
           <input type="file" id="import" accept="application/json,.json" class="sr-only"></label>
-        <button class="list-row" id="reset" style="width:100%;background:none;border:none;text-align:left;color:var(--brasa)">${icon('trash', 20)}<span style="flex:1">Borrar todo y empezar de nuevo</span></button>
+        <button class="list-row" id="reset" style="width:100%;padding:0;background:none;border:none;text-align:left;color:var(--brasa)">${icon('trash', 20)}<span style="flex:1">Borrar todo y empezar de nuevo</span></button>
       </div>
+      `}
       <p class="muted" style="margin-top:10px">${sync.enabled() ? 'Tus datos se guardan en el teléfono y en el servidor de la familia.' : 'Los datos viven en este teléfono. Exporta un respaldo de vez en cuando.'}</p>` : ''}`;
   },
   mount(root, ctx) {
@@ -63,28 +67,24 @@ export default {
     root.querySelectorAll('[data-pref]').forEach((el) => el.addEventListener('change', () => store.setPref(el.dataset.pref, Number(el.value))));
     root.querySelectorAll('[data-amb]').forEach((el) => el.addEventListener('click', () => { store.setPref('ambient', el.dataset.amb); rerender(); }));
 
-    const pad = root.querySelector('#pinPad');
-    let digits = '';
-    const drawPad = () => {
-      pad.innerHTML = `<p class="sub" style="text-align:center;margin-top:16px">Escribe un PIN de 4 números</p>
-        <div class="row" style="justify-content:center;gap:14px;margin:10px 0 14px" aria-live="polite" aria-label="${digits.length} de 4 números">
-          ${[0, 1, 2, 3].map((i) => `<span style="width:16px;height:16px;border-radius:50%;${i < digits.length ? 'background:var(--sage)' : 'border:2px solid var(--line2)'}"></span>`).join('')}</div>
-        <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button data-k="${n}">${n}</button>`).join('')}<span aria-hidden="true"></span><button data-k="0">0</button><button data-k="del" aria-label="Borrar">⌫</button></div>`;
-      pad.querySelectorAll('[data-k]').forEach((b) => b.addEventListener('click', () => {
-        if (b.dataset.k === 'del') digits = digits.slice(0, -1);
-        else if (digits.length < 4) digits += b.dataset.k;
-        if (digits.length === 4) {
-          store.setPin(p.id, digits);
-          toast('PIN guardado');
-          rerender();
-          return;
-        }
-        drawPad();
-      }));
-    };
-    root.querySelector('#pinSet')?.addEventListener('click', () => { digits = ''; drawPad(); });
-    root.querySelector('#pinClear')?.addEventListener('click', () => {
-      askConfirm('¿Quitar el PIN de tu perfil?', { ok: 'Quitar PIN' }).then((ok) => { if (ok) { store.clearPin(p.id); rerender(); } });
+    // Crear o cambiar el PIN: se escribe dos veces. Cambiarlo o quitarlo pide antes el actual.
+    const mine = (pin) => store.checkPin(p.id, pin);
+    root.querySelector('#pinSet')?.addEventListener('click', async () => {
+      const had = store.hasPin(p.id);
+      const pin = await askPin(had
+        ? { title: 'Cambiar tu PIN', check: mine, prompt: 'Escribe tu PIN actual', create: true }
+        : { title: 'Crea tu PIN', sub: 'Son 4 números. Se piden al volver de un perfil de niña y al aprobar premios.', create: true });
+      if (!pin) return;
+      store.setPin(p.id, pin);
+      toast(had ? 'PIN cambiado' : 'PIN guardado');
+      rerender();
+    });
+    root.querySelector('#pinClear')?.addEventListener('click', async () => {
+      const ok = await askPin({ title: 'Quitar tu PIN', sub: 'Sin PIN, para pasarle el teléfono a una niña tendrás que crear uno de nuevo.', check: mine, prompt: 'Escribe tu PIN actual para quitarlo', cancel: 'No quitar' });
+      if (!ok) return;
+      store.clearPin(p.id);
+      toast('Quitaste tu PIN');
+      rerender();
     });
 
     root.querySelector('#export')?.addEventListener('click', async () => {
@@ -99,7 +99,7 @@ export default {
       // En iPhone, compartir el archivo funciona mejor que una descarga (Guardar en Archivos, AirDrop…).
       const file = typeof File === 'function' ? new File([json], filename, { type: 'application/json' }) : null;
       if (file && navigator.canShare?.({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: 'Respaldo de Calmo' }); return; }
+        try { await navigator.share({ files: [file], title: 'Respaldo de Calmo' }); toast('Respaldo exportado'); return; }
         catch (e) { if (e?.name === 'AbortError') return; }
       }
       const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
@@ -110,6 +110,7 @@ export default {
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast(`Respaldo exportado: ${filename}`);
     });
     root.querySelector('#import')?.addEventListener('change', (e) => {
       const file = e.target.files?.[0];

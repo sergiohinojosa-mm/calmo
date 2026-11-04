@@ -1,6 +1,6 @@
 // Administrar perfiles de la familia (solo adultos administradores).
 
-import { esc, icon, toast, avatar, askConfirm } from '../ui.js';
+import { esc, icon, toast, avatar, askConfirm, askPin, nameKey } from '../ui.js';
 
 const KINDS = [['adulto', 'Adulto'], ['junior', 'Junior'], ['peque', 'Peque']];
 
@@ -51,7 +51,7 @@ export default {
           <label class="stack" style="gap:6px"><span class="muted">Edad</span><input class="field" name="age" type="number" inputmode="numeric" min="1" max="99" placeholder="9"></label>
         </div>
         ${kindSeg('kind', 'junior')}
-        ${adminRow(true, 'junior')}
+        ${adminRow(false, 'junior')}
         <p class="muted" style="margin:0">Peque hasta 6 años · Junior de 7 a 15 · Adulto desde 16.</p>
         <p class="err" role="alert" style="margin:0;color:var(--brasa);font-size:13px;min-height:16px"></p>
         <button class="btn primary block" type="submit">${icon('plus', 18)} Agregar perfil</button>
@@ -61,16 +61,22 @@ export default {
     const { store, rerender } = ctx;
     const picked = new Map();
 
-    // El interruptor de administrador solo aparece para adultos; al volverse adulto queda encendido.
+    // El interruptor de administrador solo aparece para adultos. Un perfil que ya existe
+    // y se vuelve adulto queda como administrador; un adulto nuevo empieza sin serlo.
     const pick = (seg, k) => {
       const was = picked.get(seg);
       picked.set(seg, k);
       seg.querySelectorAll('[data-kind]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.kind === k)));
-      const row = seg.closest('form').querySelector('[data-admin-row]');
+      const form = seg.closest('form');
+      const row = form.querySelector('[data-admin-row]');
       if (!row) return;
       row.style.display = k === 'adulto' ? '' : 'none';
-      if (k === 'adulto' && was && was !== 'adulto') row.querySelector('[data-admin]').setAttribute('aria-checked', 'true');
+      if (form.id !== 'add' && k === 'adulto' && was && was !== 'adulto') row.querySelector('[data-admin]').setAttribute('aria-checked', 'true');
     };
+
+    // Nombres únicos en la familia, sin importar mayúsculas ni acentos.
+    const taken = (name, exceptId) => store.profiles().find((x) => x.id !== exceptId && nameKey(x.name) === nameKey(name));
+    const takenMsg = (other) => `Ya hay alguien que se llama ${other.name}. Usa otro nombre, por ejemplo con una inicial.`;
     root.querySelectorAll('[data-seg]').forEach((seg) => {
       picked.set(seg, seg.querySelector('[aria-pressed="true"]')?.dataset.kind);
       seg.addEventListener('click', (e) => {
@@ -78,6 +84,11 @@ export default {
         if (b) pick(seg, b.dataset.kind);
       });
     });
+    // Al escribir se borra el aviso de error de ese formulario.
+    root.querySelectorAll('form').forEach((f) => f.addEventListener('input', () => {
+      const err = f.querySelector('.err');
+      if (err) err.textContent = '';
+    }));
     root.querySelectorAll('[data-admin]').forEach((sw) => sw.addEventListener('click', () => {
       sw.setAttribute('aria-checked', String(sw.getAttribute('aria-checked') !== 'true'));
     }));
@@ -105,6 +116,8 @@ export default {
         e.preventDefault();
         const name = form.elements.namedItem('name').value.trim();
         if (!name) { form.querySelector('.err').textContent = 'Escribe un nombre.'; return; }
+        const dup = taken(name, id);
+        if (dup) { form.querySelector('.err').textContent = takenMsg(dup); return; }
         const current = store.profile(id);
         const kind = kindOf(form, current.kind);
         const adults = store.profiles().filter((p) => p.kind === 'adulto');
@@ -117,14 +130,22 @@ export default {
         toast('Perfil guardado');
         rerender();
       });
-      form.querySelector('[data-clear-pin]')?.addEventListener('click', () => {
+      // Quitar el PIN de otro adulto pide el PIN de quien lo quita (o que cree el suyo).
+      form.querySelector('[data-clear-pin]')?.addEventListener('click', async () => {
         const p = store.profile(id);
-        askConfirm(`¿Quitar el PIN de ${p.name}? Podrá entrar sin PIN hasta que cree uno nuevo en Ajustes.`, { ok: 'Quitar PIN' }).then((ok) => {
+        const me = ctx.profile;
+        const sub = `${p.name} podrá crear uno nuevo en Ajustes.`;
+        if (store.hasPin(me.id)) {
+          const ok = await askPin({ title: `Quitar el PIN de ${p.name}`, sub, prompt: `Escribe tu PIN, ${me.name}`, check: (pin) => store.checkPin(me.id, pin), cancel: 'No quitar' });
           if (!ok) return;
-          store.clearPin(id);
-          toast(`${p.name} ya no tiene PIN`);
-          rerender();
-        });
+        } else {
+          const pin = await askPin({ title: `Para quitar el PIN de ${p.name}, primero crea el tuyo`, sub, create: true, cancel: 'No quitar' });
+          if (!pin) return;
+          store.setPin(me.id, pin);
+        }
+        store.clearPin(id);
+        toast(`${p.name} ya no tiene PIN`);
+        rerender();
       });
       form.querySelector('[data-del]')?.addEventListener('click', () => {
         const p = store.profile(id);
@@ -140,6 +161,8 @@ export default {
       e.preventDefault();
       const name = add.elements.namedItem('name').value.trim();
       if (!name) { add.querySelector('.err').textContent = 'Escribe un nombre.'; return; }
+      const dup = taken(name);
+      if (dup) { add.querySelector('.err').textContent = takenMsg(dup); add.elements.namedItem('name').focus(); return; }
       const age = add.elements.namedItem('age').value;
       const kind = kindOf(add, store.kindForAge(age) || 'junior');
       const p = store.addProfile({ name, kind, age, admin: adminOf(add, kind) ?? false });

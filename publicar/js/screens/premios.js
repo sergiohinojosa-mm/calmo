@@ -4,6 +4,7 @@
 import { esc, icon, bar, toast, confetti, askConfirm, plural, MESES } from '../ui.js';
 
 const shortDate = (iso) => {
+  if (!iso) return '';
   const d = new Date(iso);
   return `${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}`;
 };
@@ -30,7 +31,7 @@ export default {
       const action = asked
         ? `<span class="chip arena">${icon('timer', 14)} Ya lo pediste</span>`
         : left <= 0
-          ? `<button class="btn primary small" data-want="${esc(r.id)}" style="min-height:44px">${icon('gift', 16)} ¡Lo quiero!</button>`
+          ? `<button class="btn primary ${peque ? '' : 'small'}" data-want="${esc(r.id)}" style="min-height:${peque ? 56 : 44}px">${icon('gift', 16)} ¡Lo quiero!</button>`
           : `<span class="muted">Te faltan ${plural(left, 'hoja', 'hojas')}</span>`;
       return `<div class="tile" style="padding:14px 16px">
         <div class="between" style="gap:10px;align-items:flex-start">
@@ -44,7 +45,8 @@ export default {
 
     const pend = waiting.length ? `<p class="label">Esperando a papá o mamá</p>
       <div class="stack">${waiting.map((r) => `<div class="tile row">${icon('gift', 20, 'style="color:var(--arena);flex:none"')}
-        <span style="flex:1"><span style="display:block;font-weight:600">${esc(r.name)}</span><span class="muted">${r.cost} hojas apartadas · ${shortDate(r.requestedAt)}</span></span></div>`).join('')}</div>` : '';
+        <span style="flex:1"><span style="display:block;font-weight:600">${esc(r.name)}</span><span class="muted">${r.cost} hojas apartadas · ${shortDate(r.requestedAt)}</span></span></div>`).join('')}</div>
+      <p class="muted" style="margin:8px 0 0">Si dicen «ahora no», tus hojas regresan.</p>` : '';
 
     const hist = history.length ? `<p class="label">Tus premios</p>
       <div class="stack">${history.map((r) => `<div class="tile row">
@@ -56,7 +58,7 @@ export default {
       <div class="card" style="text-align:center">
         <p class="muted" style="margin:0">Hojas para premios</p>
         <p class="num row" style="justify-content:center;gap:8px;margin:6px 0 0;font-size:44px;color:var(--hoja)">${icon('leaf', 30)} ${balance}</p>
-        <p class="sub" style="margin:8px 0 0">Usar tus hojas no baja tu nivel.</p>
+        <p class="sub" style="margin:8px 0 0">${peque ? 'Junta hojas para tus premios.' : 'Usar tus hojas no baja tu nivel.'}</p>
       </div>
       ${pend}
       <p class="label">Elige un premio</p>

@@ -8,6 +8,7 @@ import * as sync from '../sync.js';
 // Si no hay uno con ese nombre, pregunta quién es en lugar de suponer al primer adulto.
 const norm = (s) => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 function openOwnProfile(ctx, usuario) {
+  if (usuario?.rol === 'maestra') { ctx.store.ensureTeacher(usuario.nombre); ctx.go('alumnos'); return; }
   const name = norm(usuario?.nombre);
   const first = name.split(/\s+/)[0];
   const adults = ctx.store.profiles().filter((p) => p.kind === 'adulto');

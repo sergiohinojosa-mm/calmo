@@ -1,0 +1,120 @@
+// Detalle de un alumno para la maestra: notas, plan contra lo hecho, BOLT, pasos,
+// sesiones recientes y sus metas y rutinas (las puede ajustar).
+
+import { esc, icon, avatar, toast, askConfirm, addDays, MESES } from '../ui.js';
+import { nameFor, byId } from '../catalog.js';
+import { kindLabel, sparkline, familyCard, manageGoals } from './perfil.js';
+import { constancy, lightDot } from './alumnos.js';
+
+// Notas de un toque; también se puede escribir una propia.
+const QUICK_NOTES = ['¡Vas muy bien!', 'Practica antes de dormir', 'Respira suave y por la nariz', 'Mantén la boca cerrada al caminar'];
+
+const shortDate = (iso) => {
+  const d = new Date(iso);
+  return `${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}`;
+};
+const clockOf = (iso) => new Date(iso).toTimeString().slice(0, 5);
+
+// Plan contra lo hecho en los últimos 7 días.
+function planned(store, id) {
+  let total = 0;
+  let done = 0;
+  for (let i = 0; i < 7; i++) {
+    store.agenda(id, addDays(new Date(), -i)).filter((it) => it.type === 'plan').forEach((it) => {
+      total += 1;
+      if (it.status === 'hecha') done += 1;
+    });
+  }
+  return { total, done };
+}
+
+export default {
+  tab: 'alumnos',
+  render(ctx) {
+    const { store } = ctx;
+    const p = store.profiles().find((x) => x.id === ctx.params[0] && x.role !== 'maestra');
+    if (!p) return `<div class="top"><a class="icon-btn" href="#/alumnos" aria-label="Volver">${icon('back', 20)}</a><h1 class="h1">Alumno</h1></div><p class="sub">No encontramos a esa persona.</p>`;
+    const c = constancy(store, p.id);
+    const plan = planned(store, p.id);
+    const bolts = store.bolt(p.id);
+    const steps = store.steps(p.id).slice(-5).reverse();
+    const sessions = store.sessions(p.id).slice().sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 10);
+    const notes = store.notes(p.id);
+    const boltWord = p.kind === 'adulto' ? 'BOLT' : 'Reto del aire';
+
+    const notesHtml = `<div class="card">
+      <h2 class="h3" style="margin:0">Notas para ${esc(p.name)}</h2>
+      <div class="pills" style="margin-top:10px">${QUICK_NOTES.map((t, i) => `<button type="button" class="pill" data-quick="${i}">${esc(t)}</button>`).join('')}</div>
+      <form id="noteForm" class="row" style="margin-top:10px;gap:8px" novalidate>
+        <input class="field" name="text" maxlength="280" autocomplete="off" placeholder="Escribe una nota" aria-label="Nota para ${esc(p.name)}" style="flex:1;min-width:0">
+        <button class="btn primary small" type="submit">Enviar</button>
+      </form>
+      ${notes.length ? `<div class="stack" style="margin-top:12px;gap:8px">${notes.slice(0, 6).map((n) => `<div class="tile row" style="gap:10px;padding:10px 12px">
+        <span style="flex:1;min-width:0"><span style="display:block;font-size:14px">${esc(n.text)}</span>
+        <span class="muted" style="font-size:12px">${shortDate(n.at)} · ${n.readAt ? 'Leída ✓' : 'Sin leer'}</span></span>
+        <button class="icon-btn" style="width:40px;height:40px;background:transparent;color:var(--muted)" data-del-note="${esc(n.id)}" aria-label="Borrar nota">${icon('trash', 16)}</button></div>`).join('')}</div>` : ''}
+    </div>`;
+
+    const boltHtml = `<div class="card">
+      <div class="between"><h2 class="h3" style="margin:0">${boltWord}</h2><span class="muted">${bolts.length ? `${bolts.at(-1).seconds} s · meta ${store.goals(p.id).bolt} s` : 'Sin medir'}</span></div>
+      ${bolts.length > 1 ? `<div style="margin-top:8px">${sparkline(bolts.slice(-10).map((m) => m.seconds), '#9CC5A1', 300, 44).replace('width="300"', 'width="100%"')}</div>` : ''}
+      ${bolts.length ? `<p class="muted" style="margin:8px 0 0">${bolts.slice(-5).reverse().map((m) => `${shortDate(m.takenAt)}: ${m.seconds} s`).join(' · ')}</p>` : ''}
+    </div>`;
+
+    const stepsHtml = p.kind === 'peque' ? '' : `<div class="card">
+      <div class="between"><h2 class="h3" style="margin:0">Pasos sin respirar</h2><span class="muted">Récord ${store.bestSteps(p.id) || '—'}</span></div>
+      ${steps.length ? `<div class="stack" style="margin-top:8px;gap:4px">${steps.map((m) => `<p class="muted" style="margin:0">${shortDate(m.takenAt)}: ${m.series ? m.series.join(' · ') : m.steps} pasos</p>`).join('')}</div>` : '<p class="muted" style="margin:8px 0 0">Todavía no hace la serie caminando.</p>'}
+    </div>`;
+
+    const sessionsHtml = `<div class="card" style="padding-top:12px;padding-bottom:6px">
+      <h2 class="h3" style="margin:0 0 4px">Sesiones recientes</h2>
+      ${sessions.length ? sessions.map((s) => `<div class="between" style="padding:8px 0;border-bottom:1px solid var(--line);gap:10px">
+        <span style="min-width:0"><span style="display:block;font-size:14px">${esc(byId(s.exerciseId) ? nameFor(byId(s.exerciseId), 'adulto') : 'Sesión')}</span>
+        <span class="muted" style="font-size:12px">${shortDate(s.startedAt)} · ${clockOf(s.startedAt)}${s.controlPauses?.length ? ` · pausas ${s.controlPauses.join(' → ')} s` : ''}</span></span>
+        <span class="muted" style="flex:none">${Math.max(1, Math.floor(s.durationSec / 60))} min${s.routineId ? '' : ' · extra'}</span></div>`).join('') : '<p class="muted" style="margin:8px 0">Todavía no hay sesiones.</p>'}
+    </div>`;
+
+    return `<div class="top"><a class="icon-btn" href="#/alumnos" aria-label="Volver">${icon('back', 20)}</a><span></span></div>
+      <div class="row" style="gap:14px">${avatar(p, 64)}
+        <div style="flex:1;min-width:0"><h1 class="h1">${esc(p.name)}</h1><p class="sub" style="margin:2px 0 0">${esc(kindLabel(p))}</p></div></div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="tile"><span class="row" style="gap:6px">${lightDot(c.light)}<span class="num" style="font-size:24px">${c.n}</span><span class="muted">de 7 días</span></span><p class="muted" style="margin:4px 0 0">Constancia</p></div>
+        <a class="tile" href="#/calendario?p=${esc(p.id)}" style="color:inherit;text-decoration:none"><span class="num" style="font-size:24px">${plan.done}</span><span class="muted"> de ${plan.total}</span><p class="muted" style="margin:4px 0 0">Planeadas hechas · ver calendario</p></a>
+      </div>
+      <a class="btn primary block" href="#/asignar?p=${esc(p.id)}" style="margin-top:14px">${icon('plus', 18)} Asignar práctica a ${esc(p.name)}</a>
+      <div class="stack" style="margin-top:14px">
+        ${notesHtml}
+        ${boltHtml}
+        ${stepsHtml}
+        ${sessionsHtml}
+        ${familyCard(store, p, 'alumno')}
+      </div>`;
+  },
+  mount(root, ctx) {
+    const { store, rerender } = ctx;
+    const id = ctx.params[0];
+    const stop = manageGoals(root, ctx);
+    const send = async (text) => {
+      if (!store.addNote(id, text)) return;
+      toast('Nota enviada');
+      await rerender();
+    };
+    const onClick = (e) => {
+      const q = e.target.closest('[data-quick]');
+      if (q) { send(QUICK_NOTES[Number(q.dataset.quick)]); return; }
+      const del = e.target.closest('[data-del-note]');
+      if (del) {
+        askConfirm('¿Borrar esta nota?', { ok: 'Borrar' }).then((ok) => { if (ok) { store.removeNote(del.dataset.delNote); rerender(); } });
+      }
+    };
+    const onSubmit = (e) => {
+      if (e.target.id !== 'noteForm') return;
+      e.preventDefault();
+      const text = e.target.elements.namedItem('text').value.trim();
+      if (text) send(text);
+    };
+    root.addEventListener('click', onClick);
+    root.addEventListener('submit', onSubmit);
+    return () => { root.removeEventListener('click', onClick); root.removeEventListener('submit', onSubmit); if (stop) stop(); };
+  },
+};

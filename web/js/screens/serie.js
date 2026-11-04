@@ -1,7 +1,7 @@
 // Serie de retenciones caminando (simulación de altitud).
 // La recuperación de 60 s entre retenciones es obligatoria.
 
-import { esc, icon, clock, toast, plural, confetti } from '../ui.js';
+import { esc, icon, clock, toast, plural, confetti, askConfirm } from '../ui.js';
 
 const MIN = 6;
 const MAX = 10;
@@ -19,14 +19,17 @@ export default {
     const kid = p.kind !== 'adulto';
     const lb = store.lastBolt(p.id);
     const moderate = kid || !lb || lb.seconds < 20;
+    const gentle = !kid && (!lb || lb.seconds < 12);
     const box = root.querySelector('#serie');
     // recT0: cuándo empezó la recuperación. La cuenta sale de ahí, así no se reinicia con cada toque.
+    // holdT0 vale 0 hasta que se toca «Empezar a caminar»: el cronómetro arranca con la retención, no antes.
     const st = { phase: 'safety', holds: [], holdT0: 0, holdSecs: 0, cur: null, recT0: 0, left: RECOVERY };
     let timer = 0;
+    let saved = false; // evita guardar dos veces con un doble toque
     const roundWord = kid ? 'Vuelta' : 'Retención';
     const one = kid ? 'vuelta' : 'retención';
     const many = kid ? 'vueltas' : 'retenciones';
-    const header = `<div class="between"><a href="#/perfil" class="icon-btn" aria-label="Salir" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('x', 18)}</a>
+    const header = `<div class="between"><button class="icon-btn" id="quit" aria-label="Salir" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('x', 18)}</button>
       <p style="margin:0;font-size:14px;font-weight:500">${kid ? 'Camina sin respirar' : 'Retenciones caminando'}</p><span style="width:44px"></span></div>`;
     const leftNow = () => Math.max(0, RECOVERY - Math.floor((Date.now() - st.recT0) / 1000));
 
@@ -49,27 +52,29 @@ export default {
           <span style="width:56px;height:56px;border-radius:50%;background:rgba(226,204,148,0.14);color:var(--arena);display:flex;align-items:center;justify-content:center;margin-top:10px">${icon('lock', 26)}</span>
           <h1 class="h1">Antes de empezar</h1>
           <ul class="stack" style="list-style:none;margin:6px 0 0;padding:0;font-size:15px;line-height:1.45">
-            <li class="row" style="align-items:flex-start">${icon('wave', 22, 'style="color:var(--arena);flex:none"')}<span>Nunca en el agua ni manejando. Camina en un lugar plano y seguro, lejos de escaleras y calles.</span></li>
-            <li class="row" style="align-items:flex-start">${icon('repeat', 22, 'style="color:var(--arena);flex:none"')}<span>Haz de ${MIN} a ${MAX} ${many}. Entre cada ${one} recuperas ${RECOVERY} segundos respirando normal por la nariz. La siguiente no empieza antes.</span></li>
-            <li class="row" style="align-items:flex-start">${icon('timer', 22, 'style="color:var(--arena);flex:none"')}<span>${moderate ? 'Versión moderada: detente con una falta de aire leve a moderada.' : 'Tu BOLT de 20 s o más permite llegar a una falta de aire fuerte, sin forzar.'}</span></li>
-            ${kid ? '' : `<li class="row" style="align-items:flex-start">${icon('sun', 22, 'style="color:var(--arena);flex:none"')}<span>Consulta a tu médico si hay embarazo, presión alta, problemas del corazón, diabetes, epilepsia o ataques de pánico.</span></li>`}
+            <li class="row" style="align-items:flex-start">${icon('wave', 22, 'style="color:var(--arena);flex:none"')}<span>${kid ? 'Nunca en el agua. Camina en un lugar plano y seguro, con papá o mamá cerca.' : 'Nunca en el agua ni manejando. Camina en un lugar plano y seguro, lejos de escaleras y calles.'}</span></li>
+            <li class="row" style="align-items:flex-start">${icon('repeat', 22, 'style="color:var(--arena);flex:none"')}<span>${kid ? `Haz de ${MIN} a ${MAX} ${many}. Entre cada ${one} descansas ${RECOVERY} segundos respirando suavecito por la nariz.` : `Haz de ${MIN} a ${MAX} ${many}. Entre cada ${one} recuperas ${RECOVERY} segundos: primeras respiraciones pequeñas y en calma por la nariz. La siguiente no empieza antes.`}</span></li>
+            <li class="row" style="align-items:flex-start">${icon('timer', 22, 'style="color:var(--arena);flex:none"')}<span>${kid ? 'Para en cuanto tengas ganas de respirar.' : gentle ? 'Versión suave: detente con una falta de aire leve. (Tu BOLT es menor de 12 s o todavía no lo mides.)' : moderate ? 'Versión moderada: detente con una falta de aire leve a moderada.' : 'Tu BOLT de 20 s o más permite llegar a una falta de aire fuerte, sin forzar.'}</span></li>
+            ${kid ? '' : `<li class="row" style="align-items:flex-start">${icon('sun', 22, 'style="color:var(--arena);flex:none"')}<span>Si estás embarazada, no hagas retenciones. Si tienes presión alta o baja, problemas del corazón, diabetes, epilepsia, asma no controlada, apnea, ansiedad o ataques de pánico, desmayos, gripe o resfriado, quédate en una falta de aire leve y consulta a tu médico.</span></li>`}
           </ul>
           <button class="btn primary block" id="go" style="margin-top:auto">${icon('play', 18)} Empezar la serie</button>
         </div>`;
         box.querySelector('#go').addEventListener('click', startHold);
       } else if (st.phase === 'hold') {
         const n = st.holds.length + 1;
+        const going = st.holdT0 > 0;
         box.innerHTML = `<div class="stack" style="flex:1;text-align:center">${header}
           <p class="sub" style="margin-top:10px">${roundWord} ${n} · de ${MIN} a ${MAX}</p>
-          <h1 class="h1">Exhala, tápate la nariz y camina</h1>
-          <p class="sub">Cuenta tus pasos.</p>
-          <p class="num" id="secs" style="margin:30px 0 0;font-size:96px;line-height:1">0</p>
+          <h1 class="h1">${kid ? 'Suelta el aire, tápate la nariz y camina' : 'Exhala, tápate la nariz y camina'}</h1>
+          <p class="sub">${going ? 'Cuenta tus pasos.' : kid ? 'Cuando ya tengas la nariz tapada, toca «Empezar a caminar».' : 'Con la nariz ya tapada, toca «Empezar a caminar».'}</p>
+          <p class="num" id="secs" style="margin:30px 0 0;font-size:96px;line-height:1">${going ? Math.floor((performance.now() - st.holdT0) / 1000) : 0}</p>
           <p class="sub" style="margin:0">segundos</p>
-          <button class="btn primary block" id="done" style="margin-top:auto;min-height:64px;font-size:19px">Ya respiré</button>
+          <button class="btn primary block" id="done" style="margin-top:auto;min-height:64px;font-size:19px">${going ? 'Ya respiré' : `${icon('play', 18)} Empezar a caminar`}</button>
         </div>`;
         const secs = box.querySelector('#secs');
-        timer = setInterval(() => { secs.textContent = String(Math.floor((performance.now() - st.holdT0) / 1000)); }, 200);
+        if (going) timer = setInterval(() => { secs.textContent = String(Math.floor((performance.now() - st.holdT0) / 1000)); }, 200);
         box.querySelector('#done').addEventListener('click', () => {
+          if (!st.holdT0) { st.holdT0 = performance.now(); draw(); return; }
           st.holdSecs = Math.round((performance.now() - st.holdT0) / 1000);
           // Los pasos los escribe quien camina; no se adivinan.
           st.cur = null;
@@ -84,11 +89,11 @@ export default {
         box.innerHTML = `<div class="stack" style="flex:1">${header}
           <p class="sub" style="text-align:center;margin-top:4px">${roundWord} ${n} · de ${MIN} a ${MAX}</p>
           <div style="display:flex;justify-content:center">
-            <svg width="200" height="200" viewBox="0 0 220 220" role="img" aria-label="Recuperación">
+            <svg width="200" height="200" viewBox="0 0 220 220" role="img" aria-label="${kid ? 'Descanso' : 'Recuperación'}">
               <circle cx="110" cy="110" r="96" fill="none" stroke="rgba(238,243,236,0.07)" stroke-width="10"/>
               <circle id="ring" cx="110" cy="110" r="96" fill="none" stroke="#9CC5A1" stroke-width="10" stroke-linecap="round" stroke-dasharray="603" stroke-dashoffset="603" transform="rotate(-90 110 110)"/>
               <text id="clk" x="110" y="112" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="54" fill="#EEF3EC">${clock(leftNow())}</text>
-              <text x="110" y="142" text-anchor="middle" font-family="Figtree, sans-serif" font-size="13" fill="#A9B8AC">recupera por la nariz</text>
+              <text x="110" y="142" text-anchor="middle" font-family="Figtree, sans-serif" font-size="13" fill="#A9B8AC">${kid ? 'descansa por la nariz' : 'recupera por la nariz'}</text>
             </svg>
           </div>
           <p class="sub" id="hint" style="text-align:center;margin:0">Respira normal por la nariz y camina tranquilo.</p>
@@ -99,7 +104,7 @@ export default {
           </label>
           <div id="chart">${chart()}</div>
           <div class="row" style="margin-top:auto">
-            <button class="btn" id="end" style="flex:1">Terminar serie</button>
+            <button class="btn" id="end" style="flex:1">Terminar</button>
             <button class="btn primary" id="next" style="flex:2" aria-disabled="true"></button>
           </div>
         </div>`;
@@ -124,7 +129,7 @@ export default {
           shown = st.left;
           const waiting = st.left > 0;
           next.setAttribute('aria-disabled', String(waiting));
-          next.textContent = waiting ? `Recuperando · ${clock(st.left)}` : last ? 'Terminar serie' : `Siguiente ${one}`;
+          next.textContent = waiting ? `${kid ? 'Descansando' : 'Recuperando'} · ${clock(st.left)}` : last ? 'Terminar serie' : `Siguiente ${one}`;
           next.style.background = waiting ? 'rgba(156,197,161,0.18)' : 'var(--sage)';
           next.style.color = waiting ? 'var(--hoja)' : 'var(--on-sage)';
           ring.setAttribute('stroke-dashoffset', String(Math.round(603 * (st.left / RECOVERY))));
@@ -132,7 +137,7 @@ export default {
           if (!waiting) {
             hint.textContent = last ? `Terminaste las ${MAX} ${many}. ¡Bien hecho!`
               : n >= MIN ? `Ya llevas ${plural(n, one, many)}. Puedes terminar o seguir hasta ${MAX}.`
-                : 'Ya te recuperaste. Exhala, tápate la nariz y vuelve a caminar.';
+                : kid ? '¡Listo! Suelta el aire, tápate la nariz y vuelve a caminar.' : 'Ya te recuperaste. Exhala, tápate la nariz y vuelve a caminar.';
           }
         };
         paint();
@@ -145,12 +150,20 @@ export default {
           startHold();
         });
       }
+      box.querySelector('#quit').addEventListener('click', quit);
     }
 
     function startHold() {
       st.phase = 'hold';
-      st.holdT0 = performance.now();
+      st.holdT0 = 0;
       draw();
+    }
+
+    // La X no pierde lo hecho: con vueltas hechas o en la recuperación, pregunta antes de salir.
+    async function quit() {
+      if (!st.holds.length && st.phase !== 'recover') { clearInterval(timer); go('perfil'); return; }
+      const ok = await askConfirm(kid ? '¿Ya terminaste? Guardamos tus vueltas.' : '¿Salir de la serie? Se guardan las retenciones que hiciste.', { ok: 'Guardar y salir', cancel: 'Seguir' });
+      if (ok) finish();
     }
 
     // Antes de seguir o terminar, la vuelta necesita sus pasos.
@@ -172,11 +185,13 @@ export default {
 
     function save() {
       clearInterval(timer);
+      if (saved) return;
+      saved = true;
       if (!st.holds.length) { go('perfil'); return; }
       const series = st.holds.map((h) => h.steps);
       const res = store.addSteps({ steps: Math.max(...series), seconds: st.holds.reduce((a, h) => a + h.secs, 0), type: 'serie', series });
       const pts = typeof store.awardPoints === 'function' ? store.awardPoints(p.id, POINTS, 'serie') : 0;
-      toast(`Serie guardada · ${plural(series.length, one, many)}${pts ? ` · +${plural(pts, 'hoja', 'hojas')}` : ''}`);
+      toast(`${kid ? '¡Muy bien!' : 'Serie guardada'} · ${plural(series.length, one, many)}${pts ? ` · +${plural(pts, 'hoja', 'hojas')}` : ''}`);
       if (kid) confetti();
       if (res.newBadges.length) setTimeout(() => toast(`¡Nueva insignia: ${res.newBadges[0].name}!`), 2700);
       go('perfil');

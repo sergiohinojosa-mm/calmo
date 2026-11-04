@@ -11,7 +11,7 @@ function presets(kind) {
   }
   return [
     { name: 'Al despertar', time: '05:30', exerciseId: 'coherente', minutes: 10 },
-    { name: 'Antes de dormir', time: '21:00', exerciseId: '478', minutes: 5 },
+    { name: 'Antes de dormir', time: '21:00', exerciseId: '478', minutes: 1 },
   ];
 }
 
@@ -92,7 +92,11 @@ function presetCards(store, profileId, meId) {
 
 // A dónde regresar: al perfil si se abrió desde ahí; si no, al calendario de esa persona.
 const calendarOf = (ctx, id) => (id && id !== ctx.profile.id ? `calendario?p=${encodeURIComponent(id)}` : 'calendario');
-const backTo = (ctx) => (['perfil', 'familia'].includes(ctx.query.get('de')) ? ctx.query.get('de') : calendarOf(ctx, ctx.query.get('p')));
+const backTo = (ctx) => {
+  const de = ctx.query.get('de');
+  if (de === 'alumno' && ctx.query.get('p')) return `alumno/${encodeURIComponent(ctx.query.get('p'))}`;
+  return ['perfil', 'familia'].includes(de) ? de : calendarOf(ctx, ctx.query.get('p'));
+};
 
 export default {
   tab: 'calendario',

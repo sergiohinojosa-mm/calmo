@@ -1,0 +1,135 @@
+<title>Revisión del método Calmo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,560&family=Figtree:wght@400;500;600&display=swap">
+<style>
+  /* Una hoja de trabajo tranquila, en los colores de Calmo: cada pregunta es una tarjeta con tres respuestas y una nota. */
+  :root {
+    --bg: #F3F6F1; --card: #FFFFFF; --line: #DCE5DB; --text: #17251D; --muted: #5C6E62;
+    --sage: #3F7A55; --sage-soft: #E3EFE5; --amber: #9A6A1E; --amber-soft: #F6EBD6;
+    --display: 'Fraunces', Georgia, serif; --body: 'Figtree', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #101A15; --card: #1C2B23; --line: #2A4033; --text: #EEF3EC; --muted: #A9B8AC;
+    --sage: #9CC5A1; --sage-soft: #24382B; --amber: #E2CC94; --amber-soft: #3A3324; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #101A15; --card: #1C2B23; --line: #2A4033; --text: #EEF3EC; --muted: #A9B8AC;
+    --sage: #9CC5A1; --sage-soft: #24382B; --amber: #E2CC94; --amber-soft: #3A3324; color-scheme: dark }
+  body { background: var(--bg); color: var(--text); font: 16px/1.55 var(--body); }
+  .wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; }
+  h1 { font: 560 clamp(28px, 6vw, 40px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+  h2 { font: 560 20px/1.3 var(--display); margin: 0; text-wrap: balance; }
+  .lead { color: var(--muted); margin: 0; max-width: 62ch; }
+  .rules { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .rules li { background: var(--sage-soft); color: var(--sage); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 500; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 10px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--muted); }
+  .meta b { color: var(--amber); font-weight: 600; }
+  .now { margin: 0; padding: 10px 12px; border-left: 3px solid var(--line); color: var(--muted); font-size: 15px; }
+  .why { margin: 0; font-size: 15px; }
+  .prop { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--amber-soft); font-size: 15px; }
+  .src { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+  .src a { color: var(--sage); }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opts button { font: 500 14px var(--body); min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; }
+  .opts button[aria-pressed="true"] { background: var(--sage); border-color: var(--sage); color: var(--card); }
+  .opts button:focus-visible, textarea:focus-visible, .copy:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 64px; font: 15px/1.45 var(--body); color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; resize: vertical; }
+  .bar { position: sticky; bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .bar .in { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+  .count { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .copy { font: 600 15px var(--body); min-height: 48px; padding: 0 18px; border-radius: 999px; border: none; background: var(--sage); color: var(--card); cursor: pointer; }
+  #out { width: 100%; display: none; }
+  details { color: var(--muted); font-size: 14px; }
+  details li { margin: 4px 0; }
+</style>
+
+<main class="wrap">
+  <header style="display:grid;gap:10px">
+    <h1>Revisión del método Calmo</h1>
+    <p class="lead">Pamela: estas son las indicaciones de la app en las que tu criterio manda. Para cada una elige una respuesta y, si quieres, deja una nota. Al final toca «Copiar respuestas» y mándaselas a Sergio por WhatsApp.</p>
+    <ul class="rules"><li>Todo por la nariz</li><li>Diafragma, nunca abdomen ni pecho</li><li>Con niñas: suave y siempre positivo</li></ul>
+  </header>
+  <section id="qs" style="display:grid;gap:14px" aria-label="Preguntas"></section>
+  <details>
+    <summary>Lo que ya corregimos sin esperar (para que lo sepas)</summary>
+    <ul>
+      <li>«Deja que se mueva el abdomen, no el pecho» ahora dice «Respira con el diafragma, sin levantar los hombros».</li>
+      <li>El 4-7-8 empieza con 4 ciclos (más o menos 1 minuto) y sube a 8 después de un mes.</li>
+      <li>Embarazo: sin retenciones. Las demás condiciones de salud: solo falta de aire leve y consultar al médico (esto lo ven solo los adultos).</li>
+      <li>El reto del aire de las niñas ya no dice «aguanta»: «toca en cuanto tu cuerpo te pida aire».</li>
+      <li>La serie caminando usa la versión suave si el BOLT es menor de 12 s o no se ha medido.</li>
+      <li>Las insignias de medir cuentan un día a la vez, no mediciones seguidas.</li>
+    </ul>
+  </details>
+  <div class="bar"><div class="in">
+    <span class="count" id="count">0 de 0 respondidas</span>
+    <button class="copy" id="copy" type="button">Copiar respuestas</button>
+    <textarea id="out" readonly aria-label="Respuestas para copiar"></textarea>
+  </div></div>
+</main>
+
+<script>
+  const Q = [
+    { id: 'coherente-junior', where: 'Respiración coherente · Junior (9 y 11 años)', now: 'Las niñas usan el mismo ritmo que un adulto: 5.5 s al inhalar y 5.5 s al exhalar.', why: 'No encontramos una guía de Oxygen Advantage para este ritmo en niñas; a esa edad se respira en reposo más rápido.', prop: 'Un ritmo más corto para Junior, por ejemplo 4 · 4 o 4 · 5.', opts: ['Dejar 5.5 · 5.5', 'Usar 4 · 4', 'Usar 4 · 5'] },
+    { id: 'suspiro', where: 'Suspiro cíclico (ejercicio y consejo) · adultos y Junior', now: 'Doble inhalación y una exhalación larga, todo por la nariz. Baja el estrés en pocos minutos.', why: 'No es de Oxygen Advantage y choca con «respira ligero» y «evita suspiros grandes». El estudio de Stanford lo hizo con exhalación por la boca.', prop: 'Dejarlo solo como herramienta puntual para el estrés y luego volver a respirar ligero; o quitarlo y usar la exhalación larga.', opts: ['Dejarlo así', 'Solo como herramienta puntual', 'Quitarlo'], src: 'https://doi.org/10.1016/j.xcrm.2022.100895' },
+    { id: 'destapar', where: 'Destapar la nariz · adultos y Junior', now: '6 repeticiones con 45 segundos de recuperación entre cada una.', why: 'La clínica Buteyko de McKeown indica cerca de 1 minuto entre rondas, hasta 5 veces, y que no es para embarazadas.', prop: '1 minuto de recuperación, hasta 5 veces, y el aviso de embarazo para adultos.', opts: ['Dejar 45 s × 6', '1 min × 5 con aviso', 'Otra'], src: 'https://buteykoclinic.com/pages/buteyko-breathing-method-nose-unblocking-exercise' },
+    { id: 'ligero-pausa', where: 'Respira ligero · botón «Necesito aire»', now: 'Si la falta de aire es fuerte, respira normal 15 segundos.', why: 'El artículo actual de Oxygen Advantage dice de 20 a 30 segundos.', prop: 'Respira normal unos 20 a 30 segundos y vuelve a empezar.', opts: ['Dejar 15 s', 'Cambiar a 20–30 s'], src: 'https://oxygenadvantage.com/blogs/blog/how-breathe-light-exercises-improve-oxygen-delivery' },
+    { id: 'minbolt', where: 'BOLT mínimo para cuadrada, 4-7-8 y pausas de control', now: 'La app sugiere estos ejercicios con un BOLT de 10 s o más.', why: 'Oxygen Advantage usa 12 s como frontera: por debajo, ninguna retención pasa de falta de aire leve.', prop: 'Subir a 12 s y pedir también 12 s para la serie caminando.', opts: ['Dejar 10 s', 'Subir a 12 s'], src: 'https://oxygenadvantage.com/blogs/blog/safety-guidelines-oxygen-advantage-breathwork-training' },
+    { id: 'fuerte', where: 'Serie caminando · adultos', now: 'Con un BOLT de 20 s o más se permite llegar a una falta de aire fuerte, sin forzar.', why: 'El libro de Oxygen Advantage usa 20 s; la página actual dice 25 s.', prop: 'Usar 25 s.', opts: ['Dejar 20 s', 'Subir a 25 s'], src: 'https://oxygenadvantage.com/science/holding-your-breath-benefits/' },
+    { id: 'recuperacion', where: 'Serie caminando · recuperación', now: 'Entre cada vuelta recuperas 60 segundos: primeras respiraciones pequeñas y en calma por la nariz.', why: 'McKeown agrega que en 2 o 3 respiraciones debes estar en calma; si no, la siguiente retención debe ser más corta.', prop: 'Agregar: «Si no te calmas en 2 o 3 respiraciones, haz la siguiente más corta».', opts: ['Dejarlo así', 'Agregar la regla de 2 o 3 respiraciones'] },
+    { id: 'cinta', where: 'Consejo «Cinta en la boca» · solo adultos', now: 'Pruébala de día primero y nunca con la nariz tapada. En niñas y niños, solo con la guía de tu maestra o tu médico.', why: 'Faltan contraindicaciones habituales: alcohol, pastillas para dormir, náuseas y apnea sin tratar.', prop: 'Agregar esas contraindicaciones.', opts: ['Dejarlo así', 'Agregar contraindicaciones', 'Quitar el consejo'], src: 'https://www.sleepfoundation.org/sleep-hygiene/mouth-taping' },
+    { id: 'pasos-insignias', where: 'Insignias «Caminante» (50 pasos) y «Primeros pasos» (30 pasos)', now: 'Se ganan con un récord de pasos sin respirar, también las niñas.', why: 'En niñas Oxygen Advantage pide retenciones muy ligeras; premiar récords puede empujarlas a aguantar de más.', prop: 'Para niñas, cambiarlas por constancia: «Completa 3 series caminando» y «Tu primera serie».', opts: ['Dejar por pasos', 'Constancia para niñas', 'Constancia para todos'] },
+    { id: 'peque-mide', where: 'Peque (5 años) · reto del aire', now: 'Peque hace el reto del aire con papá o mamá y tiene insignias de retos.', why: 'En notas anteriores del proyecto, Peque iba sin retenciones.', prop: 'Decidir si Peque hace el reto del aire.', opts: ['Sí, con un adulto', 'No, quitarlo para Peque'] },
+    { id: 'metas-ninas', where: 'Metas por defecto de las niñas', now: 'Junior: BOLT 20 s, pasos 40, 40 min por semana. Peque: BOLT 10 s, pasos 20, 10 min por semana.', why: 'No encontramos metas pediátricas en Oxygen Advantage; la meta de pasos empuja a retenciones más largas.', prop: 'Que tú fijes las metas de cada niña y quitar la meta de pasos en niñas.', opts: ['Dejarlas así', 'Las fijo yo por niña', 'Quitar meta de pasos en niñas'] },
+    { id: 'meta-pasos-adulto', where: 'Meta de pasos de los adultos', now: '80 pasos.', why: 'Los 80 pasos vienen de la prueba de máximo (falta de aire fuerte), pero la serie guarda pasos con falta de aire moderada.', prop: 'Una meta para la serie moderada, por ejemplo 50 o 60 pasos.', opts: ['Dejar 80', 'Bajar a 60', 'Bajar a 50'], src: 'https://oxygenadvantage.com/pages/breath-hold-challenge' },
+    { id: 'otra', where: 'Algo más que quieras cambiar', now: 'Cualquier indicación de la app que no te convenza.', why: 'Tu experiencia con la familia manda.', prop: 'Escríbelo en la nota.', opts: ['Nada más', 'Tengo comentarios'] },
+  ];
+  const KEY = 'calmo.revision.pamela';
+  let answers = {};
+  try { answers = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { answers = {}; }
+  const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(answers)); } catch (e) { /* sin almacenamiento */ } };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const box = document.getElementById('qs');
+  box.innerHTML = Q.map((q, i) => `<article class="q" data-q="${q.id}" aria-labelledby="t-${q.id}">
+    <div class="meta"><b>Pregunta ${i + 1} de ${Q.length}</b><span>${esc(q.where)}</span></div>
+    <h2 id="t-${q.id}">${esc(q.where.split(' · ')[0])}</h2>
+    <p class="now"><strong>Hoy dice:</strong> ${esc(q.now)}</p>
+    <p class="why">${esc(q.why)}</p>
+    <p class="prop"><strong>Propuesta:</strong> ${esc(q.prop)}</p>
+    ${q.src ? `<p class="src">Fuente: <a href="${q.src}" target="_blank" rel="noopener">${esc(q.src)}</a></p>` : ''}
+    <div class="opts" role="group" aria-label="Tu respuesta">${q.opts.map((o) => `<button type="button" data-opt="${esc(o)}" aria-pressed="${answers[q.id]?.opt === o}">${esc(o)}</button>`).join('')}</div>
+    <textarea id="n-${q.id}" placeholder="Nota (opcional)" aria-label="Nota sobre ${esc(q.where)}">${esc(answers[q.id]?.note || '')}</textarea>
+  </article>`).join('');
+  const count = () => {
+    const n = Q.filter((q) => answers[q.id]?.opt).length;
+    document.getElementById('count').textContent = `${n} de ${Q.length} respondidas`;
+  };
+  box.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-opt]');
+    if (!b) return;
+    const card = b.closest('[data-q]');
+    answers[card.dataset.q] = { ...(answers[card.dataset.q] || {}), opt: b.dataset.opt };
+    card.querySelectorAll('[data-opt]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    keep(); count();
+  });
+  box.addEventListener('input', (e) => {
+    const card = e.target.closest('[data-q]');
+    if (!card || e.target.tagName !== 'TEXTAREA') return;
+    answers[card.dataset.q] = { ...(answers[card.dataset.q] || {}), note: e.target.value };
+    keep();
+  });
+  document.getElementById('copy').addEventListener('click', () => {
+    const text = 'Revisión del método Calmo (Pamela)\n\n' + Q.map((q, i) => {
+      const a = answers[q.id] || {};
+      return `${i + 1}. ${q.where}\n   Respuesta: ${a.opt || 'sin responder'}${a.note ? `\n   Nota: ${a.note}` : ''}`;
+    }).join('\n');
+    const out = document.getElementById('out');
+    out.value = text;
+    navigator.clipboard?.writeText(text).then(() => {
+      document.getElementById('copy').textContent = 'Copiado ✓';
+      setTimeout(() => { document.getElementById('copy').textContent = 'Copiar respuestas'; }, 2000);
+    }).catch(() => { out.style.display = 'block'; out.select(); });
+    if (!navigator.clipboard) { out.style.display = 'block'; out.select(); }
+  });
+  count();
+</script>

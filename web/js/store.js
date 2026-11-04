@@ -2,7 +2,7 @@
 // Más adelante se sincroniza con la hoja "Calmo · datos" en Google Drive.
 
 import { dayKey, fromKey, addDays, dow } from './ui.js';
-import { byId } from './catalog.js';
+import { byId, AMBIENTS } from './catalog.js';
 
 const KEY = 'calmo.v1';
 
@@ -39,7 +39,9 @@ function seed() {
     badges: {},
     rewards: defaultRewards(),
     redemptions: [],
+    notes: [],
     removed: {},
+    aliases: {},
     prefs: { tones: true, music: 60, nature: 45, tonesVol: 80, ambient: 'bosque', lastDur: {} },
   };
 }
@@ -75,7 +77,66 @@ export function canManage(id, targetId) {
   const other = state.profiles.find((p) => p.id === targetId);
   if (!me || !other) return false;
   if (me.id === other.id) return true;
+  if (me.role === 'maestra') return other.role !== 'maestra';
   return me.kind === 'adulto' && (!!me.admin || other.kind !== 'adulto');
+}
+
+// ---------- Maestra ----------
+// La maestra tiene su propio perfil para practicar, pero no entra al ranking ni al reto
+// de la familia. Sus prácticas asignadas son rutinas con source: 'maestra'.
+
+export const familyMembers = () => state.profiles.filter((p) => p.role !== 'maestra');
+export const teacher = () => state.profiles.find((p) => p.role === 'maestra') || null;
+
+// Al entrar con su usuario, la maestra usa (o crea) su perfil y no el de la familia.
+export function ensureTeacher(nombre) {
+  const name = String(nombre || 'Maestra').trim().slice(0, 40) || 'Maestra';
+  let t = state.profiles.find((p) => p.role === 'maestra' && norm(p.name) === norm(name)) || teacher();
+  if (!t) {
+    t = stamp({ id: uid(), name, kind: 'adulto', admin: false, role: 'maestra' });
+    state.profiles.push(t);
+    state.goals[t.id] = { ...DEFAULT_GOALS.adulto };
+  }
+  state.current = t.id;
+  save();
+  return t;
+}
+
+// Notas de la maestra para cada alumno. El alumno la marca como leída.
+export const notes = (id) => (state.notes || []).filter((n) => !id || n.profile === id).sort((a, b) => b.at.localeCompare(a.at));
+export const unreadNotes = (id) => notes(id).filter((n) => !n.readAt);
+
+export function addNote(profileId, text) {
+  const clean = String(text || '').trim().slice(0, 280);
+  if (!clean || !state.profiles.some((p) => p.id === profileId)) return null;
+  const n = stamp({ id: uid(), profile: profileId, by: state.current, text: clean, at: new Date().toISOString() });
+  state.notes = [...(state.notes || []), n];
+  save();
+  return n;
+}
+
+export function markNoteRead(noteId) {
+  state.notes = (state.notes || []).map((n) => (n.id === noteId ? stamp({ ...n, readAt: new Date().toISOString() }) : n));
+  save();
+}
+
+export function removeNote(noteId) {
+  state.notes = (state.notes || []).filter((n) => n.id !== noteId);
+  forget(noteId);
+  save();
+}
+
+// Asignar una práctica a varios alumnos a la vez: una rutina por persona, marcada como de la maestra.
+export function assignPractice({ people, kind = 'sesion', name, exerciseId, minutes, time, freq = 'daily', days = [], date, note }) {
+  const by = state.current;
+  const made = people.filter((pid) => state.profiles.some((p) => p.id === pid)).map((pid) => {
+    const r = routine(pid, name, kind === 'bolt' ? null : exerciseId, kind === 'bolt' ? 0 : minutes, time, { kind, freq, days, date, source: 'maestra', by });
+    state.routines.push(r);
+    if (note) state.notes = [...(state.notes || []), stamp({ id: uid(), profile: pid, by, text: String(note).trim().slice(0, 280), at: new Date().toISOString() })];
+    return r;
+  });
+  save();
+  return made;
 }
 
 export function setCurrent(id) {
@@ -88,7 +149,9 @@ export function goals(id = state.current) {
 }
 
 export function setGoal(id, key, value) {
-  state.goals[id] = { ...goals(id), [key]: value, updatedAt: Date.now() };
+  const g = goals(id);
+  const now = Date.now();
+  state.goals[id] = { ...g, [key]: value, at: { ...(g.at || {}), [key]: now }, updatedAt: now };
   save();
 }
 
@@ -105,7 +168,9 @@ export const routines = (id = state.current) => state.routines.filter((r) => r.p
 const allRoutines = (id) => state.routines.filter((r) => r.profile === id);
 
 export function addRoutine(r) {
-  const item = routine(r.profile || state.current, r.name, r.exerciseId, r.minutes, r.time, r);
+  const me = state.profiles.find((p) => p.id === state.current);
+  const forOther = r.profile && r.profile !== state.current;
+  const item = routine(r.profile || state.current, r.name, r.exerciseId, r.minutes, r.time, me?.role === 'maestra' && forOther ? { ...r, source: 'maestra', by: me.id } : r);
   item.id = uid();
   state.routines.push(item);
   save();
@@ -199,16 +264,17 @@ function matchRoutine(id, kind, exerciseId, when, preferId = null) {
 
 export const sessions = (id = state.current) => state.sessions.filter((s) => s.profile === id);
 
-export function addSession({ exerciseId, startedAt, durationSec, controlPauses, routineId: wanted = null }) {
+// complete: false si se terminó antes del 80 %: se guarda, pero no marca la rutina como cumplida.
+export function addSession({ exerciseId, startedAt, durationSec, controlPauses, routineId: wanted = null, complete = true }) {
   const id = state.current;
   const when = new Date(startedAt);
   const before = unlockedBadges(id);
-  const routineId = matchRoutine(id, 'sesion', exerciseId, when, wanted);
+  const routineId = complete ? matchRoutine(id, 'sesion', exerciseId, when, wanted) : null;
   const minutePoints = Math.max(1, Math.floor(durationSec / 60));
   const s = { id: uid(), profile: id, exerciseId, startedAt: when.toISOString(), day: dayKey(when), durationSec: Math.round(durationSec), routineId, controlPauses };
   state.sessions.push(s);
-  state.ledger.push({ profile: id, at: s.startedAt, amount: minutePoints, reason: 'minutos' });
-  if (routineId) state.ledger.push({ profile: id, at: s.startedAt, amount: 5, reason: 'planeada' });
+  state.ledger.push({ id: uid(), profile: id, at: s.startedAt, amount: minutePoints, reason: 'minutos' });
+  if (routineId) state.ledger.push({ id: uid(), profile: id, at: s.startedAt, amount: 5, reason: 'planeada' });
   const newBadges = checkBadges(id, before);
   save();
   return { session: s, minutePoints, plannedPoints: routineId ? 5 : 0, newBadges, routine: state.routines.find((r) => r.id === routineId) };
@@ -222,7 +288,7 @@ export function addBolt({ seconds, morning, note, routineId: wanted = null }) {
   const prev = bolt(id).at(-1);
   const m = { id: uid(), profile: id, takenAt: when.toISOString(), day: dayKey(when), seconds: Math.round(seconds), morning: !!morning, note: note || '', routineId };
   state.bolt.push(m);
-  if (routineId) state.ledger.push({ profile: id, at: m.takenAt, amount: 5, reason: 'planeada' });
+  if (routineId) state.ledger.push({ id: uid(), profile: id, at: m.takenAt, amount: 5, reason: 'planeada' });
   const newBadges = checkBadges(id, before);
   save();
   return { measure: m, prev, newBadges };
@@ -263,7 +329,7 @@ export function practicedDays(id = state.current) {
 export function awardPoints(profileId, amount, reason) {
   const n = Math.round(Number(amount) || 0);
   if (!n || !state.profiles.some((p) => p.id === profileId)) return 0;
-  state.ledger.push({ profile: profileId, at: new Date().toISOString(), amount: n, reason: reason || 'reto' });
+  state.ledger.push({ id: uid(), profile: profileId, at: new Date().toISOString(), amount: n, reason: reason || 'reto' });
   save();
   return n;
 }
@@ -285,7 +351,7 @@ export function minutesBetween(id, from, to) {
 export const last7 = (id = state.current) => minutesBetween(id, addDays(new Date(), -6), new Date());
 
 // El reto en equipo se cumple cuando la familia junta los minutos de sus metas semanales.
-const family = () => state.profiles.filter((p) => p.role !== 'maestra');
+const family = familyMembers;
 
 function familyMet() {
   const sum = family().reduce((a, p) => a + last7(p.id), 0);
@@ -314,16 +380,16 @@ export const BADGES = [
   { id: 'exploradora', name: 'Exploradora', desc: '5 ejercicios distintos', target: 5, kinds: BIG, value: (id) => new Set(sessions(id).map((s) => s.exerciseId)).size },
   { id: 'cumplida', name: 'Rutina cumplida', desc: '14 sesiones planeadas', target: 14, value: (id) => sessions(id).filter((s) => s.routineId).length },
   { id: 'caminante', name: 'Caminante', desc: '50 pasos sin respirar', target: 50, kinds: BIG, value: (id) => bestSteps(id) },
-  { id: 'aire20', name: 'Reto del aire 20 s', kidDesc: 'Aguanta 20 s tranquila', desc: 'BOLT de 20 segundos', target: 20, value: bestBolt },
+  { id: 'aire20', name: 'Reto del aire 20 s', kidDesc: 'Llega a 20 s en tu reto del aire', desc: 'BOLT de 20 segundos', target: 20, value: bestBolt },
   { id: 'mes', name: 'Mes de calma', desc: '30 días seguidos', target: 30, value: (id) => streak(id) },
   // Para todos.
-  { id: 'diez', name: 'Diez respiraciones', desc: '10 sesiones', kidDesc: 'Respira 10 veces', target: 10, value: (id) => sessions(id).length },
-  { id: 'cincuenta', name: 'Cincuenta respiraciones', desc: '50 sesiones', kidDesc: 'Respira 50 veces', target: 50, value: (id) => sessions(id).length },
+  { id: 'diez', name: 'Diez respiraciones', desc: '10 sesiones', kidDesc: 'Haz 10 ejercicios de respiración', target: 10, value: (id) => sessions(id).length },
+  { id: 'cincuenta', name: 'Cincuenta respiraciones', desc: '50 sesiones', kidDesc: 'Haz 50 ejercicios de respiración', target: 50, value: (id) => sessions(id).length },
   { id: 'hora', name: 'Una hora de calma', desc: '60 minutos en total', kidDesc: 'Junta 60 minutos respirando', target: 60, value: totalMinutes },
   { id: 'cinco-horas', name: 'Cinco horas de calma', desc: '300 minutos en total', kidDesc: 'Junta 300 minutos respirando', target: 300, value: totalMinutes },
-  { id: 'quincena', name: 'Dos semanas seguidas', desc: '14 días seguidos', kidDesc: 'Respira 14 días seguidos', target: 14, value: (id) => streak(id) },
-  { id: 'aire15', name: 'Reto del aire 15 s', kidDesc: 'Aguanta 15 s tranquila', desc: 'BOLT de 15 segundos', target: 15, value: bestBolt },
-  { id: 'medidora', name: 'Mido mi aire', desc: '10 mediciones de BOLT', kidDesc: 'Haz el reto del aire 10 veces', target: 10, value: (id) => bolt(id).length },
+  { id: 'quincena', name: 'Dos semanas seguidas', desc: '14 días seguidos', kidDesc: 'Haz ejercicios 14 días seguidos', target: 14, value: (id) => streak(id) },
+  { id: 'aire15', name: 'Reto del aire 15 s', kidDesc: 'Llega a 15 s en tu reto del aire', desc: 'BOLT de 15 segundos', target: 15, value: bestBolt },
+  { id: 'medidora', name: 'Mido mi aire', desc: 'BOLT medido en 10 días distintos', kidDesc: 'Haz el reto del aire 10 días', target: 10, value: (id) => new Set(bolt(id).map((m) => m.day)).size },
   { id: 'premio', name: 'Mi primer premio', desc: 'Un premio aprobado', kidDesc: 'Cambia tus hojas por un premio', target: 1, value: (id) => (state.redemptions || []).filter((r) => r.profile === id && r.status === 'aprobado').length },
   { id: 'meta-semana', name: 'Meta de la semana', desc: 'Llegaste a tu meta de minutos en 7 días', kidDesc: 'Llega a tu meta de la semana', target: 1, value: (id) => (last7(id) >= (goals(id).weekly || Infinity) ? 1 : 0) },
   // Adultos y Junior.
@@ -337,8 +403,8 @@ export const BADGES = [
   { id: 'raton', name: 'Ratoncito', desc: '5 veces «Respira como ratón»', kidDesc: 'Respira como ratón 5 veces', target: 5, kinds: PEQUE, value: ofExercise('raton') },
   { id: 'las-tres', name: 'Probé las tres', desc: 'Las 3 prácticas de Peque', kidDesc: 'Haz la flor, la vela y el ratón', target: 3, kinds: PEQUE, value: (id) => new Set(sessions(id).map((s) => s.exerciseId).filter((e) => ['flor', 'vela', 'raton'].includes(e))).size },
   { id: 'siete-estrellas', name: 'Siete estrellas', desc: '7 días con práctica', kidDesc: 'Junta 7 estrellas', target: 7, kinds: PEQUE, value: (id) => practicedDays(id).size },
-  { id: 'tres-retos', name: 'Tres retos del aire', desc: '3 retos del aire', kidDesc: 'Haz el reto del aire 3 veces', target: 3, kinds: PEQUE, value: (id) => bolt(id).length },
-  { id: 'doble', name: 'Dos veces en un día', desc: '2 sesiones el mismo día', kidDesc: 'Respira 2 veces en un día', target: 2, kinds: PEQUE, value: bestDay },
+  { id: 'tres-retos', name: 'Tres retos del aire', desc: 'Reto del aire en 3 días distintos', kidDesc: 'Haz el reto del aire 3 días', target: 3, kinds: PEQUE, value: (id) => new Set(bolt(id).map((m) => m.day)).size },
+  { id: 'doble', name: 'Dos veces en un día', desc: '2 sesiones el mismo día', kidDesc: 'Haz 2 ejercicios en un día', target: 2, kinds: PEQUE, value: bestDay },
 ];
 
 const kindOf = (id) => state.profiles.find((p) => p.id === id)?.kind || 'adulto';
@@ -356,7 +422,7 @@ function checkBadges(id, before) {
     if (before[b.id]) continue;
     if (b.value(id) >= b.target) {
       state.badges[id][b.id] = new Date().toISOString();
-      state.ledger.push({ profile: id, at: new Date().toISOString(), amount: 10, reason: 'insignia' });
+      state.ledger.push({ id: `ins-${id}-${b.id}`, profile: id, at: new Date().toISOString(), amount: 10, reason: 'insignia' });
       fresh.push(b);
     }
   }
@@ -372,7 +438,7 @@ function grantTeam(skip) {
     state.badges[p.id] = state.badges[p.id] || {};
     if (state.badges[p.id].equipo) return;
     state.badges[p.id].equipo = at;
-    state.ledger.push({ profile: p.id, at, amount: 10, reason: 'insignia' });
+    state.ledger.push({ id: `ins-${p.id}-equipo`, profile: p.id, at, amount: 10, reason: 'insignia' });
   });
 }
 
@@ -412,6 +478,9 @@ export function agenda(id, date) {
       realMinutes: done && done.durationSec ? realMinutes(done.durationSec) : null,
     };
   });
+  looseBolt.forEach((m) => {
+    items.push({ type: 'extra', status: 'extra', time: clockOf(m.takenAt), title: 'BOLT', exercise: null, minutes: 0, measure: m });
+  });
   daySessions.filter((s) => !s.routineId || !planIds.has(s.routineId)).forEach((s) => {
     items.push({ type: 'extra', status: 'extra', time: clockOf(s.startedAt), title: byId(s.exerciseId)?.name || 'Sesión', exercise: byId(s.exerciseId), minutes: realMinutes(s.durationSec), session: s });
   });
@@ -427,12 +496,10 @@ export function exportJSON() {
 // Reemplaza los datos con un respaldo exportado. Devuelve false si el archivo no sirve.
 export function importJSON(text) {
   let data;
-  try { data = JSON.parse(text); } catch (e) { return false; }
-  if (!data || typeof data !== 'object' || !Array.isArray(data.profiles) || !data.profiles.length) return false;
-  if (['routines', 'sessions', 'bolt', 'steps', 'ledger'].some((k) => data[k] !== undefined && !Array.isArray(data[k]))) return false;
-  if (data.profiles.some((p) => !p || !p.id || !p.name)) return false;
+  try { data = cleanState(JSON.parse(text)); } catch (e) { return false; }
+  if (!data || !data.profiles.length) return false;
   const current = state.current;
-  state = { ...seed(), ...data };
+  state = data;
   delete state.syncedAt;
   state.current = state.profiles.some((p) => p.id === current) ? current : (state.profiles.find((p) => p.kind === 'adulto') || state.profiles[0]).id;
   save();
@@ -493,6 +560,10 @@ export function addProfile({ name, kind = 'junior', age, admin, role }) {
 }
 
 export function updateProfile(id, patch) {
+  // El único adulto no puede dejar de serlo: la familia siempre tiene un adulto que la administre.
+  const target = state.profiles.find((p) => p.id === id);
+  const adults = state.profiles.filter((p) => p.kind === 'adulto' && p.role !== 'maestra');
+  if (target?.kind === 'adulto' && patch.kind && patch.kind !== 'adulto' && adults.length <= 1) return false;
   state.profiles = state.profiles.map((p) => {
     if (p.id !== id) return p;
     const next = stamp({ ...p, ...patch, age: patch.age !== undefined ? (patch.age ? Number(patch.age) : undefined) : p.age });
@@ -506,6 +577,7 @@ export function updateProfile(id, patch) {
     if (first) first.admin = true;
   }
   save();
+  return true;
 }
 
 // Quita el perfil y sus datos. Nunca deja la app sin un adulto.
@@ -518,6 +590,11 @@ export function removeProfile(id) {
   ['routines', 'sessions', 'bolt', 'steps', 'ledger', 'redemptions'].forEach((k) => { state[k] = (state[k] || []).filter((x) => x.profile !== id); });
   delete state.goals[id];
   delete state.badges[id];
+  // Si se fue el único administrador, otro adulto toma su lugar.
+  if (!state.profiles.some((x) => x.kind === 'adulto' && x.admin)) {
+    const next = state.profiles.find((x) => x.kind === 'adulto' && x.role !== 'maestra');
+    if (next) state.profiles = state.profiles.map((x) => (x.id === next.id ? stamp({ ...x, admin: true }) : x));
+  }
   if (state.current === id) state.current = (state.profiles.find((x) => x.kind === 'adulto') || state.profiles[0]).id;
   save();
   return true;
@@ -595,6 +672,7 @@ const SUGGESTED = {
 // people: [{ name, kind, age }]. El primer adulto queda como perfil activo y administrador.
 export function setupFamily({ family, people, withRoutines }) {
   state.familyName = (family || '').trim();
+  state.familyNameAt = Date.now();
   people.forEach((x) => {
     const p = stamp({ id: uid(), name: x.name.trim(), kind: x.kind, age: x.age ? Number(x.age) : undefined, admin: x.kind === 'adulto' });
     state.profiles.push(p);
@@ -629,6 +707,88 @@ function union(a, b, key) {
   return [...m.values()];
 }
 
+// ---------- Limpieza de datos que llegan de fuera ----------
+// Servidor, otro teléfono o un respaldo importado: solo pasan registros con la forma esperada.
+// Así un dato raro nunca termina como código en la pantalla.
+const ID = /^[\w-]{1,64}$/;
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+const RESERVED = new Set(['__proto__', 'constructor', 'prototype']);
+const isId = (v) => typeof v === 'string' && ID.test(v) && !RESERVED.has(v);
+const num = (v, d = 0) => (Number.isFinite(Number(v)) && v !== null && v !== '' ? Number(v) : d);
+const str = (v, max = 200) => (typeof v === 'string' ? v.slice(0, max) : '');
+const day = (v) => (typeof v === 'string' && DAY.test(v) ? v : undefined);
+const iso = (v) => (typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : undefined);
+const oneOf = (v, list, d) => (list.includes(v) ? v : d);
+const KINDS = ['adulto', 'junior', 'peque'];
+const idMap = (o, fn) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k]) => isId(k)).map(([k, v]) => [k, fn(v)]).filter(([, v]) => v !== undefined));
+const list = (v, fn) => (Array.isArray(v) ? v.map(fn).filter(Boolean) : []);
+const opt = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined));
+
+export function cleanState(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  // Un ejercicio que esta versión no conoce (de una versión más nueva) se conserva.
+  const exercise = (v) => (isId(v) ? v : null);
+  return {
+    ...seed(),
+    v: 1,
+    familyName: str(raw.familyName, 40),
+    familyNameAt: num(raw.familyNameAt),
+    aliases: idMap(raw.aliases, (v) => (isId(v) ? v : undefined)),
+    profiles: list(raw.profiles, (p) => (p && isId(p.id) && str(p.name, 40).trim() ? opt({
+      id: p.id, name: str(p.name, 40).trim(), kind: oneOf(p.kind, KINDS, 'adulto'), age: p.age ? num(p.age) : undefined,
+      admin: !!p.admin, role: p.role === 'maestra' ? 'maestra' : undefined, updatedAt: num(p.updatedAt),
+    }) : null)),
+    goals: idMap(raw.goals, (g) => (g && typeof g === 'object' ? opt({
+      bolt: num(g.bolt, 40), steps: num(g.steps, 80), weekly: num(g.weekly, 150), updatedAt: num(g.updatedAt),
+      at: g.at && typeof g.at === 'object' ? Object.fromEntries(['bolt', 'steps', 'weekly'].filter((k) => Number.isFinite(g.at[k])).map((k) => [k, g.at[k]])) : undefined,
+    }) : undefined)),
+    routines: list(raw.routines, (r) => (r && isId(r.id) && isId(r.profile) ? opt({
+      id: r.id, profile: r.profile, kind: oneOf(r.kind, ['sesion', 'bolt'], 'sesion'), name: str(r.name, 40), exerciseId: exercise(r.exerciseId),
+      minutes: num(r.minutes), time: /^\d{2}:\d{2}$/.test(r.time || '') ? r.time : '07:00', freq: oneOf(r.freq, ['daily', 'weekdays', 'days', 'once'], 'daily'),
+      days: list(r.days, (d) => (Number.isInteger(d) && d >= 0 && d <= 6 ? d + 1 : 0)).map((d) => d - 1),
+      active: r.active !== false, since: day(r.since), deletedAt: day(r.deletedAt), pausedFrom: day(r.pausedFrom), date: day(r.date), updatedAt: num(r.updatedAt),
+      source: r.source === 'maestra' ? 'maestra' : undefined, by: isId(r.by) ? r.by : undefined,
+    }) : null)),
+    notes: list(raw.notes, (n) => (n && isId(n.id) && isId(n.profile) && iso(n.at) && str(n.text, 280).trim() ? opt({
+      id: n.id, profile: n.profile, by: isId(n.by) ? n.by : undefined, text: str(n.text, 280), at: n.at, readAt: iso(n.readAt), updatedAt: num(n.updatedAt),
+    }) : null)),
+    sessions: list(raw.sessions, (s) => (s && isId(s.id) && isId(s.profile) && isId(s.exerciseId) && iso(s.startedAt) ? opt({
+      id: s.id, profile: s.profile, exerciseId: s.exerciseId, startedAt: s.startedAt, day: day(s.day) || dayKey(new Date(s.startedAt)),
+      durationSec: num(s.durationSec), routineId: isId(s.routineId) ? s.routineId : null,
+      controlPauses: Array.isArray(s.controlPauses) ? list(s.controlPauses, (v) => (Number.isFinite(v) ? v + 1 : 0)).map((v) => v - 1) : undefined, updatedAt: num(s.updatedAt),
+    }) : null)),
+    bolt: list(raw.bolt, (m) => (m && isId(m.id) && isId(m.profile) && iso(m.takenAt) ? opt({
+      id: m.id, profile: m.profile, takenAt: m.takenAt, day: day(m.day) || dayKey(new Date(m.takenAt)), seconds: num(m.seconds),
+      morning: !!m.morning, note: str(m.note, 140), routineId: isId(m.routineId) ? m.routineId : null, updatedAt: num(m.updatedAt),
+    }) : null)),
+    steps: list(raw.steps, (m) => (m && isId(m.id) && isId(m.profile) && iso(m.takenAt) ? opt({
+      id: m.id, profile: m.profile, takenAt: m.takenAt, day: day(m.day) || dayKey(new Date(m.takenAt)), steps: num(m.steps), seconds: num(m.seconds),
+      type: oneOf(m.type, ['max', 'serie'], 'serie'), series: Array.isArray(m.series) ? m.series.map((v) => num(v)) : undefined, updatedAt: num(m.updatedAt),
+    }) : null)),
+    ledger: list(raw.ledger, (l) => (l && isId(l.profile) && iso(l.at) ? opt({ id: isId(l.id) ? l.id : undefined, profile: l.profile, at: l.at, amount: num(l.amount), reason: str(l.reason, 40) }) : null)),
+    badges: idMap(raw.badges, (b) => (b && typeof b === 'object' ? Object.fromEntries(Object.entries(b).filter(([k, v]) => isId(k) && iso(v))) : undefined)),
+    rewards: !Array.isArray(raw.rewards) ? defaultRewards() : list(raw.rewards, (r) => (r && isId(r.id) && str(r.name, 60).trim() ? opt({ id: r.id, name: str(r.name, 60), cost: Math.max(5, num(r.cost, 100)), active: r.active !== false, updatedAt: num(r.updatedAt) }) : null)),
+    redemptions: list(raw.redemptions, (r) => (r && isId(r.id) && isId(r.profile) && iso(r.requestedAt) ? opt({
+      id: r.id, profile: r.profile, rewardId: isId(r.rewardId) ? r.rewardId : '', name: str(r.name, 60), cost: num(r.cost),
+      status: oneOf(r.status, ['pendiente', 'aprobado', 'pospuesto'], 'pendiente'), requestedAt: r.requestedAt,
+      decidedAt: iso(r.decidedAt) || (r.status === 'aprobado' || r.status === 'pospuesto' ? r.requestedAt : undefined),
+      decidedBy: isId(r.decidedBy) ? r.decidedBy : undefined, updatedAt: num(r.updatedAt),
+    }) : null)),
+    removed: idMap(raw.removed, (v) => (Number.isFinite(v) ? v : undefined)),
+    prefs: (() => {
+      const p = raw.prefs && typeof raw.prefs === 'object' ? raw.prefs : {};
+      return {
+        tones: p.tones !== false, music: num(p.music, 60), nature: num(p.nature, 45), tonesVol: num(p.tonesVol, 80),
+        ambient: AMBIENTS.some((a) => a.id === p.ambient) ? p.ambient : 'bosque',
+        lastDur: Object.fromEntries(Object.entries(p.lastDur && typeof p.lastDur === 'object' ? p.lastDur : {}).filter(([k, v]) => byId(k) && Number.isFinite(v))),
+        pins: idMap(p.pins, (v) => (typeof v === 'string' && /^\d{4}$/.test(v) ? v : undefined)),
+        pinsAt: idMap(p.pinsAt, (v) => (Number.isFinite(v) ? v : undefined)),
+      };
+    })(),
+    updatedAt: num(raw.updatedAt),
+  };
+}
+
 // Lo borrado (perfiles y rutinas sin historia) se recuerda para que otro teléfono no lo reviva.
 function forget(id) {
   state.removed = { ...(state.removed || {}), [id]: Date.now() };
@@ -636,33 +796,52 @@ function forget(id) {
 
 const norm = (s) => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-// Si otro teléfono dio de alta a la misma persona con otro id (mismo nombre), es la misma:
-// sus datos pasan al perfil de este teléfono y no se duplica nadie.
-function adoptSamePeople(remote) {
-  const mine = new Map(state.profiles.map((p) => [norm(p.name), p.id]));
-  const map = {};
-  (remote.profiles || []).forEach((p) => {
-    const local = mine.get(norm(p.name));
-    if (local && local !== p.id && !state.profiles.some((x) => x.id === p.id)) map[p.id] = local;
-  });
-  if (!Object.keys(map).length) return remote;
-  const re = (pid) => map[pid] || pid;
+// Cambia ids de persona en todo un estado (perfiles y todo lo que apunta a ellos).
+function renameIds(st, map) {
+  if (!Object.keys(map).length) return st;
+  const re = (id) => map[id] || id;
   const reKeys = (o) => Object.fromEntries(Object.entries(o || {}).map(([k, v]) => [re(k), v]));
-  const reList = (list) => (list || []).map((x) => ({ ...x, profile: re(x.profile) }));
+  const who = (x) => ({ ...x, profile: re(x.profile), ...(x.by ? { by: re(x.by) } : {}), ...(x.decidedBy ? { decidedBy: re(x.decidedBy) } : {}) });
   return {
-    ...remote,
-    profiles: remote.profiles.filter((p) => !map[p.id]),
-    goals: reKeys(remote.goals),
-    badges: reKeys(remote.badges),
-    removed: reKeys(remote.removed),
-    routines: reList(remote.routines),
-    sessions: reList(remote.sessions),
-    bolt: reList(remote.bolt),
-    steps: reList(remote.steps),
-    ledger: reList(remote.ledger),
-    redemptions: reList(remote.redemptions),
-    prefs: { ...(remote.prefs || {}), pins: reKeys(remote.prefs?.pins), pinsAt: reKeys(remote.prefs?.pinsAt) },
+    ...st,
+    current: st.current ? re(st.current) : st.current,
+    profiles: (st.profiles || []).map((p) => ({ ...p, id: re(p.id) })),
+    goals: reKeys(st.goals),
+    badges: reKeys(st.badges),
+    removed: reKeys(st.removed),
+    routines: (st.routines || []).map(who),
+    sessions: (st.sessions || []).map(who),
+    bolt: (st.bolt || []).map(who),
+    steps: (st.steps || []).map(who),
+    // El id de la hoja de una insignia lleva el id de la persona.
+    ledger: (st.ledger || []).map((l) => ({ ...who(l), ...(l.id && l.id.startsWith('ins-') && map[l.profile] ? { id: l.id.replace(`ins-${l.profile}-`, `ins-${map[l.profile]}-`) } : {}) })),
+    redemptions: (st.redemptions || []).map(who),
+    notes: (st.notes || []).map(who),
+    prefs: { ...(st.prefs || {}), pins: reKeys(st.prefs?.pins), pinsAt: reKeys(st.prefs?.pinsAt) },
   };
+}
+
+// La misma persona siempre termina con un solo id en todos los teléfonos: el del servidor.
+// Si este teléfono la tenía con otro id (mismo nombre), adopta el del servidor y lo anota
+// en aliases para que cualquier otro teléfono con el id viejo también se corrija.
+function unifyIds(remote) {
+  const aliases = { ...(remote.aliases || {}), ...(state.aliases || {}) };
+  const resolve = (id) => { let x = id; for (let i = 0; i < 5 && aliases[x]; i++) x = aliases[x]; return x; };
+  const known = new Set((remote.profiles || []).map((p) => p.id));
+  const byName = new Map((remote.profiles || []).map((p) => [norm(p.name), p.id]));
+  state.profiles.forEach((p) => {
+    const theirs = byName.get(norm(p.name));
+    if (!known.has(p.id) && theirs && theirs !== p.id) aliases[p.id] = theirs;
+  });
+  const flat = Object.fromEntries(Object.keys(aliases).map((k) => [k, resolve(k)]).filter(([k, v]) => k !== v));
+  const fresh = Object.keys(flat).filter((k) => !(state.aliases || {})[k] && state.profiles.some((p) => p.id === k));
+  if (fresh.length) {
+    state.profiles = state.profiles.map((p) => (fresh.includes(p.id) ? { ...p, updatedAt: 0 } : p));
+    if (remote.familyName) state.familyNameAt = 0;
+  }
+  state = renameIds(state, flat);
+  state.aliases = flat;
+  return renameIds({ ...remote, aliases: flat }, flat);
 }
 
 // Por id, gana la versión con el cambio más reciente; si empatan, la de este teléfono.
@@ -675,15 +854,20 @@ function newest(local, remote, alive) {
   return [...m.values()].filter(alive);
 }
 
-// Dos rutinas iguales (misma persona, hora, ejercicio y días) son una sola.
-function dedupeRoutines(list, records) {
-  const keep = new Map();
-  const moved = {};
+// Dos rutinas iguales (misma persona, hora, ejercicio y días) son una sola. Gana la que ya
+// está en el servidor (o el id menor); la otra queda borrada para que no reviva en otro teléfono.
+function dedupeRoutines(list, records, remoteIds, removed) {
+  const groups = new Map();
   list.forEach((r) => {
     if (r.deletedAt) return;
     const key = JSON.stringify([r.profile, r.kind, r.name, r.time, r.exerciseId || null, r.freq, r.days || [], r.date || null]);
-    if (keep.has(key)) moved[r.id] = keep.get(key);
-    else keep.set(key, r.id);
+    groups.set(key, [...(groups.get(key) || []), r.id]);
+  });
+  const moved = {};
+  groups.forEach((ids) => {
+    if (ids.length < 2) return;
+    const winner = [...ids].sort((a, b) => (remoteIds.has(b) - remoteIds.has(a)) || a.localeCompare(b))[0];
+    ids.filter((x) => x !== winner).forEach((x) => { moved[x] = winner; removed[x] = removed[x] || Date.now(); });
   });
   Object.keys(records).forEach((k) => {
     records[k] = records[k].map((x) => (moved[x.routineId] ? { ...x, routineId: moved[x.routineId] } : x));
@@ -691,10 +875,26 @@ function dedupeRoutines(list, records) {
   return list.filter((r) => !moved[r.id]);
 }
 
-// Metas por persona y PIN por adulto: gana el cambio más reciente.
-function newestPerKey(local = {}, remote = {}, at = (v) => v?.updatedAt || 0) {
-  const out = { ...remote, ...local };
-  Object.keys(remote).forEach((k) => { if (at(remote[k], k, 'remote') > at(local[k], k, 'local')) out[k] = remote[k]; });
+// Metas: cada meta (BOLT, pasos, minutos) gana por su propia hora de cambio.
+function mergeGoals(local = {}, remote = {}) {
+  const out = {};
+  new Set([...Object.keys(local), ...Object.keys(remote)]).forEach((pid) => {
+    const l = local[pid] || {};
+    const r = remote[pid] || {};
+    const at = (g, k) => {
+      if (!g.at) return g.updatedAt || 0;
+      const latest = Math.max(0, ...Object.values(g.at));
+      return (g.updatedAt || 0) > latest ? g.updatedAt : (g.at[k] || 0);
+    };
+    const g = { at: {} };
+    ['bolt', 'steps', 'weekly'].forEach((k) => {
+      const src = at(r, k) > at(l, k) ? r : (k in l ? l : r);
+      if (src[k] !== undefined) g[k] = src[k];
+      if (at(src, k)) g.at[k] = at(src, k);
+    });
+    g.updatedAt = Math.max(l.updatedAt || 0, r.updatedAt || 0);
+    out[pid] = g;
+  });
   return out;
 }
 
@@ -715,21 +915,31 @@ function mergePins(local = {}, remote = {}) {
 // Junta lo del servidor con lo de este teléfono: nadie se duplica, nada se pierde,
 // los cambios más recientes ganan y lo borrado no regresa.
 export function mergeRemote(incoming) {
-  if (!incoming) return;
-  const remote = adoptSamePeople(incoming);
+  const cleaned = cleanState(incoming);
+  if (!cleaned) return;
+  const remote = unifyIds(cleaned);
   const removed = { ...(remote.removed || {}), ...(state.removed || {}) };
   const alive = (x) => !removed[x.id] && !removed[x.profile];
-  const ledgerKey = (l) => `${l.profile}|${l.at}|${l.reason}|${l.amount}`;
+  // Las hojas viejas no tienen id: se juntan por persona, hora, motivo y monto.
+  const ledgerKey = (l) => l.id || `${l.profile}|${l.at}|${l.reason}|${l.amount}`;
   const records = {
     sessions: newest(state.sessions, remote.sessions, alive),
     bolt: newest(state.bolt, remote.bolt, alive),
   };
-  const routines = dedupeRoutines(newest(state.routines, remote.routines, alive), records);
+  const remoteRoutineIds = new Set((remote.routines || []).map((r) => r.id));
+  const routines = dedupeRoutines(newest(state.routines, remote.routines, alive), records, remoteRoutineIds, removed);
   const badges = { ...(remote.badges || {}) };
-  Object.entries(state.badges || {}).forEach(([pid, got]) => { badges[pid] = { ...(badges[pid] || {}), ...got }; });
+  Object.entries(state.badges || {}).forEach(([pid, got]) => {
+    const theirs = badges[pid] || {};
+    badges[pid] = { ...theirs };
+    Object.entries(got).forEach(([b, at]) => { badges[pid][b] = theirs[b] && theirs[b] < at ? theirs[b] : at; });
+  });
+  const nameFromRemote = (remote.familyNameAt || 0) > (state.familyNameAt || 0) || !state.familyName;
   const merged = {
     ...remote,
-    familyName: state.familyName || remote.familyName,
+    familyName: nameFromRemote ? remote.familyName : state.familyName,
+    familyNameAt: Math.max(remote.familyNameAt || 0, state.familyNameAt || 0),
+    aliases: { ...(remote.aliases || {}), ...(state.aliases || {}) },
     profiles: newest(state.profiles, remote.profiles, alive),
     routines,
     ...records,
@@ -737,12 +947,30 @@ export function mergeRemote(incoming) {
     ledger: union(state.ledger, remote.ledger, ledgerKey).filter(alive),
     rewards: newest(state.rewards, remote.rewards, alive),
     redemptions: mergeRedemptions(state.redemptions, remote.redemptions).filter(alive),
-    goals: newestPerKey(state.goals, remote.goals),
+    notes: newest(state.notes, remote.notes, alive),
+    goals: mergeGoals(state.goals, remote.goals),
     badges,
     removed,
     prefs: { ...(remote.prefs || {}), ...state.prefs, ...mergePins(state.prefs, remote.prefs) },
   };
   replaceState(merged, Date.now());
+}
+
+// La maestra adopta lo que el servidor guardó (ya filtrado); conserva solo su sonido.
+export function adoptServer(raw, updatedAt) {
+  const cleaned = cleanState(raw);
+  if (!cleaned) return;
+  replaceState({ ...cleaned, prefs: { ...cleaned.prefs, ...state.prefs, pins: cleaned.prefs.pins, pinsAt: cleaned.prefs.pinsAt } }, updatedAt);
+}
+
+// ¿Este teléfono tiene algo que el servidor no? (para no reescribir la hoja sin cambios)
+export function differsFrom(raw) {
+  const a = cleanState(raw);
+  const b = cleanState(snapshot().state);
+  if (!a || !b) return true;
+  a.updatedAt = 0;
+  b.updatedAt = 0;
+  return JSON.stringify(a) !== JSON.stringify(b);
 }
 
 // Reemplaza el estado con lo que llegó del servidor y avisa a la pantalla.

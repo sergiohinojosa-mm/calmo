@@ -48,6 +48,7 @@ export default {
     const box = root.querySelector('#bolt');
     const st = { phase: 'intro', t0: 0, secs: 0, morning: new Date().getHours() < 10, note: '', prev: store.lastBolt(p.id) };
     let timer = 0;
+    let saved = false; // evita guardar dos veces con un doble toque
     const title = kid ? 'Reto del aire' : 'BOLT score';
     const close = `<a href="#/perfil" class="icon-btn pe" aria-label="Cerrar" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('x', 18)}</a>`;
     const canDelete = typeof store.removeBolt === 'function';
@@ -65,7 +66,7 @@ export default {
     };
 
     const bindHistory = (redraw) => box.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', async () => {
-      if (!(await askConfirm('¿Borrar esta medición?', { ok: 'Borrar', cancel: 'Cancelar' }))) return;
+      if (!(await askConfirm(kid ? '¿Borrar este reto?' : '¿Borrar esta medición?', { ok: 'Borrar', cancel: 'Cancelar' }))) return;
       store.removeBolt(b.dataset.del);
       st.prev = store.lastBolt(p.id);
       redraw();
@@ -79,19 +80,20 @@ export default {
     }
 
     const oops = (big) => `<div class="stack" style="flex:1;justify-content:center;text-align:center;gap:14px">
-        <h1 class="h1"${big ? ' style="font-size:32px"' : ''}>¿Fue un toque accidental?</h1>
-        <p class="sub"${big ? ' style="font-size:18px"' : ''}>Solo ${plural(st.secs, 'segundo', 'segundos')}. Si tocaste sin querer, repítelo.</p>
+        <h1 class="h1"${big ? ' style="font-size:32px"' : ''}>${kid ? '¿Tocaste sin querer?' : '¿Fue un toque accidental?'}</h1>
+        <p class="sub"${big ? ' style="font-size:18px"' : ''}>${kid ? `Fueron ${plural(st.secs, 'segundo', 'segundos')}. Si tocaste sin querer, hazlo otra vez.` : `Solo ${plural(st.secs, 'segundo', 'segundos')}. Si tocaste sin querer, repítelo.`}</p>
         <div class="stack" style="margin-top:18px">
-          <button class="btn primary block" id="again"${big ? ' style="min-height:64px;font-size:20px"' : ''}>Repetir</button>
+          <button class="btn primary block" id="again"${big ? ' style="min-height:64px;font-size:20px"' : ''}>${kid ? 'Otra vez' : 'Repetir'}</button>
           <button class="btn block" id="keep">Guardar</button>
         </div></div>`;
 
     function draw() {
+      requestAnimationFrame(() => box.querySelector('#tap')?.focus({ preventScroll: true }));
       if (st.phase === 'intro') {
-        box.innerHTML = `<button class="tapzone" id="tap" aria-label="Empezar la medición"></button>
+        box.innerHTML = `<button class="tapzone" id="tap" aria-label="${kid ? 'Empezar el reto' : 'Empezar la medición'}"></button>
           <div class="tap-ui stack" style="flex:1">
             <div class="between">${close}<p style="margin:0;font-size:14px;font-weight:500">${esc(title)}</p><span style="width:44px"></span></div>
-            <h1 class="h1" style="margin-top:18px">${kid ? '¿Cuánto aguantas sin respirar?' : 'Mide tu BOLT'}</h1>
+            <h1 class="h1" style="margin-top:18px">${kid ? '¿Cuándo te pide aire tu cuerpo?' : 'Mide tu BOLT'}</h1>
             <p class="sub">${kid ? 'Es un reto suave. No es una carrera.' : 'Mídelo al despertar y en las mismas condiciones para poder compararlo.'}</p>
             <div class="stack" style="margin-top:10px">${(kid ? STEPS.kid : STEPS.adulto).map(([ic, txt], i) => `<div class="tile row">
               <span style="width:40px;height:40px;flex:none;border-radius:50%;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(ic, 20)}</span>
@@ -122,12 +124,19 @@ export default {
         const v = st.secs;
         const delta = st.prev ? v - st.prev.seconds : null;
         const pct = Math.min(100, (v / 50) * 100);
+        // La X no pierde la medición: se guarda sola al cerrar.
+        const closeSave = `<button class="icon-btn" id="closeSave" aria-label="Guardar y cerrar" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('x', 18)}</button>`;
+        // A niñas y niños solo se les muestra lo positivo: nada de diferencias negativas ni «te faltan».
+        const best = Math.max(v, ...store.bolt(p.id).map((m) => m.seconds));
+        const kidChip = delta === null ? '<span class="chip sage" style="margin-top:10px">¡Tu primer reto!</span>'
+          : delta > 0 ? `<span class="chip sage" style="margin-top:10px">${delta} s más que la vez pasada</span>` : '';
+        const adultChip = delta !== null ? `<span class="chip ${delta >= 0 ? 'sage' : ''}" style="margin-top:10px">${delta >= 0 ? `+${delta}` : delta} s vs. la anterior</span>` : '<span class="chip" style="margin-top:10px">Tu primera medición</span>';
         box.innerHTML = `<div class="stack" style="flex:1">
-          <div class="between">${close.replace(' pe', '')}<p style="margin:0;font-size:14px;font-weight:500">${esc(title)}</p><span style="width:44px"></span></div>
+          <div class="between">${closeSave}<p style="margin:0;font-size:14px;font-weight:500">${esc(title)}</p><span style="width:44px"></span></div>
           <div style="text-align:center;margin-top:12px">
-            <p class="sub" style="margin:0">${kid ? 'Aguantaste' : 'Tu BOLT de hoy'}</p>
-            <p class="num pop" style="margin:4px 0 0;font-size:88px;line-height:1">${v} <span style="font-family:var(--sans);font-size:22px;color:var(--text2)">s</span></p>
-            ${delta !== null ? `<span class="chip ${delta >= 0 ? 'sage' : ''}" style="margin-top:10px">${delta >= 0 ? `+${delta}` : delta} s vs. la anterior</span>` : '<span class="chip" style="margin-top:10px">Tu primera medición</span>'}
+            <p class="sub" style="margin:0">${kid ? '¡Muy bien! Tu reto de hoy' : 'Tu BOLT de hoy'}</p>
+            <p class="num pop" role="status" style="margin:4px 0 0;font-size:88px;line-height:1">${v} <span style="font-family:var(--sans);font-size:22px;color:var(--text2)">s</span></p>
+            ${kid ? kidChip : adultChip}
           </div>
           ${kid ? '' : `<div class="card">
             <div style="position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px">
@@ -138,7 +147,8 @@ export default {
               ${SCALE.map((s) => `<span style="${s[0] === boltLevel(v) ? 'color:var(--hoja);font-weight:600' : ''}">${s[0]}<br>${s[1]}</span>`).join('')}
             </div>
           </div>`}
-          <div class="tile between"><span>Tu meta: ${g.bolt} s</span><span>${v >= g.bolt ? '¡Meta lograda!' : `Te faltan ${g.bolt - v} s`}</span></div>
+          ${kid ? `<div class="tile between"><span>Tu mejor: ${best} s</span><span>${st.prev && v >= best ? '¡Es tu mejor reto!' : v >= g.bolt ? '¡Meta lograda!' : ''}</span></div>`
+            : `<div class="tile between"><span>Tu meta: ${g.bolt} s</span><span>${v >= g.bolt ? '¡Meta lograda!' : `Te faltan ${g.bolt - v} s`}</span></div>`}
           ${kid ? '' : `<div class="tile">
             <div class="between" style="min-height:48px"><span><span style="display:block">Medición de la mañana</span><span class="muted">Al despertar, antes de cualquier actividad</span></span>
               <button class="switch" role="switch" id="morning" aria-checked="${st.morning}" aria-label="Medición de la mañana"><span></span></button></div>
@@ -148,7 +158,7 @@ export default {
           ${history()}
           <div class="stack" style="margin-top:auto">
             <button class="btn primary block" id="save">Guardar</button>
-            <button class="btn block" id="again">Repetir</button>
+            <button class="btn block" id="again">${kid ? 'Otra vez' : 'Repetir'}</button>
           </div>
         </div>`;
         box.querySelector('#morning')?.addEventListener('click', (e) => {
@@ -158,6 +168,7 @@ export default {
         box.querySelector('#note')?.addEventListener('input', (e) => { st.note = e.target.value; });
         box.querySelector('#again').addEventListener('click', () => { st.phase = 'intro'; draw(); });
         box.querySelector('#save').addEventListener('click', save);
+        box.querySelector('#closeSave').addEventListener('click', save);
         bindHistory(draw);
       }
     }
@@ -178,6 +189,8 @@ export default {
     }
 
     function save() {
+      if (saved) return;
+      saved = true;
       const res = store.addBolt({ seconds: st.secs, morning: kid ? true : st.morning, note: st.note, routineId: ctx.query.get('rutina') || undefined });
       toast(`${kid ? '¡Reto guardado!' : 'BOLT guardado'}${award()}`);
       if (res.newBadges.length) setTimeout(() => toast(`¡Nueva insignia: ${res.newBadges[0].name}!`), 2700);
@@ -190,6 +203,8 @@ export default {
       ${label}${sub ? `<span style="font-family:var(--sans);font-size:16px">${sub}</span>` : ''}</button>`;
 
     function savePeque() {
+      if (saved) return;
+      saved = true;
       const res = store.addBolt({ seconds: st.secs, morning: false, note: 'Con un adulto' });
       toast(`¡Reto guardado!${award()}`);
       if (res.newBadges.length) setTimeout(() => toast(`¡Nueva insignia: ${res.newBadges[0].name}!`), 2700);
@@ -201,7 +216,7 @@ export default {
       if (st.phase === 'intro') {
         box.innerHTML = `${top}<div class="stack" style="flex:1;justify-content:center;text-align:center;gap:20px">
           <h1 class="h1" style="font-size:32px">Reto del aire con mamá o papá</h1>
-          <p class="sub" style="font-size:18px">Tápate la nariz y avísame cuando quieras respirar.</p>
+          <p class="sub" style="font-size:18px">Suelta el aire por la nariz, tápate la nariz y avísame cuando quieras respirar.</p>
           ${bigBtn('Empezar')}</div>`;
         box.querySelector('#big').addEventListener('click', () => {
           st.phase = 'running';

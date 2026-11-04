@@ -28,7 +28,9 @@ const P = {
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   star: '<path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6L12 16.3 6.6 19.2l1.3-6-4.5-4 6-.6z"/>',
-  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  // Engrane de seis dientes: no confundir con «sun», que lleva rayos sueltos.
+  gear: '<path d="M10.3 5.6L10.4 2.5A9.6 9.6 0 0 1 13.6 2.5L13.7 5.6A6.6 6.6 0 0 1 16.7 7.3L19.4 5.9A9.6 9.6 0 0 1 21 8.7L18.4 10.3A6.6 6.6 0 0 1 18.4 13.7L21 15.3A9.6 9.6 0 0 1 19.4 18.1L16.7 16.7A6.6 6.6 0 0 1 13.7 18.4L13.6 21.5A9.6 9.6 0 0 1 10.4 21.5L10.3 18.4A6.6 6.6 0 0 1 7.3 16.7L4.6 18.1A9.6 9.6 0 0 1 3 15.3L5.6 13.7A6.6 6.6 0 0 1 5.6 10.3L3 8.7A9.6 9.6 0 0 1 4.6 5.9L7.3 7.3A6.6 6.6 0 0 1 10.3 5.6Z"/><circle cx="12" cy="12" r="2.6"/>',
+  edit: '<path d="M4 20v-4L15 5a2.8 2.8 0 0 1 4 4L8 20z"/><path d="M13.5 6.5l4 4"/>',
   repeat: '<path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/>',
   steps: '<path d="M8 3c2 0 3 2 3 5s-1 5-3 5-3-2-3-5 1-5 3-5zM16 9c2 0 3 2 3 5s-1 5-3 5-3-2-3-5 1-5 3-5zM6 16h4M14 21h4"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
@@ -121,22 +123,28 @@ export function confetti(colors = ['#9CC5A1', '#B9DEC3', '#E2CC94', '#E9B27D']) 
   setTimeout(() => box.remove(), 7000);
 }
 
-export function bar(pct, color = 'var(--sage)') {
+export function bar(pct, color = 'var(--sage)', label = 'Avance') {
   const p = Math.max(0, Math.min(100, Math.round(pct)));
-  return `<div class="bar" role="img" aria-label="${p} %"><i style="width:${p}%;background:${color}"></i></div>`;
+  return `<div class="bar" role="img" aria-label="${esc(label)}: ${p} %"><i style="width:${p}%;background:${color}"></i></div>`;
 }
 
 export function avatar(profile, size = 44) {
   const tint = { adulto: ['#2A4033', '#B9DEC3'], junior: ['rgba(226,204,148,0.18)', '#E2CC94'], peque: ['rgba(233,178,125,0.22)', '#E9B27D'] }[profile.kind];
-  return `<span class="avatar" style="width:${size}px;height:${size}px;background:${tint[0]};color:${tint[1]};font-size:${Math.round(size * 0.42)}px">${esc(profile.name.charAt(0))}</span>`;
+  return `<span class="avatar" aria-hidden="true" style="width:${size}px;height:${size}px;background:${tint[0]};color:${tint[1]};font-size:${Math.round(size * 0.42)}px">${esc(profile.name.charAt(0))}</span>`;
 }
 
 // "1 hoja", "3 hojas".
 export const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 // Confirmación dentro de la página: en claude.ai los diálogos del navegador no aparecen.
-export function askConfirm(message, { ok = 'Sí, continuar', cancel = 'Cancelar' } = {}) {
+// Mientras hay un diálogo, el resto de la app no recibe foco ni toques.
+const setInert = (on) => { const app = document.getElementById('app'); if (app) app.inert = on; };
+
+// outside: qué responde un toque fuera del cuadro o Escape (por omisión, lo mismo que «cancelar»).
+// focus: qué botón recibe el foco al abrir; por omisión el de cancelar, que es el seguro.
+export function askConfirm(message, { ok = 'Sí, continuar', cancel = 'Cancelar', outside = false, focus = 'cancel' } = {}) {
   return new Promise((resolve) => {
+    const before = document.activeElement;
     const wrap = document.createElement('div');
     wrap.className = 'ask';
     wrap.innerHTML = `<div class="ask-box" role="alertdialog" aria-modal="true" aria-label="${esc(message)}">
@@ -145,13 +153,136 @@ export function askConfirm(message, { ok = 'Sí, continuar', cancel = 'Cancelar'
         <button class="btn small" data-a="no">${esc(cancel)}</button>
         <button class="btn small primary" data-a="si">${esc(ok)}</button>
       </div></div>`;
-    const done = (v) => { wrap.remove(); resolve(v); };
+    const buttons = () => [...wrap.querySelectorAll('[data-a]')];
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); done(outside); }
+      else if (e.key === 'Tab') {
+        // El foco se queda dentro del diálogo.
+        const [first, last] = [buttons()[0], buttons().at(-1)];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+    const done = (v) => {
+      document.removeEventListener('keydown', onKey, true);
+      wrap.remove();
+      setInert(false);
+      if (before && typeof before.focus === 'function' && document.contains(before)) before.focus({ preventScroll: true });
+      resolve(v);
+    };
     wrap.addEventListener('click', (e) => {
       const a = e.target.closest('[data-a]')?.dataset.a;
       if (a) done(a === 'si');
-      else if (e.target === wrap) done(false);
+      else if (e.target === wrap) done(outside);
     });
+    document.addEventListener('keydown', onKey, true);
     document.body.appendChild(wrap);
-    wrap.querySelector('[data-a="si"]').focus();
+    setInert(true);
+    wrap.querySelector(focus === 'ok' ? '[data-a="si"]' : '[data-a="no"]').focus();
+  });
+}
+
+// Clave para comparar nombres sin importar mayúsculas, acentos ni espacios de más
+// («Sofía» = «sofia»). La ñ se respeta: «Peña» y «Pena» son nombres distintos.
+export const nameKey = (s) => String(s ?? '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('es')
+  .normalize('NFD').replace(/n\u0303/g, '\u00f1').replace(/[\u0300-\u036f]/g, '');
+
+// Teclado de PIN en un diálogo dentro de la página. Regresa una Promise con el PIN
+// escrito (texto de 4 números) o null si se cancela.
+// - check(pin) => true/false: pide un PIN existente hasta que coincida.
+// - create: true: pide un PIN nuevo dos veces y regresa el nuevo.
+// Con los dos, primero pide el actual y luego el nuevo (para cambiarlo).
+let pinSeq = 0;
+export function askPin({ title, sub = '', check = null, create = false, prompt = 'Escribe tu PIN', cancel = 'Cancelar' } = {}) {
+  return new Promise((resolve) => {
+    const steps = [];
+    if (check) steps.push({ kind: 'check', text: prompt });
+    if (create) steps.push({ kind: 'new', text: 'Escribe un PIN de 4 números' }, { kind: 'repeat', text: 'Escríbelo otra vez para confirmar' });
+    if (!steps.length) { resolve(null); return; }
+    let at = 0;
+    let digits = '';
+    let first = '';
+    let busy = false;
+    const id = `pin-t${++pinSeq}`;
+    const before = document.activeElement;
+    const wrap = document.createElement('div');
+    wrap.className = 'ask';
+    wrap.innerHTML = `<div class="ask-box pin-box" role="dialog" aria-modal="true" aria-labelledby="${id}">
+      <p class="h3" id="${id}" style="text-align:center;margin:0;font-size:17px;line-height:1.4">${esc(title)}</p>
+      ${sub ? `<p class="sub" style="text-align:center;margin-top:6px">${esc(sub)}</p>` : ''}
+      <p class="pin-step" aria-live="polite"></p>
+      <div class="pin-dots" role="img">${'<span></span>'.repeat(4)}</div>
+      <p class="pin-err" role="alert"></p>
+      <div class="keypad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button type="button" data-k="${n}">${n}</button>`).join('')}<span aria-hidden="true"></span><button type="button" data-k="0">0</button><button type="button" data-k="del" aria-label="Borrar">⌫</button></div>
+      <button type="button" class="btn small block" data-a="no" style="margin-top:12px">${esc(cancel)}</button>
+    </div>`;
+    const stepEl = wrap.querySelector('.pin-step');
+    const dotsEl = wrap.querySelector('.pin-dots');
+    const errEl = wrap.querySelector('.pin-err');
+
+    const draw = () => {
+      const n = steps.filter((s) => s.kind !== 'repeat').length;
+      const pos = steps.slice(0, at + 1).filter((s) => s.kind !== 'repeat').length;
+      stepEl.textContent = (n > 1 && steps[at].kind !== 'repeat' ? `${pos} de ${n} · ` : '') + steps[at].text;
+      dotsEl.setAttribute('aria-label', `${digits.length} de 4 números`);
+      dotsEl.querySelectorAll('span').forEach((d, i) => d.classList.toggle('on', i < digits.length));
+    };
+    const fail = (msg) => {
+      errEl.textContent = msg;
+      dotsEl.classList.remove('bad');
+      void dotsEl.offsetWidth; // reinicia la animación
+      dotsEl.classList.add('bad');
+    };
+    const close = (v) => {
+      document.removeEventListener('keydown', onKey, true);
+      wrap.remove();
+      setInert(false);
+      if (before && typeof before.focus === 'function' && document.contains(before)) before.focus({ preventScroll: true });
+      resolve(v);
+    };
+    const complete = () => {
+      busy = false;
+      const step = steps[at];
+      const pin = digits;
+      digits = '';
+      if (step.kind === 'check' && !check(pin)) { fail('Ese PIN no coincide. Intenta otra vez.'); draw(); return; }
+      if (step.kind === 'new') first = pin;
+      if (step.kind === 'repeat' && pin !== first) {
+        first = '';
+        at = steps.findIndex((s) => s.kind === 'new');
+        fail('No coincidió. Escríbelo de nuevo.');
+        draw();
+        return;
+      }
+      errEl.textContent = '';
+      if (at === steps.length - 1) { close(create ? first : pin); return; }
+      at += 1;
+      draw();
+    };
+    const press = (k) => {
+      if (busy) return;
+      if (k === 'del') digits = digits.slice(0, -1);
+      else if (digits.length < 4) digits += k;
+      errEl.textContent = '';
+      draw();
+      // Un respiro para que se vea el cuarto punto antes de revisar.
+      if (digits.length === 4) { busy = true; setTimeout(complete, 140); }
+    };
+    // También con teclado físico: números, borrar y Escape para cancelar.
+    const onKey = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); close(null); }
+      else if (/^[0-9]$/.test(e.key)) { e.preventDefault(); press(e.key); }
+      else if (e.key === 'Backspace') { e.preventDefault(); press('del'); }
+    };
+    wrap.addEventListener('click', (e) => {
+      const k = e.target.closest('[data-k]')?.dataset.k;
+      if (k) { press(k); return; }
+      if (e.target.closest('[data-a="no"]') || e.target === wrap) close(null);
+    });
+    document.addEventListener('keydown', onKey, true);
+    draw();
+    document.body.appendChild(wrap);
+    setInert(true);
+    wrap.querySelector('[data-k="1"]').focus({ preventScroll: true });
   });
 }

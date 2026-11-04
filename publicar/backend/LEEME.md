@@ -17,9 +17,21 @@ Guarda los datos de la familia en una hoja "Calmo · datos" de tu Google Drive y
 
 La primera vez que alguien abra la app, la pantalla de ingreso ofrece **crear la cuenta de administrador**. Después, en **Ajustes → Cuenta y usuarios**, das de alta a los demás: adulto, administrador o maestra.
 
+## Roles
+
+- **Administrador**: todo, incluido dar de alta usuarios.
+- **Adulto**: los datos de la familia.
+- **Maestra**: entra a su propio tablero (Alumnos, Asignar, Mi práctica). Puede ver el avance de todos y cambiar rutinas, metas y notas, y guardar su propia práctica. El servidor no le envía los PIN ni los premios, y descarta cualquier otro cambio suyo. No entra al ranking ni al reto de la familia.
+
+## Actualizar el código
+
+1. Pega el nuevo `Codigo.gs` en el editor y guarda.
+2. **Implementar → Gestionar implementaciones → ✏️ Editar → Versión: Nueva versión → Implementar.** Así la URL `/exec` no cambia.
+
 ## Notas
 
-- La hoja "Calmo · datos" se crea sola en tu Drive la primera vez. No cambies los nombres de sus pestañas.
+- La hoja "Calmo · datos" se crea sola en tu Drive la primera vez. No cambies los nombres de sus pestañas ni la borres: el servidor nunca crea otra si ya existió.
+- Los tokens de sesión se guardan como huella; al cambiar una contraseña se cierran las demás sesiones de ese usuario.
 - Si cambias el código, usa **Implementar → Administrar implementaciones → Editar → Versión nueva** para que la URL siga siendo la misma.
 - Si tu cuenta de trabajo no permite elegir "Cualquier usuario", instala el script con una cuenta personal de Gmail.
 - Después de 5 contraseñas incorrectas seguidas, ese usuario espera 10 minutos.

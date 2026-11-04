@@ -1,7 +1,7 @@
 // Primera vez: se configura quién respira en este teléfono.
 // Los nombres se guardan solo en el teléfono; nunca viajan en el código de la app.
 
-import { esc, icon, moment } from '../ui.js';
+import { esc, icon, moment, nameKey } from '../ui.js';
 import { heroSVG } from '../hero.js';
 import * as store from '../store.js';
 
@@ -86,6 +86,15 @@ export default {
         kind: row.querySelector('[data-kind][aria-pressed="true"]')?.dataset.kind || 'adulto',
       })).filter((x) => x.name);
       if (!list.length) { err.textContent = 'Escribe al menos tu nombre.'; return; }
+      // Nombres únicos, sin importar mayúsculas ni acentos («Sofía» y «sofia» son el mismo).
+      const seen = new Set();
+      const dup = list.find((x) => {
+        const k = nameKey(x.name);
+        if (seen.has(k)) return true;
+        seen.add(k);
+        return false;
+      });
+      if (dup) { err.textContent = `Hay dos personas que se llaman ${dup.name}. Usa nombres distintos, por ejemplo con una inicial.`; return; }
       if (!list.some((x) => x.kind === 'adulto')) { err.textContent = 'Hace falta al menos un adulto.'; return; }
       ctx.store.setupFamily({ family: form.family.value, people: list, withRoutines: form.routines.checked });
       ctx.go('inicio');

@@ -1,5 +1,6 @@
 import { esc, icon, dayKey, fromKey, addDays, dow, DIAS_C, DIAS_L, MESES, DIAS } from '../ui.js';
 import { nameFor } from '../catalog.js';
+import * as store from '../store.js';
 
 const MES_C = (i) => MESES[i].slice(0, 3);
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -16,7 +17,7 @@ const STATUS = {
   hecha: `<span class="row" style="gap:5px;color:var(--hoja);font-size:13px">${icon('check', 16)} Hecha</span>`,
   pendiente: '<span class="row" style="gap:6px;color:var(--sage);font-size:13px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid var(--sage)"></span> Pendiente</span>',
   no: '<span class="row" style="gap:6px;color:var(--muted);font-size:13px"><span style="width:12px;height:12px;border-radius:50%;border:1.5px solid #6B7A70"></span> No realizada</span>',
-  extra: `<span class="row" style="gap:5px;color:var(--brasa);font-size:13px">${icon('check', 16)} Hecha</span>`,
+  extra: `<span class="row" style="gap:5px;color:var(--brasa);font-size:13px">${icon('plus', 16)} Hecha</span>`,
 };
 
 // Qué significa cada color, con los mismos íconos de las tarjetas.
@@ -24,8 +25,14 @@ const LEGEND = `<div class="tile row" style="margin-top:10px;padding:10px 14px;g
   <span class="row" style="gap:5px;color:var(--sage)"><span style="width:11px;height:11px;border-radius:50%;border:1.5px solid var(--sage)"></span>Pendiente</span>
   <span class="row" style="gap:4px;color:var(--hoja)">${icon('check', 14)}Hecha</span>
   <span class="row" style="gap:5px;color:var(--muted)"><span style="width:11px;height:11px;border-radius:50%;border:1.5px solid #6B7A70"></span>No realizada</span>
-  <span class="row" style="gap:4px;color:var(--brasa)">${icon('check', 14)}Extra</span>
+  <span class="row" style="gap:4px;color:var(--brasa)">${icon('plus', 14)}Extra</span>
 </div>`;
+
+// «De <maestra>»: el nombre de la maestra que asignó la rutina.
+const teacherName = (r) => {
+  const t = store.profiles().find((p) => p.id === r.by && p.role === 'maestra');
+  return `De ${t ? t.name : 'tu maestra'}`;
+};
 
 // Enlaces del calendario que conservan de quién es (?p=<id>).
 function link(who, params) {
@@ -36,6 +43,7 @@ function link(who, params) {
 
 // Hora y duración: lo hecho muestra cuándo y cuánto fue de verdad.
 function when(it) {
+  if (it.type === 'extra' && it.measure) return `${esc(it.time)} · ${it.measure.seconds} s`;
   if (it.status !== 'hecha' || !it.realTime) return `${esc(it.time)}${it.minutes ? ` · ${it.minutes} min` : ''}`;
   const amount = it.realMinutes ? ` · ${it.realMinutes} min` : it.measure ? ` · ${it.measure.seconds} s` : '';
   return `${esc(it.realTime)}${amount}${it.realTime !== it.time ? `<span style="color:var(--muted)"> · plan ${esc(it.time)}</span>` : ''}`;
@@ -46,21 +54,22 @@ function when(it) {
 function itemCard(it, view) {
   const { kind } = view;
   const isBolt = it.type === 'plan' && it.routine.kind === 'bolt';
-  const title = isBolt && kind !== 'adulto' ? 'Reto del aire' : it.title;
-  const exName = it.exercise ? nameFor(it.exercise, kind) : (isBolt ? (kind === 'adulto' ? 'BOLT score' : 'Aguanta tranquila') : '');
+  const boltExtra = it.type === 'extra' && it.measure;
+  const title = (isBolt || boltExtra) && kind !== 'adulto' ? 'Reto del aire' : it.title;
+  const exName = it.exercise ? nameFor(it.exercise, kind) : (isBolt ? (kind === 'adulto' ? 'BOLT score' : 'Reto del aire') : '');
   const start = isBolt ? `#/bolt?rutina=${it.routine.id}` : `#/configurar/${it.exercise?.id}?min=${it.minutes}&rutina=${it.routine?.id}`;
   const edit = view.edit && it.type === 'plan' && !it.routine.deletedAt
     ? `planear?editar=${encodeURIComponent(it.routine.id)}${view.who ? `&p=${encodeURIComponent(view.who)}` : ''}` : '';
   return `<div class="tile" style="border:1px solid var(--line)${edit ? ';cursor:pointer' : ''}" ${edit ? `data-edit="${esc(edit)}"` : ''}>
     <div class="between">
-      ${it.type === 'extra' ? '<span class="chip brasa">Extra</span>' : `<span class="chip arena">${icon('repeat', 13)} Rutina</span>`}
+      ${it.type === 'extra' ? '<span class="chip brasa">Extra</span>' : it.routine.source === 'maestra' ? `<span class="chip sage">${icon('repeat', 13)} ${esc(teacherName(it.routine))}</span>` : `<span class="chip arena">${icon('repeat', 13)} Rutina</span>`}
       ${STATUS[it.status]}
     </div>
     <p style="margin:8px 0 0;font-size:15px;font-weight:600">${edit ? `<a href="#/${esc(edit)}" style="color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(title)} ${esc(it.time)}">${esc(title)}</a>` : esc(title)}</p>
     ${exName && exName !== title ? `<p class="muted" style="margin:2px 0 0">${esc(exName)}</p>` : ''}
     <div class="between" style="margin-top:10px">
       <span class="row muted" style="gap:6px;font-size:13px">${icon('timer', 15)} ${when(it)}</span>
-      ${view.own && view.isToday && it.status === 'pendiente' ? `<a class="btn primary small" ${isBolt ? '' : 'data-audio'} href="${start}">${icon('play', 14)} Empezar</a>` : ''}
+      ${view.own && view.isToday && it.status === 'pendiente' && (isBolt || it.exercise) ? `<a class="btn primary small" ${isBolt ? '' : 'data-audio'} href="${start}">${icon('play', 14)} Empezar</a>` : ''}
     </div>
   </div>`;
 }
@@ -95,6 +104,15 @@ function dayView(store, me, view, w) {
     <div style="margin-top:8px">${rows}</div>`;
 }
 
+// Lo que tiene un día, en palabras (para lectores de pantalla).
+function summary(items) {
+  if (!items.length) return '';
+  const n = (st) => items.filter((it) => it.status === st).length;
+  const parts = [[n('hecha'), 'hecha', 'hechas'], [n('pendiente'), 'pendiente', 'pendientes'], [n('no'), 'no realizada', 'no realizadas'], [n('extra'), 'extra', 'extras']]
+    .filter(([c]) => c).map(([c, one, many]) => `${c} ${c === 1 ? one : many}`);
+  return `: ${parts.join(', ')}`;
+}
+
 function monthView(store, me, view, m, dParam) {
   const today = new Date();
   const first = new Date(today.getFullYear(), today.getMonth() + m, 1);
@@ -109,7 +127,7 @@ function monthView(store, me, view, m, dParam) {
     const items = store.agenda(me.id, d);
     const dots = items.slice(0, 4).map((it) => `<span class="dot ${it.status === 'hecha' ? 'done' : it.status === 'pendiente' ? 'pending' : it.status === 'no' ? 'missed' : 'extra'}"></span>`).join('');
     const on = key === selKey;
-    return `<a href="${link(view.who, { v: 'mes', m, d: key })}" class="${key === dayKey(today) ? 'today' : ''} ${inMonth(d) ? '' : 'out'}" ${on ? 'aria-current="true" style="border-color:var(--sage)"' : ''} aria-label="${d.getDate()} de ${MESES[d.getMonth()]}">
+    return `<a href="${link(view.who, { v: 'mes', m, d: key })}" class="${key === dayKey(today) ? 'today' : ''} ${inMonth(d) ? '' : 'out'}" ${on ? 'aria-current="true" style="border-color:var(--sage)"' : ''} aria-label="${key === dayKey(today) ? 'Hoy, ' : ''}${d.getDate()} de ${MESES[d.getMonth()]}${summary(items)}">
       <span class="num" style="font-size:15px">${d.getDate()}</span><span class="dots">${dots}</span></a>`;
   }).join('');
   const items = store.agenda(me.id, sel);
@@ -151,15 +169,15 @@ export default {
     const body = v === 'mes'
       ? monthView(store, them, view, Number(query.get('m')) || 0, query.get('d'))
       : dayView(store, them, view, Number(query.get('w')) || 0);
-    const people = me.kind === 'adulto' ? store.profiles().filter((p) => store.canManage(me.id, p.id)) : [];
+    const people = me.kind === 'adulto' ? store.profiles().filter((p) => store.canManage(me.id, p.id) && (p.id === me.id || p.role !== 'maestra')) : [];
     const keep = {};
     ['v', 'w', 'm', 'd'].forEach((k) => { if (query.get(k)) keep[k] = query.get(k); });
     const picker = people.length > 1 ? `<p class="muted" style="margin:14px 0 6px">De quién</p>
       <div class="pills" role="group" aria-label="De quién">
         ${people.map((p) => `<a class="pill" href="${link(p.id === me.id ? null : p.id, keep)}" ${p.id === them.id ? 'aria-current="page"' : ''} style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none">${esc(p.id === me.id ? 'Yo' : p.name)}</a>`).join('')}
       </div>` : '';
-    return `<div class="top"><h1 class="h1">Calendario</h1>
-        <a class="icon-btn" href="#/planear${who ? `?p=${encodeURIComponent(who)}` : ''}" aria-label="Planear una rutina${who ? ` para ${esc(them.name)}` : ''}" style="background:var(--sage);color:var(--on-sage)">${icon('plus', 20)}</a></div>
+    const plan = me.kind === 'adulto' ? `<a class="icon-btn" href="#/planear${who ? `?p=${encodeURIComponent(who)}` : ''}" aria-label="Planear una rutina${who ? ` para ${esc(them.name)}` : ''}" style="background:var(--sage);color:var(--on-sage)">${icon('plus', 20)}</a>` : '';
+    return `<div class="top">${me.kind === 'adulto' ? '' : `<a class="icon-btn" href="#/perfil" aria-label="Volver">${icon('back', 20)}</a>`}<h1 class="h1">${me.kind === 'adulto' ? 'Calendario' : 'Mi semana'}</h1>${plan}</div>
       <div class="seg" role="group" aria-label="Vista">
         <a href="${link(who, { v: 'dias' })}" ${v === 'dias' ? 'aria-current="page"' : ''}>Días</a>
         <a href="${link(who, { v: 'mes' })}" ${v === 'mes' ? 'aria-current="page"' : ''}>Mes</a>

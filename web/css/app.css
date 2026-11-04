@@ -45,6 +45,7 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 .h1 { font-family: var(--serif); font-variation-settings: 'SOFT' 100, 'opsz' 72; font-size: 30px; line-height: 1.15; letter-spacing: -0.01em; }
 .h2 { font-family: var(--serif); font-variation-settings: 'SOFT' 100, 'opsz' 48; font-size: 24px; line-height: 1.2; }
 .h3 { font-size: 15px; font-weight: 600; }
+h2.h3 { margin: 0; }
 .sub { color: var(--text2); font-size: 14px; line-height: 1.5; margin: 4px 0 0; }
 .muted { color: var(--muted); font-size: 13px; }
 .label { color: var(--text2); font-size: 13px; margin: 22px 0 10px; }
@@ -77,14 +78,16 @@ h1, h2, h3 { margin: 0; font-weight: 400; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--low); }
 .seg button { min-height: 44px; border-radius: 999px; border: none; background: transparent; color: var(--text2); font-size: 14px; }
 .seg button[aria-pressed="true"] { background: var(--raised); color: var(--text); font-weight: 600; }
-.switch { flex: none; width: 52px; height: 32px; border-radius: 999px; border: none; padding: 3px; display: flex; background: rgba(238,243,236,0.14); }
+.switch { flex: none; position: relative; width: 52px; height: 32px; border-radius: 999px; border: none; padding: 3px; display: flex; background: rgba(238,243,236,0.14); }
+/* El interruptor se ve de 32 px, pero se toca en 44. */
+.switch::before { content: ''; position: absolute; inset: -6px 0; }
 .switch span { width: 26px; height: 26px; border-radius: 50%; background: var(--text2); transition: transform .2s; }
 .switch[aria-checked="true"] { background: var(--sage); }
 .switch[aria-checked="true"] span { background: var(--on-sage); transform: translateX(20px); }
 .bar { height: 6px; border-radius: 6px; background: rgba(238,243,236,0.07); overflow: hidden; }
 .bar > i { display: block; height: 100%; border-radius: 6px; background: var(--sage); }
-input[type=range] { accent-color: var(--sage); width: 100%; }
-.field { width: 100%; min-height: 48px; border-radius: 14px; border: 1px solid var(--line2); background: var(--bg); padding: 0 14px; font-size: 16px; }
+input[type=range] { accent-color: var(--sage); width: 100%; min-height: 44px; }
+.field { width: 100%; min-height: 48px; border-radius: 14px; border: 1px solid #728579; background: var(--bg); padding: 0 14px; font-size: 16px; }
 .list-row { display: flex; align-items: center; gap: 12px; min-height: 56px; border-bottom: 1px solid var(--line); color: var(--text); text-decoration: none; }
 .list-row:last-child { border-bottom: none; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
@@ -133,11 +136,11 @@ input[type=range] { accent-color: var(--sage); width: 100%; }
 .month button { min-height: 48px; border-radius: 14px; border: 1px solid transparent; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; }
 .month button[aria-pressed="true"] { border-color: var(--sage); }
 .month button.today { background: var(--raised); }
-.dots { display: flex; gap: 3px; height: 6px; margin-top: 3px; }
-.dot { width: 6px; height: 6px; border-radius: 50%; }
+.dots { display: flex; gap: 3px; height: 8px; margin-top: 3px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; }
 .dot.done { background: var(--sage); }
-.dot.pending { width: 6px; height: 6px; border: 1px solid var(--sage); }
-.dot.missed { border: 1px solid #6B7A70; }
+.dot.pending { border: 1.5px solid var(--sage); }
+.dot.missed { background: #6B7A70; }
 .dot.extra { background: var(--brasa); }
 
 /* Teclado numérico */
@@ -172,11 +175,31 @@ input:not([type=range]):not([type=checkbox]):not([type=radio]), select, textarea
 .howto ol { margin: 0; padding: 0 18px 16px 40px; color: var(--text2); line-height: 1.6; }
 
 /* Rutinas de hoy en Inicio: se deslizan de lado, con una orilla de la siguiente a la vista. */
-.carousel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -20px; padding: 0 20px; scroll-padding: 0 20px; overscroll-behavior-x: contain; }
+.carousel { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; margin: 0 -20px; padding: 0 0 0 20px; scroll-padding: 0 20px; overscroll-behavior-x: contain; }
+/* Espacio al final para que la última tarjeta también quede alineada a la izquierda. */
+.carousel::after { content: ''; flex: 0 0 30px; }
 .carousel::-webkit-scrollbar { display: none; }
 .carousel > .slide { flex: 0 0 calc(100% - 22px); scroll-snap-align: start; }
 .carousel > .slide:only-child { flex-basis: 100%; }
-.car-dots { display: flex; justify-content: center; gap: 2px; margin-top: 6px; }
-.car-dots button { width: 28px; height: 28px; border: none; background: none; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.car-dots i { width: 8px; height: 8px; border-radius: 4px; background: rgba(238,243,236,0.22); transition: width .2s ease, background .2s ease; }
-.car-dots [aria-selected="true"] i { width: 20px; background: var(--sage); }
+.car-dots { display: flex; justify-content: center; gap: 0; margin-top: 2px; }
+.car-dots button { width: 44px; height: 44px; border: none; background: none; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.car-dots i { width: 8px; height: 8px; border-radius: 4px; background: rgba(238,243,236,0.4); transition: width .2s ease, background .2s ease; }
+.car-dots [aria-current="true"] i { width: 20px; background: var(--sage); }
+
+/* PIN y administración */
+.toast { width: max-content; max-width: calc(100% - 32px); text-align: center; }
+.pin-box { padding-bottom: 16px; }
+.pin-step { margin: 14px 0 0; text-align: center; color: var(--text2); font-size: 14px; }
+.pin-dots { display: flex; justify-content: center; gap: 14px; margin: 12px 0 4px; }
+.pin-dots span { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line2); transition: background .15s, border-color .15s; }
+.pin-dots span.on { background: var(--sage); border-color: var(--sage); }
+.pin-dots.bad { animation: pin-shake .4s ease; }
+.pin-err { margin: 0 0 10px; min-height: 20px; text-align: center; color: var(--brasa); font-size: 14px; }
+.pin-box .keypad button:active { background: var(--raised); }
+@keyframes pin-shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+@media (prefers-reduced-motion: reduce) { .pin-dots.bad { animation: none; } }
+
+/* Foco visible con teclado en todo lo que se toca. */
+:focus-visible { outline: 3px solid var(--sage); outline-offset: 2px; }
+.list-row:focus-within { outline: 3px solid var(--sage); outline-offset: 2px; border-radius: 12px; }
+h1:focus { outline: none; }

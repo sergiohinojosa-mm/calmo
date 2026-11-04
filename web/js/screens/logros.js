@@ -106,7 +106,7 @@ export default {
         ${medallion(b, 58)}
         <p style="margin:8px 0 0;font-size:13px;font-weight:600;line-height:1.3">${esc(b.name)}</p>
         ${b.earned ? `<p class="muted" style="margin:4px 0 0">${shortDate(b.earnedAt)}</p>`
-    : `<p class="muted" style="margin:4px 0 6px">${b.current} de ${b.target}</p>${bar((b.current / b.target) * 100, 'var(--arena)')}`}
+    : `<p class="muted" style="margin:3px 0 0;font-size:11px;line-height:1.3">${esc(kid ? (b.kidDesc || b.desc) : b.desc)}</p><p class="muted" style="margin:4px 0 6px">${b.current} de ${b.target}</p>${bar((b.current / b.target) * 100, 'var(--arena)')}`}
       </div>`).join('')}</div>`
       : `<div class="tile" style="margin-top:14px;text-align:center"><p class="sub">${v === 'ganadas' ? 'Tu primera insignia llega con tu primera sesión.' : '¡Ganaste todas las insignias!'}</p>
         ${v === 'ganadas' ? '<a class="btn primary" href="#/inicio" style="margin-top:12px">Empezar a respirar</a>' : ''}</div>`;

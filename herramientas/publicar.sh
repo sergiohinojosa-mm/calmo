@@ -12,6 +12,12 @@ MSG="${1:-Actualiza Calmo}"
 
 [ -d "$REPO/.git" ] || { echo "Falta la copia del repositorio en $REPO"; exit 1; }
 
+# 0. Las pruebas de regresión deben pasar antes de publicar.
+if ! sh "$BASE/herramientas/pruebas/correr.sh" >/dev/null 2>&1; then
+  echo "Alto: fallaron las pruebas (sh herramientas/pruebas/correr.sh). No se publicó nada."
+  exit 1
+fi
+
 git -C "$REPO" pull -q --ff-only
 
 # 1. La app publicada.

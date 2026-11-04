@@ -16,6 +16,14 @@ import { icon, esc } from './ui.js';
 import { unlock } from './audio.js';
 import * as sync from './sync.js';
 
+// Fuentes sin frenar la primera pantalla (en claude.ai ya vienen en la página).
+if (!document.querySelector('link[href*="fonts.googleapis.com/css2"]')) {
+  const fonts = document.createElement('link');
+  fonts.rel = 'stylesheet';
+  fonts.href = 'https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Fraunces:opsz,wght,SOFT@9..144,300..600,0..100&display=swap';
+  document.head.appendChild(fonts);
+}
+
 // iOS solo permite iniciar el audio dentro de un toque: los botones que abren
 // una sesión llevan data-audio y desbloquean el sonido en ese mismo toque.
 document.addEventListener('click', (e) => {
@@ -56,16 +64,28 @@ const TABS = {
     ['familia', 'Familia', 'users'],
   ],
   peque: [],
+  // La maestra: sus alumnos, asignar prácticas, su propia práctica y su cuenta.
+  maestra: [
+    ['alumnos', 'Alumnos', 'users'],
+    ['asignar', 'Asignar', 'plus'],
+    ['inicio', 'Mi práctica', 'leaf'],
+    ['ajustes', 'Cuenta', 'gear'],
+  ],
 };
 
 function drawTabs(active) {
   const p = store.profile();
-  const list = (p && TABS[p.kind]) || [];
+  const list = sync.isTeacher() ? TABS.maestra : (p && TABS[p.kind]) || [];
   tabs.innerHTML = list.map(([route, label, ic]) =>
     `<a href="#/${route}" ${route === active ? 'aria-current="page"' : ''}>${icon(ic, 22)}<span>${esc(label)}</span></a>`).join('');
 }
 
-let shownHash = null;
+let shownRoute = null;
+let navigated = false;
+// Pantallas que puede abrir un perfil Peque; cualquier otra dirección la regresa a su inicio.
+const PEQUE_SCREENS = new Set(['inicio', 'sesion', 'resumen', 'bolt', 'premios', 'perfil', 'cambiar', 'logros']);
+// La maestra no cambia de perfil, no administra la familia ni los premios.
+const TEACHER_SCREENS = new Set(['alumnos', 'alumno', 'asignar', 'planear', 'calendario', 'inicio', 'catalogo', 'configurar', 'sesion', 'resumen', 'bolt', 'serie', 'progreso', 'logros', 'consejos', 'ajustes', 'usuarios', 'perfil']);
 
 async function render() {
   const token = ++renderToken;
@@ -75,7 +95,11 @@ async function render() {
   // sin familia configurada todavía, la app abre la bienvenida.
   let name = parsed.name;
   if (sync.enabled() && !sync.session()) name = 'ingresar';
-  else if (!store.profiles().length) name = 'bienvenida';
+  else if (sync.isTeacher()) {
+    if (store.profile()?.role !== 'maestra') store.ensureTeacher(sync.session().usuario.nombre);
+    if (!TEACHER_SCREENS.has(name)) name = 'alumnos';
+  } else if (!store.profiles().length) name = 'bienvenida';
+  else if (store.profile()?.kind === 'peque' && !PEQUE_SCREENS.has(name)) name = 'inicio';
   let mod;
   try {
     mod = (await import(`./screens/${name}.js`)).default;
@@ -87,20 +111,35 @@ async function render() {
   if (typeof cleanup === 'function') { try { cleanup(); } catch (e) { console.error(e); } }
   cleanup = null;
   const ctx = { name, params, query, store, go, rerender: render, profile: store.profile() };
-  const noTabs = mod.full || !ctx.profile || ctx.profile.kind === 'peque' || mod.tab === false;
+  const noTabs = mod.full || !ctx.profile || (ctx.profile.kind === 'peque' && !sync.isTeacher()) || mod.tab === false;
   app.classList.toggle('no-tabs', !!noTabs);
   view.className = 'view' + (mod.full ? ' full' : '');
-  // Al volver a dibujar la misma pantalla (cambiar una meta, pausar una rutina,
+  // Al volver a dibujar la misma pantalla (cambiar una meta, elegir un día, filtrar,
   // llegar datos de otro teléfono) se queda donde estaba; solo sube al cambiar de pantalla.
-  const keepY = location.hash === shownHash ? window.scrollY : 0;
+  const route = [name, ...params].join('/');
+  const keepY = route === shownRoute ? window.scrollY : 0;
   view.innerHTML = mod.render(ctx);
   drawTabs(mod.tab || name);
-  shownHash = location.hash;
+  const changed = route !== shownRoute;
+  shownRoute = route;
+  const h1 = view.querySelector('h1');
+  const heading = h1 ? (h1.innerText || h1.textContent).replace(/\s+/g, ' ').trim() : '';
+  document.title = heading ? `${heading} · Calmo` : 'Calmo';
+  if (changed && h1 && navigated) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); }
   window.scrollTo(0, keepY);
   if (mod.mount) cleanup = mod.mount(view, ctx) || null;
 }
 
 window.addEventListener('hashchange', render);
+
+// «Volver» regresa a donde estabas (si llegaste navegando dentro de la app); si no, a su destino fijo.
+window.addEventListener('hashchange', () => { navigated = true; });
+document.addEventListener('click', (e) => {
+  const back = e.target.closest('a[aria-label="Volver"]');
+  if (!back || !navigated || e.defaultPrevented) return;
+  e.preventDefault();
+  history.back();
+});
 render().then(prefetch);
 sync.pull();
 
@@ -113,17 +152,20 @@ function prefetch() {
   });
 }
 
-const LIVE = new Set(['sesion', 'bolt', 'pasos', 'serie', 'planear', 'perfiles', 'cambiar', 'ingresar', 'usuarios', 'bienvenida']);
+const LIVE = new Set(['sesion', 'bolt', 'serie', 'planear', 'asignar', 'perfiles', 'cambiar', 'ingresar', 'usuarios', 'bienvenida']);
 store.onRemote(() => { if (!LIVE.has(parse().name)) render(); });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:' && window.self === window.top) {
   // Cuando llega una versión nueva, la app se recarga sola una vez para usarla,
   // pero nunca a la mitad de una sesión de respiración: espera a que termine.
-  const hadController = !!navigator.serviceWorker.controller;
+  let hadController = !!navigator.serviceWorker.controller;
   let pendingReload = false;
-  const reloadNow = () => { if (pendingReload && document.body.dataset.session !== 'on') { pendingReload = false; location.reload(); } };
+  // Ocupado: una sesión, un reto o un formulario a medias. La recarga espera a que salga de ahí.
+  const busy = () => document.body.dataset.session === 'on' || LIVE.has(parse().name);
+  const reloadNow = () => { if (pendingReload && !busy()) { pendingReload = false; location.reload(); } };
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController) return;
+    // La primera vez que el service worker toma el control no hay versión nueva que aplicar.
+    if (!hadController) { hadController = true; return; }
     pendingReload = true;
     reloadNow();
   });

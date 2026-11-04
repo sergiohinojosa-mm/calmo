@@ -113,7 +113,7 @@ export default {
         <span class="num" style="font-size:18px;min-width:56px;text-align:right">${minText(s.durationSec / 60)}</span></div>`;
     }).join('');
 
-    const empty = `<div class="tile" style="margin-top:16px;text-align:center"><p class="sub">${kind === 'adulto' ? 'Aún no hay sesiones en este periodo.' : '¡Todavía no respiras en estos días!'}</p>
+    const empty = `<div class="tile" style="margin-top:16px;text-align:center"><p class="sub">${kind === 'adulto' ? 'Aún no hay sesiones en este periodo.' : '¡Estos días aún no hay ejercicios! ¿Empezamos!'}</p>
       <a class="btn primary" href="#/inicio" style="margin-top:12px">Empezar a respirar</a></div>`;
 
     return `<div class="top"><h1 class="h1">Tu progreso</h1></div>

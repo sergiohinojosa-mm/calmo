@@ -21,6 +21,7 @@ function write(key, value) {
 
 export const session = () => read(SESSION_KEY);
 export const isAdmin = () => session()?.usuario?.rol === 'admin';
+export const isTeacher = () => enabled() && session()?.usuario?.rol === 'maestra';
 
 export async function api(action, payload = {}) {
   const s = session();
@@ -68,8 +69,11 @@ export async function pull() {
     store.mergeRemote(r.state);
     write(BASE_KEY, r.updatedAt);
   }
-  push(true);
+  // Solo se envía si este teléfono tiene algo que el servidor no (no reescribe la hoja cada 45 s).
+  if (dirty || !r.state || store.differsFrom(r.state)) push(true);
 }
+
+let dirty = false;
 
 let timer = null;
 let sending = false;
@@ -93,6 +97,9 @@ async function send() {
     again = true;
   } else if (r.ok) {
     write(BASE_KEY, r.updatedAt);
+    dirty = false;
+    // La maestra ve lo que el servidor aceptó, no lo que intentó cambiar sin permiso.
+    if (r.state && isTeacher()) store.adoptServer(r.state, r.updatedAt);
   } else if (r.offline) {
     setTimeout(send, 60000);
   }
@@ -100,7 +107,8 @@ async function send() {
 }
 
 if (enabled()) {
-  store.subscribe(() => push());
+  store.subscribe(() => { dirty = true; push(); });
+  setInterval(() => { if (document.visibilityState === 'visible' && !sending) pull(); }, 45000);
   window.addEventListener('online', () => push(true));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(); });
 }

@@ -1,6 +1,11 @@
 import { esc, icon, askConfirm } from '../ui.js';
 import { byId, textsFor, goalLabel, AMBIENTS, DURATIONS } from '../catalog.js';
 
+// Lo que llega en la dirección (#/configurar/...?amb=&rutina=) puede venir de un enlace ajeno:
+// solo se acepta un ambiente de la lista y un id de rutina simple.
+const validAmbient = (v) => (AMBIENTS.some((a) => a.id === v) ? v : '');
+const validId = (v) => (/^[\w-]{1,40}$/.test(v || '') ? v : '');
+
 // ¿El último BOLT del perfil queda por debajo de lo que pide el ejercicio?
 const lowBoltOf = (store, ex, id) => {
   const lb = store.lastBolt(id);
@@ -16,19 +21,20 @@ export default {
     const ex = byId(ctx.params[0]) || byId('coherente');
     const t = textsFor(ex, kind);
     const prefs = store.prefs();
-    const durs = DURATIONS.filter((d) => !ex.maxMin || d <= ex.maxMin);
+    // Para niñas, pocas opciones: 2, 3 o 5 minutos.
+    const durs = (kid ? [2, 3, 5] : DURATIONS).filter((d) => !ex.maxMin || d <= ex.maxMin);
     const asked = Number(query.get('min')) || prefs.lastDur[ex.id] || t.defaultMin;
     const min = Math.min(ex.maxMin || 60, Math.max(1, Math.round(asked)));
     const other = !durs.includes(min);
-    const amb = query.get('amb') || prefs.ambient || 'bosque';
-    const rutina = query.get('rutina') || '';
+    const amb = validAmbient(query.get('amb')) || validAmbient(prefs.ambient) || 'bosque';
+    const rutina = validId(query.get('rutina'));
     const lb = lowBoltOf(store, ex, ctx.profile.id);
     const isSerie = ex.mode === 'serie';
     const fixed = ex.mode === 'pausas' || ex.mode === 'destapar';
     const qs = (o) => `#/configurar/${ex.id}?min=${o.min ?? min}&amb=${o.amb ?? amb}${rutina ? `&rutina=${rutina}` : ''}`;
     const start = isSerie ? '#/serie' : `#/sesion/${ex.id}?min=${min}&amb=${amb}${rutina ? `&rutina=${rutina}` : ''}`;
     const lowMsg = kid
-      ? `Tu reto del aire (${lb?.seconds} s) todavía es corto para este ejercicio. Hazlo suave y con un adulto cerca.`
+      ? `Este es para cuando tu reto del aire llegue a ${ex.minBolt} s. ¡Ya casi! Hazlo suave y con un adulto cerca.`
       : `Tu BOLT (${lb?.seconds} s) está por debajo de ${ex.minBolt} s. Puedes hacerlo, pero empieza suave.`;
     return `<div class="top"><a class="icon-btn" href="#/catalogo" aria-label="Volver">${icon('back', 20)}</a><span></span></div>
       <h1 class="h1">${esc(t.name)}</h1>
@@ -45,18 +51,18 @@ export default {
         <ol>${t.steps.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></details>` : ''}
       ${isSerie || fixed ? '' : `<p class="label">Duración</p>
       <div class="pills" role="group" aria-label="Duración">${durs.map((d) => `<a class="pill" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="${qs({ min: d })}" ${d === min && !other ? 'aria-current="page"' : ''}>${d} min</a>`).join('')}
-        <label class="pill" id="otherPill" aria-pressed="${other}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">Otra
-          <input type="number" inputmode="numeric" min="1" max="${ex.maxMin || 60}" step="1" value="${other ? min : ''}" placeholder="min" id="otherMin" aria-label="Otra duración en minutos" style="width:52px;min-height:32px;border:none;border-radius:10px;background:var(--bg);color:var(--text);text-align:center;font-size:16px"></label>
+        ${kid ? '' : `<label class="pill" id="otherPill" aria-pressed="${other}" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">Otra
+          <input type="number" inputmode="numeric" min="1" max="${ex.maxMin || 60}" step="1" value="${other ? min : ''}" placeholder="min" id="otherMin" aria-label="Otra duración en minutos" style="width:52px;min-height:32px;border:none;border-radius:10px;background:var(--bg);color:var(--text);text-align:center;font-size:16px"></label>`}
       </div>
       <p id="minErr" role="alert" class="muted" style="margin:6px 0 0;color:var(--brasa);min-height:16px"></p>`}
       ${isSerie ? '' : `<p class="label">Ambiente</p>
       <div class="grid2">${AMBIENTS.map((a) => `<a href="${qs({ amb: a.id })}" class="tile" ${a.id === amb ? 'aria-current="page"' : ''} style="color:inherit;text-decoration:none;border:1px solid ${a.id === amb ? 'var(--sage)' : 'var(--line)'};background:${a.id === amb ? 'rgba(156,197,161,0.14)' : 'var(--low)'}">
         ${icon(a.icon, 20)}<span style="display:block;margin-top:8px;font-weight:600;font-size:14px">${esc(a.label)}</span><span class="muted">${esc(a.detail)}</span></a>`).join('')}</div>
-      <div class="tile stack" style="margin-top:14px">
+      ${kid ? '' : `<div class="tile stack" style="margin-top:14px">
         <label class="row" style="font-size:14px;color:var(--text2)"><span style="width:96px">Música</span><input type="range" min="0" max="100" value="${prefs.music}" data-pref="music"></label>
         <label class="row" style="font-size:14px;color:var(--text2)"><span style="width:96px">Tonos</span><input type="range" min="0" max="100" value="${prefs.tonesVol}" data-pref="tonesVol"></label>
         <div class="between" style="font-size:14px;color:var(--text2)">Tono en cada fase <button class="switch" role="switch" aria-checked="${prefs.tones}" aria-label="Tono en cada fase" data-toggle="tones"><span></span></button></div>
-      </div>`}
+      </div>`}`}
       <a class="btn primary block" id="start" data-audio href="${start}" style="margin-top:22px">${icon('play', 18)} <span id="startLabel">${isSerie ? 'Ir a la serie' : `Empezar${fixed ? '' : ` · ${min} min`}`}</span></a>`;
   },
   mount(root, ctx) {
@@ -65,7 +71,7 @@ export default {
     const ex = byId(ctx.params[0]) || byId('coherente');
     const min = Number(ctx.query.get('min'));
     if (min) store.setPref('lastDur', { ...store.prefs().lastDur, [ex.id]: min });
-    const amb = ctx.query.get('amb');
+    const amb = validAmbient(ctx.query.get('amb'));
     if (amb) store.setPref('ambient', amb);
     const startEl = root.querySelector('#start');
     const startLabel = root.querySelector('#startLabel');
@@ -98,7 +104,7 @@ export default {
         e.preventDefault();
         const href = startEl.getAttribute('href');
         const msg = kid
-          ? `Este ejercicio es para cuando aguantas ${ex.minBolt} s o más en el reto del aire, y tú vas en ${lb.seconds} s. ¿Quieres hacerlo suave, con un adulto cerca?`
+          ? `Este ejercicio es para cuando tu reto del aire llega a ${ex.minBolt} s, y tú vas en ${lb.seconds} s. ¿Quieres hacerlo suave, con un adulto cerca?`
           : `Este ejercicio se recomienda con un BOLT de ${ex.minBolt} s o más y el tuyo es de ${lb.seconds} s. ¿Quieres hacerlo de todos modos, con calma?`;
         askConfirm(msg, { ok: 'Empezar suave', cancel: 'Elegir otro' }).then((ok) => {
           if (ok) ctx.go(href.replace(/^#\//, ''));

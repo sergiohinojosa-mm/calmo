@@ -1,5 +1,6 @@
 import { esc, icon, bar, avatar, DIAS_C, dayKey, addDays, askConfirm } from '../ui.js';
 import { byId, nameFor } from '../catalog.js';
+import * as store from '../store.js';
 
 export const boltLevel = (s) => (s < 10 ? 'Inicio' : s < 20 ? 'Base' : s < 30 ? 'Intermedio' : s < 40 ? 'Avanzado' : 'Meta');
 
@@ -40,16 +41,23 @@ function stepper(d, who, target, label) {
   </div>`;
 }
 
+// Etiqueta «De <maestra>» en las prácticas que asignó la maestra.
+export function fromTeacher(r) {
+  if (r.source !== 'maestra') return '';
+  const t = store.profiles().find((p) => p.id === r.by && p.role === 'maestra');
+  return `<span class="chip" style="margin-top:6px;min-height:24px;font-size:12px;background:rgba(185,222,195,0.14);color:var(--hoja)">De ${esc(t ? t.name : 'tu maestra')}</span>`;
+}
+
 // Fila de una rutina. Los niños la ven sin interruptor ni botón de borrar.
 function routineRow(r, owner, manage, from = 'perfil') {
   const kid = owner.kind !== 'adulto';
   const ex = r.exerciseId ? byId(r.exerciseId) : null;
   const what = r.kind === 'bolt' ? (kid ? 'Reto del aire' : 'Medir BOLT') : `${ex ? nameFor(ex, owner.kind) : 'Sesión'} · ${r.minutes} min`;
   // Dentro de la tarjeta de cada persona (Familia) no cabe el ícono: el texto tiene prioridad.
-  const badge = from === 'familia' ? '' : `<span style="width:40px;height:40px;flex:none;border-radius:14px;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(r.kind === 'bolt' ? 'timer' : 'repeat', 18)}</span>`;
+  const badge = from !== 'perfil' ? '' : `<span style="width:40px;height:40px;flex:none;border-radius:14px;background:rgba(156,197,161,0.12);color:var(--hoja);display:flex;align-items:center;justify-content:center">${icon(r.kind === 'bolt' ? 'timer' : 'repeat', 18)}</span>`;
   const info = `${badge}
     <span style="flex:1;min-width:0"><span style="display:block;font-size:14px;font-weight:600">${esc(r.name)} · ${esc(r.time)}</span>
-      <span class="muted">${esc(freqLabel(r))} · ${esc(what)}${r.active === false ? ' · En pausa' : ''}</span></span>`;
+      <span class="muted">${esc(freqLabel(r))} · ${esc(what)}${r.active === false ? ' · En pausa' : ''}</span>${fromTeacher(r)}</span>`;
   if (!manage) return `<div class="tile row" style="padding:12px 14px">${info}</div>`;
   return `<div class="tile row" style="padding:12px 14px">
     <a href="#/planear?editar=${encodeURIComponent(r.id)}&de=${from}" class="row" style="flex:1;min-width:0;color:inherit;text-decoration:none" aria-label="Editar rutina ${esc(r.name)} ${esc(r.time)}">${info}</a>
@@ -60,7 +68,7 @@ function routineRow(r, owner, manage, from = 'perfil') {
 
 // Para el administrador (en la pestaña Familia): metas y rutinas de cada persona.
 // Las etiquetas son para el adulto que las ajusta, no las de la niña.
-export function familyCard(store, x) {
+export function familyCard(store, x, from = 'familia') {
   const g = store.goals(x.id);
   const kid = x.kind !== 'adulto';
   const goals = GOAL_DEFS.map((d) => {
@@ -70,12 +78,12 @@ export function familyCard(store, x) {
   const list = store.routines(x.id);
   return `<div class="card">
     <div class="row" style="gap:12px">${avatar(x, 44)}
-      <div style="flex:1;min-width:0"><p class="h3" style="margin:0">${esc(x.name)}</p><p class="muted" style="margin:2px 0 0">${esc(kindLabel(x))}</p></div>
+      <div style="flex:1;min-width:0"><h2 class="h3" style="margin:0">${esc(x.name)}</h2><p class="muted" style="margin:2px 0 0">${esc(kindLabel(x))}</p></div>
       <a href="#/calendario?p=${encodeURIComponent(x.id)}" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Calendario</a></div>
     ${goals}
     <div class="between" style="margin-top:14px"><span class="muted">Rutinas</span>
-      <a href="#/planear?p=${encodeURIComponent(x.id)}&de=familia" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a></div>
-    <div class="stack" style="gap:8px">${list.length ? list.map((r) => routineRow(r, x, true, 'familia')).join('') : '<p class="muted" style="margin:0">Sin rutinas todavía.</p>'}</div>
+      <a href="#/planear?p=${encodeURIComponent(x.id)}&de=${from}" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a></div>
+    <div class="stack" style="gap:8px">${list.length ? list.map((r) => routineRow(r, x, true, from)).join('') : '<p class="muted" style="margin:0">Sin rutinas todavía.</p>'}</div>
   </div>`;
 }
 
@@ -120,7 +128,7 @@ export default {
       const left = target - now;
       return `<div class="card" style="padding:14px 16px">
         <div class="between" style="flex-wrap:wrap;row-gap:10px">
-          <div style="min-width:0"><p class="h3" style="margin:0">${esc(kid ? d.kid : d.label)}</p>
+          <div style="min-width:0"><h2 class="h3" style="margin:0">${esc(kid ? d.kid : d.label)}</h2>
             <p class="muted" style="margin:2px 0 0">${d.prefix}: ${now ? `${now}${d.unit}` : 'sin medir'} · ${left > 0 ? `te faltan ${left}${d.unit}` : '¡meta lograda!'}</p></div>
           ${kid
             ? `<span class="num" style="font-size:24px">${target}${d.unit}</span>`
@@ -148,7 +156,7 @@ export default {
           </div>
           ${sparkline(bolts) ? `<div style="margin-top:8px">${sparkline(bolts, '#9CC5A1', 300, 44).replace('width="300"', 'width="100%"')}</div>` : ''}
           <div style="margin-top:10px">${bar(lb ? (lb.seconds / g.bolt) * 100 : 0)}</div>
-          <p class="muted" style="margin:6px 0 14px">${kid ? 'Los segundos que aguantas tranquila' : `Meta ${g.bolt} s${lb ? ` · te faltan ${Math.max(0, g.bolt - lb.seconds)} s` : ' · mídelo al despertar'}`}</p>
+          <p class="muted" style="margin:6px 0 14px">${kid ? 'Los segundos hasta que tu cuerpo te pide aire' : `Meta ${g.bolt} s${lb ? ` · te faltan ${Math.max(0, g.bolt - lb.seconds)} s` : ' · mídelo al despertar'}`}</p>
           <a class="btn primary block" href="#/bolt">${icon('timer', 18)} ${kid ? 'Hacer el reto' : 'Medir BOLT'}</a>
         </div>
         <div class="card">
@@ -166,14 +174,14 @@ export default {
         ${icon('chev', 18, 'style="color:var(--muted)"')}
       </a>
 
-      <div class="between" style="margin-top:22px"><p class="h3" style="margin:0">Mis metas</p>${kid ? '<span class="muted">Las ajustan papá o mamá</span>' : ''}</div>
+      <div class="between" style="margin-top:22px"><h2 class="h3" style="margin:0">Mis metas</h2>${kid ? '<span class="muted">Las ajustan papá o mamá</span>' : ''}</div>
       <div class="stack" style="margin-top:10px">${goals}</div>
 
-      <div class="between" style="margin-top:22px"><p class="h3" style="margin:0">Mis rutinas</p>
-        ${kid ? '' : '<a href="#/planear" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a>'}</div>
+      <div class="between" style="margin-top:22px"><h2 class="h3" style="margin:0">Mis rutinas</h2>
+        ${kid ? '<a href="#/calendario" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Ver mi semana</a>' : '<a href="#/planear?de=perfil" style="font-size:14px;font-weight:500;text-decoration:none;padding:12px 0">Agregar rutina</a>'}</div>
       <div class="stack" style="margin-top:6px">${routineRows}</div>
 
-      <p class="h3" style="margin:22px 0 4px">Más</p>
+      <h2 class="h3" style="margin:22px 0 4px">Más</h2>
       <div>
         ${row('#/logros', 'star', 'Mis logros')}
         ${row('#/consejos', 'sun', 'Consejos de respiración')}

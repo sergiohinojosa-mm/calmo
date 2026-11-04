@@ -12,6 +12,12 @@ const ease = (x) => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, x)));
 const COUNTDOWN = 3;      // segundos de "Prepárate"
 const HINT_EVERY = 35;    // los mensajes de guía rotan cada ~35 s (HU-2.6)
 const AIR = 15;           // "Necesito aire": 15 s de respiración normal
+const FULL = 0.8;         // desde el 80 % la sesión cuenta como rutina cumplida
+const MIN_SAVE = 30;      // con menos de 30 s no se guarda
+const DOTS = 10;          // puntitos de avance de Peque
+// En Peque el dibujo se achica en pantallas bajas para que la frase, los puntitos y los
+// controles (unos 460 px de alto fijo) quepan sin desplazar la pantalla.
+const PEQUE_WRAP = ['vh', 'dvh'].map((u) => `width:clamp(180px,calc(100${u} - 460px - var(--safe-t) - var(--safe-b)),min(80vw,340px))`).join(';');
 
 // Textos del ejercicio para este perfil (otra parte del catálogo puede darlos en versión niña).
 function texts(ex, kind) {
@@ -19,11 +25,13 @@ function texts(ex, kind) {
   return t || {};
 }
 
+// Los textos de niñas y niños no llevan tecnicismos; los de adulto se quedan igual.
 function buildSteps(ex, kind, min) {
+  const kid = kind !== 'adulto';
   const phases = phasesFor(ex, kind);
   const dur = min * 60;
   if (ex.mode === 'ligero') {
-    const on = kind === 'adulto' ? ex.blockOn : ex.juniorBlockOn;
+    const on = kid ? ex.juniorBlockOn : ex.blockOn;
     const steps = [];
     let left = dur;
     while (left > 0) {
@@ -32,7 +40,7 @@ function buildSteps(ex, kind, min) {
       left -= a;
       if (left > 0) {
         const b = Math.min(ex.blockOff, left);
-        steps.push({ kind: 'timed', dur: b, label: 'Respira normal', sub: 'Por la nariz, sin controlar' });
+        steps.push({ kind: 'timed', dur: b, label: 'Respira normal', sub: kid ? 'Respira como siempre, por la nariz' : 'Por la nariz, sin controlar' });
         left -= b;
       }
     }
@@ -40,11 +48,11 @@ function buildSteps(ex, kind, min) {
   }
   if (ex.mode === 'pausas') {
     const steps = [];
-    const rounds = kind === 'adulto' ? ex.rounds : 2;
+    const rounds = kid ? 2 : ex.rounds;
     for (let r = 0; r < rounds; r++) {
       steps.push({ kind: 'measure', round: r + 1 });
-      steps.push({ kind: 'timed', dur: 15, label: 'Recupera', sub: 'Primera respiración pequeña, recupera la calma por la nariz' });
-      steps.push({ kind: 'breath', dur: kind === 'adulto' ? ex.reducedSec : 120, phases, light: true });
+      steps.push({ kind: 'timed', dur: 15, label: kid ? 'Descansa' : 'Recupera', sub: kid ? 'Respira suavecito por la nariz' : 'Primera respiración pequeña, recupera la calma por la nariz' });
+      steps.push({ kind: 'breath', dur: kid ? 120 : ex.reducedSec, phases, light: true });
     }
     steps.push({ kind: 'measure', round: rounds + 1 });
     return steps;
@@ -52,18 +60,19 @@ function buildSteps(ex, kind, min) {
   if (ex.mode === 'destapar') {
     const steps = [];
     for (let r = 0; r < ex.reps; r++) {
-      steps.push({ kind: 'timed', dur: 4, label: 'Exhala y tápate la nariz', sub: `Repetición ${r + 1} de ${ex.reps}` });
-      steps.push({ kind: 'hold', max: 45, label: 'Mueve la cabeza arriba y abajo', sub: 'Toca cuando sientas falta de aire moderada' });
-      steps.push({ kind: 'timed', dur: 45, label: 'Suelta y respira calmado', sub: 'Primera respiración pequeña, recupera la calma por la nariz' });
+      steps.push({ kind: 'timed', dur: 4, label: kid ? 'Suelta el aire y tápate la nariz' : 'Exhala y tápate la nariz', sub: `${kid ? 'Vuelta' : 'Repetición'} ${r + 1} de ${ex.reps}` });
+      steps.push({ kind: 'hold', max: 45, label: 'Mueve la cabeza arriba y abajo', sub: kid ? 'Toca cuando tengas ganas de respirar' : 'Toca cuando sientas falta de aire moderada' });
+      steps.push({ kind: 'timed', dur: 45, label: kid ? 'Suelta la nariz y descansa' : 'Suelta y respira calmado', sub: kid ? 'Respira suavecito por la nariz' : 'Primera respiración pequeña, recupera la calma por la nariz' });
     }
     return steps;
   }
   return [{ kind: 'breath', dur, phases, alternate: ex.alternate }];
 }
 
+// En Peque la frase tiene alto fijo (dos renglones) para que nada salte al cambiar de fase.
 function breathText(peque) {
-  return `<div class="breath-text">
-    <p class="serif" id="phase" style="margin:0;font-size:${peque ? 36 : 30}px" aria-live="polite">Prepárate</p>
+  return `<div class="breath-text"${peque ? ' style="width:100%;max-width:340px;flex:none"' : ''}>
+    <p class="serif" id="phase" style="margin:0;font-size:${peque ? 34 : 30}px${peque ? ';line-height:1.15;height:2.4em;display:flex;align-items:center;justify-content:center;overflow:hidden' : ''}" aria-live="polite">Prepárate</p>
     <p class="num" id="count" style="margin:4px 0 0;font-size:${peque ? 56 : 44}px;color:var(--hoja)">3</p>
     <p id="nose" class="muted" style="margin:2px 0 0;display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)">${icon('nose', 14)} <span id="noseTxt">por la nariz</span></p>
   </div>`;
@@ -92,18 +101,20 @@ export default {
         <div style="text-align:center"><p style="margin:0;font-size:14px;font-weight:500">${esc(name)}</p><p class="muted" style="margin:2px 0 0">${peque ? 'Con mamá o papá' : esc(amb.label)}</p></div>
         <button class="icon-btn" id="dim" aria-label="Bajar luz" style="background:rgba(238,243,236,0.06);color:var(--text2)">${icon('moon', 18)}</button>
       </div>
-      <div class="breath-wrap" ${peque ? 'style="width:min(90vw,380px)"' : ''}>
+      <div class="breath-wrap" ${peque ? `style="${PEQUE_WRAP};flex:none;margin:18px 0 8px"` : ''}>
         <div class="blob a"></div><div class="blob b"></div>
         <div class="orb" id="orb"></div>
-        ${peque ? `<svg id="art" width="230" height="230" viewBox="0 0 70 70" aria-hidden="true" style="position:absolute;will-change:transform">${PEQUE_ART[ex.kidVisual] || ''}</svg>` : ''}
+        ${peque ? `<svg id="art" viewBox="0 0 70 70" aria-hidden="true" style="position:absolute;width:68%;height:68%;will-change:transform">${PEQUE_ART[ex.kidVisual] || ''}</svg>` : ''}
         ${peque ? '' : breathText(false)}
       </div>
       ${peque ? breathText(true) : ''}
-      <p id="hint" class="serif" style="font-style:italic;font-size:17px;line-height:1.5;color:#C9D6CB;text-align:center;min-height:52px;margin:6px 20px 0"></p>
-      <div style="width:100%;max-width:340px;margin-top:auto;position:relative;z-index:2${peque ? ';visibility:hidden' : ''}" ${peque ? 'aria-hidden="true"' : ''}>
+      <p id="hint" class="serif" style="font-style:italic;font-size:17px;line-height:1.5;color:#C9D6CB;text-align:center;${peque ? 'min-height:2.8em;flex:none' : 'min-height:52px'};margin:6px 20px 0"></p>
+      ${peque ? `<div id="dots" role="progressbar" aria-label="Cuánto falta" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="display:flex;justify-content:center;gap:10px;margin-top:auto;position:relative;z-index:2;flex:none">
+        ${Array.from({ length: DOTS }, () => '<i style="display:block;width:16px;height:16px;border-radius:50%;background:rgba(238,243,236,0.12);transition:background .5s,transform .5s"></i>').join('')}
+      </div>` : `<div style="width:100%;max-width:340px;margin-top:auto;position:relative;z-index:2">
         <div class="between muted" style="font-variant-numeric:tabular-nums"><span id="remain"></span><span id="stepInfo"></span></div>
         <div class="bar" style="margin-top:8px;height:4px"><i id="prog" style="width:0%"></i></div>
-      </div>
+      </div>`}
       <div class="row" style="justify-content:center;gap:22px;margin-top:22px;position:relative;z-index:2">
         <button class="btn small" id="end">Terminar</button>
         <button class="icon-btn" id="pause" aria-label="Pausar" style="width:72px;height:72px;background:var(--sage);color:var(--on-sage)">${icon('pause', 26)}</button>
@@ -122,15 +133,20 @@ export default {
     if (ex.mode === 'serie') { go('serie'); return null; }
     const kind = ctx.profile.kind;
     const peque = kind === 'peque';
+    const kid = kind !== 'adulto';
     const prefs = store.prefs();
     const tx = texts(ex, kind);
     const min = Math.max(1, Number(query.get('min')) || tx.defaultMin || ex.defaultMin);
     const steps = buildSteps(ex, kind, min);
     const total = steps.reduce((a, s) => a + stepLength(s), 0);
+    // Minutos de la sesión completa, para el resumen ("la próxima vamos por los 5").
+    const plannedMin = ex.mode === 'pausas' || ex.mode === 'destapar' ? Math.max(1, Math.round(total / 60)) : min;
     const $ = (id) => root.querySelector('#' + id);
-    const el = { ses: $('ses'), orb: $('orb'), art: $('art'), phase: $('phase'), count: $('count'), nose: $('nose'), noseTxt: $('noseTxt'), hint: $('hint'), remain: $('remain'), info: $('stepInfo'), prog: $('prog'), pause: $('pause'), air: $('air'), tap: $('tap'), startTap: $('startTap') };
+    const el = { ses: $('ses'), orb: $('orb'), art: $('art'), phase: $('phase'), count: $('count'), nose: $('nose'), noseTxt: $('noseTxt'), hint: $('hint'), remain: $('remain'), info: $('stepInfo'), prog: $('prog'), dots: $('dots'), pause: $('pause'), air: $('air'), tap: $('tap'), startTap: $('startTap') };
+    const dots = el.dots ? [...el.dots.children] : [];
+    let lastDot = -1;
     const hints = (tx.hints && tx.hints.length ? tx.hints : ex.hints) || [];
-    const routineId = query.get('rutina') || undefined;
+    const routineId = /^[\w-]{1,40}$/.test(query.get('rutina') || '') ? query.get('rutina') : undefined;
 
     const voice = (text) => {
       if (!peque || !('speechSynthesis' in window)) return;
@@ -179,7 +195,7 @@ export default {
     // La etiqueta de la fase se recuerda para volver a mostrarla al reanudar.
     const setPhase = (text) => {
       curLabel = text;
-      if (pausedAt === null) el.phase.textContent = text;
+      if (pausedAt === null && el.phase.textContent !== text) el.phase.textContent = text;
     };
     const setHint = (text) => { el.hint.textContent = text; lastHint = -1; };
 
@@ -236,8 +252,9 @@ export default {
       const t = (airStart !== null ? airStart : T) - stepStart;
 
       if (airStart !== null) {
+        const airHint = kid ? 'Respira como siempre, por la nariz' : 'Respira normal, sin controlar';
         setPhase('Respira normal');
-        if (el.hint.textContent !== 'Respira normal, sin controlar') setHint('Respira normal, sin controlar');
+        if (el.hint.textContent !== airHint) setHint(airHint);
         el.count.textContent = String(Math.max(1, Math.ceil(airStart + AIR - T)));
         setOrb(0.8 + 0.03 * Math.sin(performance.now() / 700), PHASE.wait.color);
       } else if (step.kind === 'breath') {
@@ -281,14 +298,15 @@ export default {
       } else if (step.kind === 'measure') {
         if (lastKey !== `${si}`) {
           lastKey = `${si}`;
-          setPhase(`Pausa de control ${step.round}`);
-          setHint('Exhala normal, tápate la nariz y toca la pantalla para empezar.');
+          setPhase(kid ? `Reto del aire ${step.round}` : `Pausa de control ${step.round}`);
+          setHint(kid ? 'Suelta el aire por la nariz, tápate la nariz y toca para empezar.' : 'Exhala normal, tápate la nariz y toca la pantalla para empezar.');
           el.count.textContent = '·';
-          tapMode(true, 'Empezar pausa de control');
+          tapMode(true, kid ? 'Empezar el reto' : 'Empezar pausa de control');
         }
         if (measure.state === 'running') {
           el.count.textContent = String(Math.floor(T - measure.start));
-          if (el.hint.textContent !== 'Toca al primer deseo de respirar.') setHint('Toca al primer deseo de respirar.');
+          const firstWish = kind === 'adulto' ? 'Toca al primer deseo de respirar.' : 'Toca en cuanto tengas ganas de respirar.';
+          if (el.hint.textContent !== firstWish) setHint(firstWish);
         } else if (measure.state === 'shown' && T >= measure.until) {
           tapMode(false);
           next(T);
@@ -296,12 +314,36 @@ export default {
         setOrb(0.86, PHASE.hold.color);
       }
 
-      const cur = steps[si];
-      const elapsed = done + (cur && cur.kind !== 'measure' && cur.kind !== 'hold' ? Math.min(Math.max(0, t), stepLength(cur)) : 0);
-      el.prog.style.width = `${total ? Math.min(100, (elapsed / total) * 100) : 0}%`;
-      el.remain.textContent = total ? `Quedan ${clock(Math.max(0, total - elapsed))}` : '';
-      el.info.textContent = ex.mode === 'pausas' ? `Pausas: ${pauses.map((v) => `${v} s`).join(' · ') || '—'}` : '';
+      const elapsed = elapsedAt(T);
+      const frac = total ? Math.min(1, elapsed / total) : 0;
+      if (el.prog) el.prog.style.width = `${frac * 100}%`;
+      if (el.remain) el.remain.textContent = total ? `Quedan ${clock(Math.max(0, total - elapsed))}` : '';
+      if (el.info) {
+        const list = pauses.map((v) => `${v} s`).join(' · ');
+        el.info.textContent = ex.mode !== 'pausas' ? '' : kid ? `Tus retos${list ? `: ${list}` : ''}` : `Pausas: ${list || '—'}`;
+      }
+      paintDots(frac);
       raf = requestAnimationFrame(frame);
+    }
+
+    // Segundos avanzados de la sesión: las mediciones y retenciones no tienen duración fija y no cuentan.
+    function elapsedAt(T) {
+      const cur = steps[si];
+      const t = (airStart !== null ? airStart : T) - stepStart;
+      return done + (cur && cur.kind !== 'measure' && cur.kind !== 'hold' ? Math.min(Math.max(0, t), stepLength(cur)) : 0);
+    }
+
+    // Peque ve puntitos que se van llenando: cuando se llenan todos, terminó.
+    function paintDots(frac) {
+      if (!dots.length) return;
+      const n = Math.min(DOTS, Math.floor(frac * DOTS));
+      if (n === lastDot) return;
+      lastDot = n;
+      dots.forEach((d, i) => {
+        d.style.background = i < n ? 'var(--hoja)' : i === n ? 'rgba(185,222,195,0.4)' : 'rgba(238,243,236,0.12)';
+        d.style.transform = i === n ? 'scale(1.25)' : 'scale(1)';
+      });
+      el.dots.setAttribute('aria-valuenow', String(Math.round(frac * 100)));
     }
 
     function setPaused(on, why) {
@@ -315,7 +357,7 @@ export default {
       } else {
         pausedTotal += performance.now() - pausedAt;
         pausedAt = null;
-        el.phase.textContent = curLabel;
+        if (el.phase.textContent !== curLabel) el.phase.textContent = curLabel;
         lastHint = -1;
         audio.resumeAmbient();
         try { speechSynthesis.resume(); } catch (e) { /* sin voz */ }
@@ -341,29 +383,40 @@ export default {
       document.removeEventListener('visibilitychange', onVisibility);
     }
 
+    // complete: false si se terminó antes del 80 %: se guarda, pero la rutina no queda cumplida.
     function save(complete) {
       if (finished) return;
       const secs = Math.round(Math.max(0, now() - COUNTDOWN));
       teardown();
-      const res = store.addSession({ exerciseId: ex.id, startedAt, durationSec: Math.max(secs, peque && complete ? 30 : secs), controlPauses: pauses.length ? pauses : undefined, routineId });
+      const res = store.addSession({ exerciseId: ex.id, startedAt, durationSec: Math.max(secs, peque && complete ? 30 : secs), controlPauses: pauses.length ? pauses : undefined, routineId, complete });
       try {
         sessionStorage.setItem('calmo.last', JSON.stringify({
           exerciseId: ex.id, durationSec: res.session.durationSec, minutePoints: res.minutePoints, plannedPoints: res.plannedPoints,
-          routineName: res.routine?.name || '', newBadges: res.newBadges.map((b) => b.id), controlPauses: pauses, complete, sessionId: res.session.id,
+          routineName: res.routine?.name || '', newBadges: res.newBadges.map((b) => b.id), controlPauses: pauses, complete, plannedMin, sessionId: res.session.id,
         }));
       } catch (e) { /* sin sessionStorage */ }
       go('resumen');
     }
 
-    // Terminar antes: con menos de 30 s no se guarda, y se avisa antes de salir.
+    // Terminar antes: desde el 80 % cuenta completa; con 30 s o más se guarda sin marcar la rutina;
+    // con menos de 30 s no se guarda y se pregunta antes de salir. Peque siempre pregunta, con «Seguir» primero.
     function requestEnd() {
       if (finished) return;
       if (!started) { teardown(); go('inicio'); return; }
-      if (now() - COUNTDOWN >= 30) { save(false); return; }
+      const T = now();
+      if (total && elapsedAt(T) / total >= FULL) { save(true); return; }
+      const enough = T - COUNTDOWN >= MIN_SAVE;
+      if (enough && !peque) { save(false); return; }
       const wasPaused = pausedAt !== null;
       setPaused(true);
-      askConfirm('Llevas menos de 30 segundos y no se guardará. ¿Salir?', { ok: 'Salir', cancel: 'Seguir' }).then((ok) => {
-        if (ok) { teardown(); go('inicio'); } else if (!wasPaused) setPaused(false);
+      const ask = kid
+        ? askConfirm(enough ? '¿Ya te vas? Todavía falta un poquito.' : '¿Ya te vas? Si sales ahora no cuenta.', { ok: 'Seguir', cancel: 'Salir', outside: true, focus: 'ok' }).then((stay) => !stay)
+        : askConfirm('Llevas menos de 30 segundos y no se guardará. ¿Salir?', { ok: 'Salir', cancel: 'Seguir' });
+      ask.then((leave) => {
+        if (finished) return;
+        if (!leave) { if (!wasPaused) setPaused(false); return; }
+        if (enough) save(false);
+        else { teardown(); go('inicio'); }
       });
     }
 
@@ -387,13 +440,13 @@ export default {
       const T = now();
       if (step.kind === 'hold') { tapMode(false); next(T); return; }
       if (step.kind === 'measure') {
-        if (measure.state === 'ready') { measure = { state: 'running', start: T }; tapMode(true, 'Detener pausa de control'); }
+        if (measure.state === 'ready') { measure = { state: 'running', start: T }; tapMode(true, kid ? 'Ya quiero respirar' : 'Detener pausa de control'); }
         else if (measure.state === 'running') {
           const v = Math.round(T - measure.start);
           pauses.push(v);
           measure = { state: 'shown', until: T + 2.2 };
-          setPhase(`${v} segundos`);
-          setHint('Primera respiración pequeña, recupera la calma.');
+          setPhase(kid ? `¡${v} segundos!` : `${v} segundos`);
+          setHint(kid ? '¡Muy bien! Respira suavecito por la nariz.' : 'Primera respiración pequeña, recupera la calma.');
           tapMode(false);
         }
       }

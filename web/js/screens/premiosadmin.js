@@ -1,9 +1,11 @@
 // Premios de la familia para papá y mamá: aprobar lo que piden las niñas y
-// cambiar la lista. Se llega desde un perfil de adulto, que ya pidió su PIN.
+// cambiar la lista. Aprobar pide el PIN del adulto (o que lo cree si no tiene),
+// por si el teléfono se quedó abierto en su perfil.
 
-import { esc, icon, avatar, toast, confetti, askConfirm, plural, MESES } from '../ui.js';
+import { esc, icon, avatar, toast, confetti, askConfirm, askPin, plural, MESES } from '../ui.js';
 
 const shortDate = (iso) => {
+  if (!iso) return '';
   const d = new Date(iso);
   return `${d.getDate()} ${MESES[d.getMonth()].slice(0, 3)}`;
 };
@@ -59,7 +61,7 @@ export default {
         <span style="flex:1;min-width:0"><span style="display:block;font-weight:600">${esc(r.name)}</span>
         <span class="muted">${r.cost} hojas${r.active ? '' : ' · pausado'}</span></span>
         <button class="btn small" data-toggle="${esc(r.id)}">${r.active ? 'Pausar' : 'Activar'}</button>
-        <button class="icon-btn" data-edit="${esc(r.id)}" aria-label="Editar ${esc(r.name)}">${icon('gear', 18)}</button>
+        <button class="icon-btn" data-edit="${esc(r.id)}" aria-label="Editar ${esc(r.name)}">${icon('edit', 18)}</button>
       </div>`)).join('');
 
     const hist = decided.length ? `<p class="label">Historial</p>
@@ -79,16 +81,40 @@ export default {
   },
   mount(root, ctx) {
     const { store, rerender } = ctx;
-    if (ctx.profile.kind !== 'adulto') return null;
+    const me = ctx.profile;
+    if (me.kind !== 'adulto') return null;
+    // Para enfocar el nombre hay que esperar a que la pantalla se vuelva a dibujar.
+    const focusForm = async (id) => {
+      await rerender();
+      root.querySelector(`[data-form="${CSS.escape(id)}"] [name="name"]`)?.focus();
+    };
+    let asking = false;
+    const approve = async (id) => {
+      const r = store.pendingRedemptions().find((x) => x.id === id);
+      if (!r) { rerender(); return; }
+      const kid = store.profile(r.profile);
+      const who = kid && kid.id === r.profile ? kid.name : 'Alguien';
+      if (store.hasPin(me.id)) {
+        const ok = await askPin({ title: `Aprobar: ${r.name}`, sub: `${who} lo pidió. Escribe el PIN de ${me.name}.`, check: (pin) => store.checkPin(me.id, pin) });
+        if (!ok) return;
+      } else {
+        const pin = await askPin({ title: 'Crea tu PIN para aprobar premios', sub: 'Así solo papá o mamá pueden aprobar. Lo escribirás dos veces.', create: true });
+        if (!pin) return;
+        store.setPin(me.id, pin);
+      }
+      // Pudo decidirse en otro teléfono mientras se escribía el PIN.
+      if (!store.pendingRedemptions().some((x) => x.id === id)) { toast('Ese premio ya se había decidido'); rerender(); return; }
+      store.decideRedemption(id, true);
+      confetti();
+      toast(`Aprobado: ${r.name}. ¡A disfrutarlo!`);
+      rerender();
+    };
     const onClick = async (e) => {
       const t = (attr) => e.target.closest(`[data-${attr}]`);
       if (t('ok')) {
-        const id = t('ok').dataset.ok;
-        const r = store.pendingRedemptions().find((x) => x.id === id);
-        store.decideRedemption(id, true);
-        confetti();
-        toast(r ? `Aprobado: ${r.name}. ¡A disfrutarlo!` : 'Aprobado');
-        rerender();
+        if (asking) return;
+        asking = true;
+        try { await approve(t('ok').dataset.ok); } finally { asking = false; }
       } else if (t('later')) {
         const ok = await askConfirm('¿Lo dejamos para después? Sus hojas regresan.', { ok: 'Sí, ahora no', cancel: 'Cancelar' });
         if (ok) { store.decideRedemption(t('later').dataset.later, false); rerender(); }
@@ -96,10 +122,11 @@ export default {
         const r = store.rewards({ all: true }).find((x) => x.id === t('toggle').dataset.toggle);
         if (r) { store.saveReward({ ...r, active: !r.active }); rerender(); }
       } else if (t('edit')) {
-        editing = t('edit').dataset.edit; rerender();
+        editing = t('edit').dataset.edit;
+        focusForm(editing);
       } else if (t('new')) {
-        editing = 'nuevo'; rerender();
-        root.querySelector('[data-form="nuevo"] [name="name"]')?.focus();
+        editing = 'nuevo';
+        focusForm('nuevo');
       } else if (t('cancel')) {
         editing = null; rerender();
       }
